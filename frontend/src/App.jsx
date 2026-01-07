@@ -11,13 +11,13 @@ import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 
 export const ThemeContext = createContext({
-  isDarkMode: true,
+  isDarkMode: false,
   toggleTheme: () => { }
 })
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const toggleTheme = () => setIsDarkMode(v => !v)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const toggleTheme = () => setIsDarkMode(t => !t)
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>

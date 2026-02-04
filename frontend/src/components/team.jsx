@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-function Blog() {
+function Team() {
   const TEAM = [
     "Aarav","Anabel","Kunal","Sneha","Aditya","Pooja",
     "Rahul","Ananya","Dev","Build","Ship","Scale",
@@ -259,4 +259,4 @@ function Blog() {
   );
 }
 
-export default Blog;
+export default Team;

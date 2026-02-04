@@ -9,7 +9,6 @@ const Header = () => {
     <div>
       <div className="space-x-4">
         <Link to="/">Home</Link>
-        <Link to="/about">About</Link>
         <Link to="/blog">Blog</Link>
         <Link to="/team">Team</Link>
         <Link to="/videos">Videos</Link>

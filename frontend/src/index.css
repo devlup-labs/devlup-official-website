@@ -1,1 +1,138 @@
 @import "tailwindcss";
+
+@import "tailwindcss";
+
+:root {
+  /* Backgrounds */
+  --bg-main: #f5f8fc;          /* page background */
+  --bg-surface: #ffffff;      /* cards, navbar */
+  --bg-muted: #eaf0f8;        /* secondary sections */
+  --bg-card:#EEF4FF;
+  /* Text */
+  --text-primary: #0f1e3a;    /* headings */
+  --text-secondary: #4a628a;  /* body text */
+  --text-muted: #7b8fb3;      /* labels, meta */
+  --text-heading: #1F2A44;
+ 
+  
+  /* Brand Colors */
+  --color-primary: #4F7DFF;
+  --color-secondary: #6FA3FF;
+  --color-accent: #4CC9F0;
+
+  /* Primary Blues */
+  --primary-900: #0b1f3b;     
+  --primary-700: #1e3a8a;
+  --primary-500: #2563eb;     /* main action */
+  --primary-300: #93c5fd;
+  --primary-100: #e0edff;
+
+  /* Borders & Dividers */
+  --border-subtle: #dbe4f3;
+  --divider-color: #E6ECFF;
+  /* Buttons */
+  --btn-primary-bg: #2563eb;
+  --btn-primary-bg1: #4F7DFF;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #e0edff;
+   --btn-secondary-bg1: #E8EEFF;
+  --btn-secondary-text: #1e3a8a;
+  --btn-secondary-text1: #4F7DFF;
+  /* Accents */
+  --accent-red: #e11d48;      /* logo / rare highlights */
+
+  /* Effects */
+  --shadow-soft: 0 8px 24px rgba(15, 30, 58, 0.08);
+  --glow-blue: 0 0 0 rgba(0,0,0,0); /* no glow in light */
+
+
+/* ---------- Gradients ---------- */
+
+  /* Hero / Page Background */
+  --gradient-bg: linear-gradient(
+    180deg,
+    #EAF1FF 0%,
+    #F5F8FF 60%,
+    #FFFFFF 100%
+  );
+
+  /* Button Gradient */
+  --gradient-primary: linear-gradient(
+    135deg,
+    #6FA3FF,
+    #4F7DFF
+  );
+
+  /* Card Glow */
+  --gradient-card-glow: radial-gradient(
+    circle at top left,
+    rgba(79, 125, 255, 0.15),
+    transparent 60%
+  );
+
+}
+
+[data-theme="dark"] {
+  /* Backgrounds */
+  --bg-main: #050b1a;         /* deep canvas */
+  --bg-surface: #0b1530;      /* cards */
+  --bg-muted: #0f1c3f;        /* sections */
+  --bg-card:#111E44;
+
+  /* Text */
+  --text-primary: #e6eeff;    /* headings */
+  --text-secondary: #a8b8e6;  /* body */
+  --text-muted: #6b7fb3;
+  --text-muted1: #8896CC;
+
+  /* Primary Blues */
+  --primary-900: #0a1b3d;
+  --primary-700: #1d4ed8;
+  --primary-500: #3b82f6;     /* main action */
+  --primary-300: #60a5fa;
+  --primary-100: #1e293b;
+
+  /* Borders & Dividers */
+  --border-subtle: #1f2a44;
+  --border-color: #1F2C5C;
+  --divider-color: #23336A; 
+
+  /* Buttons */
+  --btn-primary-bg: #3b82f6;
+    --btn-primary-bg1: #5B8CFF;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #0f1c3f;
+  --btn-secondary-bg1: #1A2A5C;
+  --btn-secondary-text: #93c5fd;
+ --btn-secondary-text1: #EAF0FF;
+  /* Accents */
+  --accent-red: #ef4444;
+
+  /* Effects */
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --glow-blue: 0 0 32px rgba(59, 130, 246, 0.35);
+
+   /* ---------- Gradients ---------- */
+
+  /* Hero / Page Background */
+  --gradient-bg: linear-gradient(
+    180deg,
+    #0B1224 0%,
+    #0F1A3A 50%,
+    #111E44 100%
+  );
+
+  /* Button Gradient */
+  --gradient-primary: linear-gradient(
+    135deg,
+    #7AA2FF,
+    #5B8CFF
+  );
+
+  /* Card Glow */
+  --gradient-card-glow: radial-gradient(
+    circle at top left,
+    rgba(91, 140, 255, 0.18),
+    transparent 60%
+  );
+}

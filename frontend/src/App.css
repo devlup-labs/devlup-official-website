@@ -1,1 +1,25 @@
-@import "tailwindcss";
+.topControls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0;
+
+  /* smooth, premium glide */
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Search only → slight right (unchanged) */
+.glide-search {
+  transform: translateX(40px);
+}
+
+/* 🔥 Filter only → move MORE to left */
+.glide-filter {
+  transform: translateX(-120px);   /* was -40px */
+}
+
+/* Both active → move even more left */
+.glide-both {
+  transform: translateX(-120px);
+}

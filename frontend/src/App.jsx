@@ -9,6 +9,7 @@ import Timeline from './pages/Timeline.jsx'
 import Videos from './pages/Videos.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
+import ProfileLayout  from "./components/Portfolio.jsx";
 
 export const ThemeContext = createContext({
   isDarkMode: false,
@@ -18,6 +19,7 @@ export const ThemeContext = createContext({
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const toggleTheme = () => setIsDarkMode(t => !t)
+  const [showSensitive, setShowSensitive] = useState(false);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
@@ -35,7 +37,13 @@ function App() {
           <Footer />
         </BrowserRouter>
       </div>
+      <ProfileLayout
+      showSensitive={showSensitive}
+      onReveal={() => setShowSensitive(true)}
+      onBack={() => setShowSensitive(false)}
+    />
     </ThemeContext.Provider>
+    
   )
 }
 

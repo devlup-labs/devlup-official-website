@@ -241,7 +241,7 @@ function Team() {
               <div
                 onTransitionEnd={() => onCardTransitionEnd(tile.id)}
                 className="flex items-center justify-center
-                           bg-white/10 border border border-[var(--border-subtle)]
+                           bg-[var(--bg-surface)] border border border-[var(--border-subtle)]
                            rounded-full cursor-pointer select-none"
                 style={{
                   width: TILE_SIZE,

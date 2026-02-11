@@ -20,7 +20,7 @@ function HeaderComponent() {
       <div className="flex items-center justify-between px-6 py-4">
 
         {/* LEFT */}
-        <div className="bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-hover)] backdrop-blur-md border hover:scale-110 border-[var(--border-subtle)] rounded-xl flex items-center gap-3 px-6 py-2 hover:cursor-pointer">
+        <div className="bg-[var(--bg-surface)] hover:bg-[var(--bg-muted)] backdrop-blur-md border hover:scale-110 border-[var(--border-subtle)] rounded-xl flex items-center gap-3 px-6 py-2 hover:cursor-pointer">
           <img
             src="/logo.jpeg"
             alt="Club Logo"
@@ -40,7 +40,7 @@ function HeaderComponent() {
     border border-[var(--border-subtle)]
     rounded-xl
     transition-transform duration-200
-    ${!open ? "hover:scale-110 hover:bg-[var(--bg-surface-hover)]" : "scale-100"}
+    ${!open ? "hover:scale-110 hover:bg-[var(--bg-muted)]" : "scale-100"}
   `}
 >
 

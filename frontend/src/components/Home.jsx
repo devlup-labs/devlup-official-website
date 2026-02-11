@@ -42,7 +42,7 @@ useEffect(() => {
     <div className="relative h-screen w-full bg-[url('/construction.jpg')] bg-cover bg-center">
       
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/70" />
+      <div className="absolute inset-0 bg-[var(--bg-main)] " />
 
       {/* Content */}
       <div className="relative z-10 h-full max-w-7xl mx-auto px-8 flex items-center">
@@ -52,7 +52,7 @@ useEffect(() => {
           {/* LEFT SIDE */}
           <div
             ref={leftRef}
-            className="text-white flex flex-col justify-center"
+            className="text-[var(--text-primary)] flex flex-col justify-center"
           >
             <div className="flex items-start gap-4">
               <div className="w-1 bg-yellow-500 h-32 mt-2" />
@@ -61,7 +61,7 @@ useEffect(() => {
               </h1>
             </div>
 
-            <p className="mt-6 text-gray-300 max-w-lg">
+            <p className="mt-6 text-[var(--text-primary)] max-w-lg">
               DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.
               We believe in sharing of ideas and upskilling by collaboration through meaningful projects.
               Our focus is to deliver results with the highest of standards.
@@ -73,7 +73,7 @@ useEffect(() => {
           {/* RIGHT SIDE */}
           <div
             ref={rightRef}
-            className="text-white flex flex-col justify-center"
+            className="text-[var(--text-primary)] flex flex-col justify-center"
           >
             <h3 className="text-yellow-500 text-xl font-semibold mb-8">
               Guiding Principles
@@ -85,7 +85,7 @@ useEffect(() => {
                 <div className="text-yellow-500 text-4xl">👥</div>
                 <div>
                   <h4 className="font-semibold text-lg">Open Source Community</h4>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-[var(--text-primary)] text-sm">
                     An open and collaborative environment where learning,
                     contribution, and innovation go hand in hand.
                   </p>
@@ -96,7 +96,7 @@ useEffect(() => {
                 <div className="text-yellow-500 text-4xl">🧠</div>
                 <div>
                   <h4 className="font-semibold text-lg">Learning Driven Endeavour</h4>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-[var(--text-primary)] text-sm">
                     Everything we do is rooted in learning.
                     Growth comes before outcomes—every project is an opportunity to evolve together.
                   </p>
@@ -107,7 +107,7 @@ useEffect(() => {
                 <div className="text-yellow-500 text-4xl">✨</div>
                 <div>
                   <h4 className="font-semibold text-lg">Unparalleled Standards</h4>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-[var(--text-primary)] text-sm">
                     We maintain the highest standards in all our projects and initiatives.
                     Every contribution is carefully reviewed and refined to ensure excellence.
                   </p>

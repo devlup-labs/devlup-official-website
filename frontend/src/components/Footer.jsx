@@ -80,7 +80,7 @@ const Footer = () => {
       {/* FOOTER (LAST) */}
       <footer
         ref={refFooter}
-        className="relative w-full h-[300px] bg-[#020617] overflow-hidden flex items-center justify-center font-sans"
+        className="relative w-full h-[200px] bg-[#020617] overflow-hidden flex items-center justify-center font-sans"
       >
         {/* Falling Dot */}
         <div

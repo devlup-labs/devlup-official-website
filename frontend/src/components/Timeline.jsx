@@ -1,12 +1,12 @@
 
 import { useState } from "react";
-import CircuitTree from "./circuitTree";
-import RoadmapCard from "./roadmapCard";
-import CameraRig from "./cameraRig";
-import { branches } from "./data";
+import CircuitTree from "./Timeline/circuitTree";
+import RoadmapCard from "./Timeline/roadmapCard";
+import CameraRig from "./Timeline/cameraRig";
+import { branches } from "./Timeline/data";
 
 
-export default function Flipping() {
+export default function Timeline() {
   const [activeCard, setActiveCard] = useState(null);
   const [cameraFocus, setCameraFocus] = useState(null);
   const [flippedCards, setFlippedCards] = useState({});

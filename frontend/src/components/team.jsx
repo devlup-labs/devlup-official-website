@@ -219,7 +219,7 @@ function Team() {
 
   /* ================= JSX ================= */
   return (
-    <section className="relative h-[300vh] bg-black text-white">
+    <section className="relative h-[300vh] bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
       <div
         className="sticky top-0 h-screen overflow-hidden
                    flex items-center justify-center"
@@ -241,7 +241,7 @@ function Team() {
               <div
                 onTransitionEnd={() => onCardTransitionEnd(tile.id)}
                 className="flex items-center justify-center
-                           bg-white/10 border border-white/20
+                           bg-white/10 border border border-[var(--border-subtle)]
                            rounded-full cursor-pointer select-none"
                 style={{
                   width: TILE_SIZE,

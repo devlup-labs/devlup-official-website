@@ -62,7 +62,7 @@ function Home() {
           const exit = localProgress - 1;
           x += layer.rx * exit * 3;
           y += layer.ry * exit * 3;
-        }
+        }7
 
         let blur = 0;
         if (localProgress < 0.25) {
@@ -93,10 +93,13 @@ function Home() {
   }, [layers]);
 
   return (
-    <section id="tunnel-section" className="relative h-[500vh] bg-black">
-      <div className="sticky top-0 h-screen overflow-visible">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#7c3aed_0%,_#2563eb_40%,_#0f172a_90%)]" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-blue-400/20 to-teal-300/20 blur-3xl" />
+    <section id="tunnel-section" className="relative h-[500vh] bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-1">
+      <div className="sticky top-0 h-screen overflow-hidden">
+
+        {/* BACKGROUND */}
+        <div className="absolute inset-0 bg-[var(--bg-main)]" />
+        {/* <div className="absolute inset-0 bg-black/20 dark:bg-black/50" /> */}
+
 
         {layers.map((layer, i) => (
           <div
@@ -106,11 +109,12 @@ function Home() {
               absolute left-1/2 top-1/2
               w-56 h-72
               rounded-2xl
-              bg-white/10 backdrop-blur-xl
-              border border-white/20
-              flex items-center justify-center
-              text-white text-xl font-semibold
-              will-change-transform
+             bg-[var(--bg-surface)]
+             backdrop-blur-xl
+             border border-[var(--border-subtle)]
+             flex items-center justify-center
+             text-[var(--text-primary)]
+             text-xl font-semibold
             "
           >
             {layer.Text}

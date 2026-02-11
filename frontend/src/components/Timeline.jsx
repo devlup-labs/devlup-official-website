@@ -19,8 +19,19 @@ export default function Timeline() {
   };
 
   return (
-    <div className="relative min-h-[300vh] overflow-hidden">
+    <div className="relative min-h-[300vh] overflow-hidden pt-64">
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
+ 
+
+     {/* HEADING HERE */}
+    <div className="absolute top-24 w-full text-center z-20 pointer-events-none">
+      <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
+        Our Learning Timeline
+      </h1>
+      <p className="mt-2  text-[var(--text-primary)]">
+        Explore the journey branch by branch
+      </p>
+    </div>
 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
         <CircuitTree activeCard={activeCard} flippedCards={flippedCards} />
@@ -135,7 +146,7 @@ export default function Timeline() {
 //   useEffect(() => {
 //   const ctx = gsap.context(() => {
 
-//     // 🔹 CENTER LINE (draws first)
+//     //  CENTER LINE (draws first)
 //     gsap.fromTo(
 //       lineRef.current,
 //       {
@@ -149,11 +160,11 @@ export default function Timeline() {
 //           trigger: lineRef.current,
 //           start: "top 70%",
 //           end: "bottom 20%",
-//           scrub: true, // 🔥 scroll controls drawing
+//           scrub: true, //  scroll controls drawing
 //         },
 //   }, lineRef);
 
-//     // 🔹 CARD SLIDE-IN (one time)
+//     //  CARD SLIDE-IN (one time)
 //    gsap.utils.toArray(".timeline-item").forEach((item, index) => {
 //   const fromX = index % 2 === 0 ? -80 : 80;
 
@@ -170,7 +181,7 @@ export default function Timeline() {
 //   });
 // });
 
-//     // 🔹 BRANCH SVG DRAW (center → curve → card)
+//     // BRANCH SVG DRAW (center → curve → card)
 //     gsap.utils.toArray(".branch-path").forEach((path) => {
 //       const length = path.getTotalLength();
 
@@ -188,7 +199,7 @@ export default function Timeline() {
 //             start: "top 70%",
 //             end: "top 45%",
 //             scrub: true,
-//             // onLeave: (self) => self.kill(), // ✅ one-time
+//             // onLeave: (self) => self.kill(), //  one-time
 //           },
 //         }
 //       );
@@ -225,7 +236,7 @@ export default function Timeline() {
 //             }`}
 //           >
             
-//             {/* 🔹 BRANCH SVG (center → vertical → curve → card) */}
+//             {/*  BRANCH SVG (center → vertical → curve → card) */}
 //           {isFirst ?(
 //             <svg
 //               className={`absolute top-6 ${
@@ -271,7 +282,7 @@ export default function Timeline() {
 //               />
 //             </svg>
 //           )}
-//             {/* 🔹 CARD */}
+//             {/*  CARD */}
 //             <div className="timeline-card w-[45%] bg-[#DDD6E1] rounded-xl shadow-lg p-10 hover:-translate-y-3 hover:shadow-3xl transition-all duration-300">
 //               <h3 className="text-xl font-semibold text-teal-600 mb-2">
 //                 {item.title}

@@ -12,6 +12,7 @@ function HeaderComponent() {
     { name: "Team", path: "/team" },
     { name: "Podcasts", path: "/podcasts" },
     { name: "Videos", path: "/videos" },
+    { name: "timeline", path: "/Timeline" },
   ];
 
   return (

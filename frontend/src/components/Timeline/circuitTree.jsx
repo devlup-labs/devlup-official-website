@@ -10,7 +10,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
   const centerLineRef = useRef(null);
   const branchRefs = useRef([]);
 
-  const LAST_Y = branches[branches.length - 1].y + 4000;
+  const LAST_Y = branches[branches.length - 1].y + 2000;
 
   /* ================= CENTER LINE DRAW ================= */
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
           d: makeBranchPath(b, targetSide),
         },
         duration: 0.5,
-        delay: flippedCards?.[b.id] ? 0.7 : 0,
+        delay: flippedCards?.[b.id] ? 0.1 : 0,
         ease: "power3.inOut",
         overwrite: "auto",
       });
@@ -132,7 +132,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
             className="branch-path"
             data-id={b.id}
             ref={(el) => (branchRefs.current[index] = el)}
-            d={makeBranchPath(b, b.side)}   // ⬅️ STATIC BASE SHAPE
+            d={makeBranchPath(b, b.side)}   // ⬅STATIC BASE SHAPE
             stroke="#22d3ee"
             strokeWidth="3"
             fill="none"

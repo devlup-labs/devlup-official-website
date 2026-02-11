@@ -52,7 +52,7 @@ export default function RoadmapCard({
       z: isActive ? 120 : 0,
       duration: 1.2,
       ease: "power4.out",    
-      delay: isActive ? 0.8 : 0,
+      delay: isActive ? 0.3 : 0,
      overwrite: "auto",
     });
   }, [isActive, side]);
@@ -72,7 +72,7 @@ export default function RoadmapCard({
 
   return (
     <div
-      className="absolute roadmap-card"
+      className="absolute roadmap-card "
        data-id={id}
       style={{
         top: y - 50,
@@ -84,7 +84,7 @@ export default function RoadmapCard({
         ref={card}
         onClick={handleClick}
         className="cursor-pointer w-[260px] h-[100px] bg-slate-900
-                   rounded-xl border border-cyan-400
+                   rounded-xl border border-cyan-400 
                    p-5 text-white relative"
         style={{
           transformStyle: "preserve-3d",

@@ -8,7 +8,7 @@ function Team() {
   ];
 
   const RADIUS = 500;
-  const TILE_SIZE = 120;
+  const TILE_SIZE = 130;
   const ROWS = 5;
   const TILE_GAP = 8;
   const SPLIT_SHIFT = 280;
@@ -128,7 +128,7 @@ function Team() {
         extraX = (cx - tileX) * focusProgress;
         extraY = (cy - tileY) * focusProgress;
         extraZ = 260 * focusProgress;
-        extraScale = 1 + focusProgress;
+        extraScale = 1 + focusProgress * 2;
       }
 
       wrapper.style.transform = `

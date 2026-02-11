@@ -1,6 +1,5 @@
-
 import { useState, useMemo } from "react";
-import "./Cards.css";
+
 
 const icons = [
   "👑","💎","🚀","🛡️","🔥","✨",
@@ -10,27 +9,27 @@ const icons = [
 
 const CARD_WIDTH = 84;
 const CARD_HEIGHT = 56;
-const SIZE = CARD_WIDTH; // used for spacing logic
+const SIZE = CARD_WIDTH;
 
 const MIN_DIST = 62;
 const MAX_ATTEMPTS = 60;
 
-// hover radii (R5 removed)
+// hover radii
 const R1 = 75;
 const R2 = 150;
 const R3 = 220;
 const R4 = 300;
 
-// normalized hover scales
+// hover scales
 const HOVER_MAIN = 2.4;
 const HOVER_R1 = 1.65;
-const HOVER_R2 = 1.40;
+const HOVER_R2 = 1.4;
 const HOVER_R3 = 1.25;
 const HOVER_R4 = 1.08;
 
-const START_OFFSET_Y = 34; // controls gap below search bar
-const BOTTOM_OFFSET = 44; 
-const SIDE_OFFSET = 32; // left & right breathing space
+const START_OFFSET_Y = 34;
+const BOTTOM_OFFSET = 44;
+const SIDE_OFFSET = 32;
 
 export default function Cards() {
   const [activeId, setActiveId] = useState(null);
@@ -38,12 +37,12 @@ export default function Cards() {
   const cards = useMemo(() => {
     const TOPBAR_HEIGHT = 56;
 
-const w = window.innerWidth - CARD_WIDTH - SIDE_OFFSET * 2;
-const h =
-  window.innerHeight -
-  TOPBAR_HEIGHT -
-  CARD_HEIGHT -
-  BOTTOM_OFFSET;
+    const w = window.innerWidth - CARD_WIDTH - SIDE_OFFSET * 2;
+    const h =
+      window.innerHeight -
+      TOPBAR_HEIGHT -
+      CARD_HEIGHT -
+      BOTTOM_OFFSET;
 
     const result = [];
     let id = 0;
@@ -55,14 +54,11 @@ const h =
       let placed = false;
 
       while (!placed && attempts < MAX_ATTEMPTS) {
-const x =
-  SIDE_OFFSET +
-  Math.random() * Math.max(0, w);
-const y =
-  START_OFFSET_Y +
-  Math.random() * Math.max(0, h - START_OFFSET_Y);
-
-
+        const x =
+          SIDE_OFFSET + Math.random() * Math.max(0, w);
+        const y =
+          START_OFFSET_Y +
+          Math.random() * Math.max(0, h - START_OFFSET_Y);
 
         const ok = result.every(c => {
           const dx = c.x - x;
@@ -94,13 +90,19 @@ const y =
   const active = cards.find(c => c.id === activeId);
 
   return (
-    <div className="scene">
+    <div
+      className="
+        relative
+        w-full h-screen
+        overflow-hidden
+        bg-[#0a0b0f]
+      "
+    >
       {cards.map(card => {
         let scale = card.baseScale;
         let zIndex = 1;
         let opacity = 0.88;
 
-        // subtle individuality (kept small)
         const individuality = 0.95 + card.baseScale * 0.1;
 
         if (active) {
@@ -134,7 +136,8 @@ const y =
         return (
           <div
             key={card.id}
-            className="card"
+            onMouseEnter={() => setActiveId(card.id)}
+            onMouseLeave={() => setActiveId(null)}
             style={{
               left: card.x,
               top: card.y,
@@ -142,10 +145,28 @@ const y =
               zIndex,
               opacity
             }}
-            onMouseEnter={() => setActiveId(card.id)}
-            onMouseLeave={() => setActiveId(null)}
+            className="
+              absolute
+              w-[84px] h-[56px]
+              rounded-2xl
+              flex items-center justify-center
+
+              bg-gradient-to-b
+              from-[rgba(30,32,52,0.97)]
+              to-[rgba(18,20,34,0.97)]
+
+              border border-white/10
+
+              shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),0_6px_18px_rgba(0,0,0,0.45)]
+
+              transition-transform transition-opacity
+              duration-[550ms]
+              ease-[cubic-bezier(0.16,1,0.3,1)]
+            "
           >
-            <span className="icon">{card.icon}</span>
+            <span className="text-[32px] leading-none pointer-events-none">
+              {card.icon}
+            </span>
           </div>
         );
       })}

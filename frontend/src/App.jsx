@@ -1,6 +1,9 @@
-import TopControls from "./assets/components/TopControls";
-import Cards from "./Components/Cards/Cards";
+import TopControls from "./TopControls";
+import Cards from "./Components/Cards";
+
 import "./App.css";
+import './index.css'
+
 
 export default function App() {
   return (

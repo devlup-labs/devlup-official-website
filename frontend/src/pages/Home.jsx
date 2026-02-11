@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import HomeComponent from "../components/Home/";
 
 const Home = () => {
   useEffect(() => {
@@ -8,6 +9,7 @@ const Home = () => {
   return (
     <div>
       {/* Home Page */}
+      <HomeComponent/>
     </div>
   );
 };

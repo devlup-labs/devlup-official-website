@@ -4,17 +4,17 @@ const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 function Home() {
   const CARD_TEXTS = [
-  "Dev",
-  "Build",
-  "Ship",
-  "Scale",
-  "Design",
-  "Animate",
-  "Deploy",
-  "Optimize",
-  "Grow",
-  "Evolve",
-];
+    "Dev",
+    "Build",
+    "Ship",
+    "Scale",
+    "Design",
+    "Animate",
+    "Deploy",
+    "Optimize",
+    "Grow",
+    "Evolve",
+  ];
 
   const layers = useMemo(() => {
     return Array.from({ length: 10 }).map((_, i) => {
@@ -49,32 +49,26 @@ function Home() {
         const depth = i / layers.length;
         const windowSize = 0.25;
 
-        const localProgress =
-          (progress - depth) / windowSize;
+        const localProgress = (progress - depth) / windowSize;
 
-        // -------- CAMERA DEPTH --------
         const scale =
           layer.baseScale +
           Math.min(localProgress, 1) * 1.8;
 
-        // -------- POSITION --------
         let x = layer.rx * Math.min(localProgress, 1);
         let y = layer.ry * Math.min(localProgress, 1);
 
-        // -------- EXIT MOTION (KEY FIX) --------
         if (localProgress > 1) {
           const exit = localProgress - 1;
           x += layer.rx * exit * 3;
           y += layer.ry * exit * 3;
         }
 
-        // -------- BLUR (DISTANCE) --------
         let blur = 0;
         if (localProgress < 0.25) {
           blur = (0.25 - localProgress) * 20;
         }
 
-        // -------- Z-INDEX (STRICT ORDER) --------
         const zIndex =
           (layers.length - i) * 1000 -
           Math.floor(localProgress * 10);
@@ -91,18 +85,20 @@ function Home() {
     };
 
     window.addEventListener("scroll", onScroll);
+
+    // ✅ IMPORTANT FIX — initialize positions immediately
+    onScroll();
+
     return () => window.removeEventListener("scroll", onScroll);
   }, [layers]);
 
   return (
     <section id="tunnel-section" className="relative h-[500vh] bg-black">
       <div className="sticky top-0 h-screen overflow-visible">
-        {/* BACKGROUND */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#7c3aed_0%,_#2563eb_40%,_#0f172a_90%)]" />
         <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 via-blue-400/20 to-teal-300/20 blur-3xl" />
 
-        {/* CARDS */}
-        {layers.map((_, i) => (
+        {layers.map((layer, i) => (
           <div
             key={i}
             id={`card-${i}`}
@@ -117,8 +113,7 @@ function Home() {
               will-change-transform
             "
           >
-           {layers[i].Text}
-
+            {layer.Text}
           </div>
         ))}
 

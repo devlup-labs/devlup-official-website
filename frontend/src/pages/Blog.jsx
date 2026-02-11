@@ -1,14 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useLayoutEffect, useState } from "react";
 import BlogComponent from "../components/Blog/";
 
 const Blog = () => {
-  useEffect(() => {
+  const [ready, setReady] = useState(false);
+
+  useLayoutEffect(() => {
     window.scrollTo(0, 0);
+
+    // allow layout calculations to finish before showing UI
+    requestAnimationFrame(() => {
+      setReady(true);
+    });
   }, []);
+
+  if (!ready) return null;
 
   return (
     <div>
-      <BlogComponent/>
+      <BlogComponent />
     </div>
   );
 };

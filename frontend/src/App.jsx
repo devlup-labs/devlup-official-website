@@ -10,6 +10,7 @@ import Videos from './pages/Videos.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
 
+
 export const ThemeContext = createContext({
   isDarkMode: false,
   toggleTheme: () => { }

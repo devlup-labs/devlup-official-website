@@ -1,7 +1,7 @@
 import { createContext, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
-import Home from './pages/Home.jsx'
+// import Home from './pages/Home.jsx'
 import About from './pages/About.jsx'
 import Blog from './pages/Blog.jsx'
 import Team from './pages/Team.jsx'
@@ -9,6 +9,7 @@ import Timeline from './pages/Timeline.jsx'
 import Videos from './pages/Videos.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
+import Home from './components/Home.jsx'
 
 export const ThemeContext = createContext({
   isDarkMode: false,

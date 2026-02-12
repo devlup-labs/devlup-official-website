@@ -12,7 +12,7 @@ export default function SearchBar({ onToggle }) {
     <div className="flex items-center gap-2">
       <input
         type="text"
-        placeholder="Search Members"
+        placeholder="Search Thumbnails"
         className={`
           h-7
           rounded

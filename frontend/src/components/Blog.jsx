@@ -1,19 +1,13 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 function Home() {
+  const [activeCard, setActiveCard] = useState(null);
+
   const CARD_TEXTS = [
-    "Dev",
-    "Build",
-    "Ship",
-    "Scale",
-    "Design",
-    "Animate",
-    "Deploy",
-    "Optimize",
-    "Grow",
-    "Evolve",
+    "Dev","Build","Ship","Scale","Design",
+    "Animate","Deploy","Optimize","Grow","Evolve",
   ];
 
   const layers = useMemo(() => {
@@ -31,43 +25,61 @@ function Home() {
     });
   }, []);
 
+  /* ================= SMOOTH SCROLL ANIMATION ================= */
+
   useEffect(() => {
+    let ticking = false;
+
     const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateCards);
+        ticking = true;
+      }
+    };
+
+    const updateCards = () => {
       const section = document.getElementById("tunnel-section");
       if (!section) return;
 
       const rect = section.getBoundingClientRect();
+
       const progress = Math.min(
         Math.max(-rect.top / rect.height, 0),
         1
       );
 
       layers.forEach((layer, i) => {
+        if (activeCard === i) return;
+
         const card = document.getElementById(`card-${i}`);
         if (!card) return;
 
         const depth = i / layers.length;
         const windowSize = 0.25;
-
         const localProgress = (progress - depth) / windowSize;
 
-        const scale =
-          layer.baseScale +
-          Math.min(localProgress, 1) * 1.8;
+        const clamped = Math.min(localProgress, 1);
 
-        let x = layer.rx * Math.min(localProgress, 1);
-        let y = layer.ry * Math.min(localProgress, 1);
+        const scale =
+          layer.baseScale + clamped * 1.8;
+
+        let x = layer.rx * clamped;
+        let y = layer.ry * clamped;
 
         if (localProgress > 1) {
           const exit = localProgress - 1;
           x += layer.rx * exit * 3;
           y += layer.ry * exit * 3;
-        }7
+        }
 
+        /* -------- BLUR -------- */
         let blur = 0;
         if (localProgress < 0.25) {
           blur = (0.25 - localProgress) * 20;
         }
+
+        /* -------- CLICK ENABLE THRESHOLD -------- */
+        const clickable = blur < 1.5;
 
         const zIndex =
           (layers.length - i) * 1000 -
@@ -78,50 +90,90 @@ function Home() {
           translate(${x}vw, ${y}vh)
           scale(${scale})
         `;
+
         card.style.filter = `blur(${blur}px)`;
-        card.style.opacity = 1;
         card.style.zIndex = zIndex;
+
+        // disable clicking when far
+        card.style.pointerEvents = clickable
+          ? "auto"
+          : "none";
       });
+
+      ticking = false;
     };
 
     window.addEventListener("scroll", onScroll);
-
-    // ✅ IMPORTANT FIX — initialize positions immediately
-    onScroll();
+    updateCards();
 
     return () => window.removeEventListener("scroll", onScroll);
-  }, [layers]);
+  }, [layers, activeCard]);
+
+  /* ================= ESC CLOSE ================= */
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") setActiveCard(null);
+    };
+
+    window.addEventListener("keydown", handleEsc);
+    return () =>
+      window.removeEventListener("keydown", handleEsc);
+  }, []);
+
+  /* ================= JSX ================= */
 
   return (
-    <section id="tunnel-section" className="relative h-[500vh] bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-1">
+    <section
+      id="tunnel-section"
+      className="relative h-[3000vh] bg-[var(--bg-main)] text-[var(--text-primary)]"
+    >
       <div className="sticky top-0 h-screen overflow-hidden">
 
-        {/* BACKGROUND */}
         <div className="absolute inset-0 bg-[var(--bg-main)]" />
-        {/* <div className="absolute inset-0 bg-black/20 dark:bg-black/50" /> */}
 
+        {activeCard !== null && (
+          <div
+            onClick={() => setActiveCard(null)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[9000]"
+          />
+        )}
 
         {layers.map((layer, i) => (
           <div
             key={i}
             id={`card-${i}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveCard(i);
+            }}
+            style={
+              activeCard === i
+                ? {
+                    transform:
+                      "translate(-50%, -50%) scale(2)",
+                    zIndex: 9999,
+                    filter: "blur(0px)",
+                  }
+                : {}
+            }
             className="
               absolute left-1/2 top-1/2
               w-56 h-72
               rounded-2xl
-             bg-[var(--bg-surface)]
-             backdrop-blur-xl
-             border border-[var(--border-subtle)]
-             flex items-center justify-center
-             text-[var(--text-primary)]
-             text-xl font-semibold
+              bg-[var(--bg-surface)]
+              backdrop-blur-xl
+              border border-[var(--border-subtle)]
+              flex items-center justify-center
+              text-[var(--text-primary)]
+              text-xl font-semibold
+              cursor-pointer
+              transition-transform duration-300
             "
           >
             {layer.Text}
           </div>
         ))}
-
-        <div className="pointer-events-none absolute inset-0 bg-black/50" />
       </div>
     </section>
   );

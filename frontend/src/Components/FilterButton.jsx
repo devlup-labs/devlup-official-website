@@ -31,7 +31,7 @@ export default function FilterButton({ onToggle }) {
             left-[calc(100%+10px)]
             top-1/2 -translate-y-1/2
 
-            w-[380px] max-h-10
+            w-[380px] max-h-16
             flex gap-2 p-2
 
             bg-black rounded

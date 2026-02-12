@@ -1,13 +1,10 @@
 import TopControls from "./TopControls";
 import Cards from "./Components/Cards";
-
-import "./App.css";
-import './index.css'
-
+import "./index.css";
 
 export default function App() {
   return (
-    <div className="app">
+    <div className="min-h-screen w-full bg-black flex flex-col">
       <TopControls />
       <Cards />
     </div>

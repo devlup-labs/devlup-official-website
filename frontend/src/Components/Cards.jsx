@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 
-
+// Images from public/images
 const icons = [
-  "👑","💎","🚀","🛡️","🔥","✨",
-  "📁","📊","⚙️","🧠","⭐","💡",
-  "🔒","❤️","🔍","🎮","📧","📶"
+  "/images/Screenshot (194).png",
+  "/images/Screenshot (195).png",
+  "/images/Screenshot (196).png",
 ];
 
 const CARD_WIDTH = 84;
@@ -32,7 +32,9 @@ const BOTTOM_OFFSET = 44;
 const SIDE_OFFSET = 32;
 
 export default function Cards() {
+  
   const [activeId, setActiveId] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const cards = useMemo(() => {
     const TOPBAR_HEIGHT = 56;
@@ -54,8 +56,7 @@ export default function Cards() {
       let placed = false;
 
       while (!placed && attempts < MAX_ATTEMPTS) {
-        const x =
-          SIDE_OFFSET + Math.random() * Math.max(0, w);
+        const x = SIDE_OFFSET + Math.random() * Math.max(0, w);
         const y =
           START_OFFSET_Y +
           Math.random() * Math.max(0, h - START_OFFSET_Y);
@@ -72,7 +73,7 @@ export default function Cards() {
             icon: icons[id % icons.length],
             x,
             y,
-            baseScale: 0.75 + Math.random() * 0.5
+            baseScale: 0.75 + Math.random() * 0.5,
           });
           id++;
           placed = true;
@@ -91,45 +92,50 @@ export default function Cards() {
 
   return (
     <div
-      className="
-        relative
-        w-full h-screen
-        overflow-hidden
-        bg-[#0a0b0f]
-      "
+      className="relative w-full h-screen overflow-hidden bg-black"
+      style={{ perspective: "1200px" }}
     >
+      {/* Backdrop */}
+      {selectedId !== null && (
+        <div
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[15000]"
+          onClick={() => setSelectedId(null)}
+        />
+      )}
+
       {cards.map(card => {
         let scale = card.baseScale;
         let zIndex = 1;
         let opacity = 0.88;
 
         const individuality = 0.95 + card.baseScale * 0.1;
+        const isSelected = card.id === selectedId;
 
-        if (active) {
+        if (isSelected) {
+          scale = 5;
+          zIndex = 20000;
+          opacity = 1;
+        } else if (active) {
           const dx = card.x - active.x;
           const dy = card.y - active.y;
           const d = Math.hypot(dx, dy);
 
           if (card.id === activeId) {
             scale = HOVER_MAIN * individuality;
-            zIndex = 5000;
+            zIndex = 6000;
             opacity = 1;
           } else if (d < R1) {
             scale = HOVER_R1 * individuality;
-            zIndex = 3000;
-            opacity = 0.95;
+            zIndex = 4000;
           } else if (d < R2) {
             scale = HOVER_R2 * individuality;
-            zIndex = 2000;
-            opacity = 0.85;
+            zIndex = 2500;
           } else if (d < R3) {
             scale = HOVER_R3 * individuality;
-            zIndex = 30;
-            opacity = 0.75;
+            zIndex = 800;
           } else if (d < R4) {
             scale = HOVER_R4 * individuality;
-            zIndex = 20;
-            opacity = 0.65;
+            zIndex = 400;
           }
         }
 
@@ -138,35 +144,60 @@ export default function Cards() {
             key={card.id}
             onMouseEnter={() => setActiveId(card.id)}
             onMouseLeave={() => setActiveId(null)}
+            onClick={() => {
+              if (selectedId === null) {
+                setSelectedId(card.id);
+              }
+            }}
             style={{
-              left: card.x,
-              top: card.y,
-              transform: `scale(${scale})`,
+              left: isSelected ? "50%" : card.x,
+              top: isSelected ? "50%" : card.y,
+              transform: isSelected
+                ? "translate(-50%, -50%) scale(5)"
+                : `scale(${scale})`,
               zIndex,
-              opacity
+              opacity,
             }}
             className="
               absolute
-              w-[84px] h-[56px]
-              rounded-2xl
-              flex items-center justify-center
-
-              bg-gradient-to-b
-              from-[rgba(30,32,52,0.97)]
-              to-[rgba(18,20,34,0.97)]
-
-              border border-white/10
-
-              shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),0_6px_18px_rgba(0,0,0,0.45)]
-
+              p-[1.5px]
+              rounded-[18px]
+              bg-gradient-to-br
+              from-pink-500
+              via-purple-500
+              to-cyan-400
               transition-transform transition-opacity
-              duration-[550ms]
+              duration-[600ms]
               ease-[cubic-bezier(0.16,1,0.3,1)]
+              cursor-pointer
             "
           >
-            <span className="text-[32px] leading-none pointer-events-none">
-              {card.icon}
-            </span>
+            {/* INNER CARD */}
+            <div
+              className="
+                w-[84px] h-[56px]
+                rounded-2xl
+                overflow-hidden
+                flex items-center justify-center
+                bg-gradient-to-b
+                from-[rgba(30,32,52,0.97)]
+                to-[rgba(18,20,34,0.97)]
+                shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),0_6px_18px_rgba(0,0,0,0.45)]
+              "
+            >
+              <img
+                src={card.icon}
+                alt="video"
+                className="
+                  max-w-full
+                  max-h-full
+                  object-contain
+                  pointer-events-none
+                  scale-y-[1.38]
+                  origin-center
+                "
+              />
+            </div>
           </div>
         );
       })}

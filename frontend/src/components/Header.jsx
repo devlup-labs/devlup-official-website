@@ -10,8 +10,8 @@ function HeaderComponent() {
     { name: "Home", path: "/" },
     { name: "Blog", path: "/blog" },
     { name: "Team", path: "/team" },
-    { name: "Podcasts", path: "/podcasts" },
-    { name: "Videos", path: "/videos" },
+    { name: "Podcasts", path: "/podcast" },
+    { name: "Videos", path: "/video" },
     { name: "timeline", path: "/Timeline" },
   ];
 

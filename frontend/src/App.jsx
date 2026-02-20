@@ -10,6 +10,8 @@ import Blog from "./pages/Blog.jsx";
 import Team from "./pages/Team.jsx";
 import Timeline from "./pages/Timeline.jsx";
 import Videos from "./pages/Videos.jsx";
+import Podcast from "./pages/Podcast.jsx";
+
 
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
@@ -41,6 +43,8 @@ function App() {
             <Route path="/team" element={<Team />} />
             <Route path="/timeline" element={<Timeline />} />
             <Route path="/videos" element={<Videos />} />
+            <Route path="/Podcast" element={<Podcast />} />
+            
           </Routes>
 
           <Footer />

@@ -1,4 +1,4 @@
-import TopControls from "./TopControls";
+import TopControls from "./Components/TopControls";
 import Cards from "./Components/Cards";
 import "./index.css";
 

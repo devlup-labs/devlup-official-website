@@ -1,6 +1,6 @@
 import { useState } from "react";
-import SearchBar from "./Components/SearchBar";
-import FilterButton from "./Components/FilterButton";
+import SearchBar from "./SearchBar";
+import FilterButton from "./FilterButton";
 import "./TopControls.css";
 
 export default function TopControls() {

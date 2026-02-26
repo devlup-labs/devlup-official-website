@@ -57,11 +57,29 @@ smoothProgress.current += diff * (
 );
 if (progress < 0.001)
   smoothProgress.current = 0;
-      layers.forEach((layer, i) => {
+
+     layers.forEach((layer, i) => {
+
+  const card = cardRefs.current[i];
+  if (!card) return;
+
+  // ✅ hide other cards when one is opened
+  if (activeCard !== null) {
+    if (i === activeCard) {
+      card.style.opacity = "1";
+      card.style.pointerEvents = "auto";
+    } else {
+      card.style.opacity = "0";
+      card.style.pointerEvents = "none";
+    }
+    return;
+  }
+
+  // restore cards when closed
+  card.style.opacity = "1";
         if (activeCard === i) return;
 
-        const card = cardRefs.current[i];
-        if (!card) return;
+        
 
         const depth = i / layers.length;
         const windowSize = 0.18;

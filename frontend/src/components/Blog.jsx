@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
 function Home() {
   const [activeCard, setActiveCard] = useState(null);
-
+const sectionRef = useRef(null);
+const cardRefs = useRef([]);
+const smoothProgress = useRef(0);
   const CARD_TEXTS = [
     "Dev","Build","Ship","Scale","Design",
     "Animate","Deploy","Optimize","Grow","Evolve",
@@ -38,26 +40,33 @@ function Home() {
     };
 
     const updateCards = () => {
-      const section = document.getElementById("tunnel-section");
-      if (!section) return;
+     const section = sectionRef.current;
+if (!section) return;
 
       const rect = section.getBoundingClientRect();
-
+if (rect.bottom < 0 || rect.top > window.innerHeight)
+  return;
       const progress = Math.min(
         Math.max(-rect.top / rect.height, 0),
         1
       );
+     const diff = progress - smoothProgress.current;
 
+smoothProgress.current += diff * (
+  Math.abs(diff) > 0.2 ? 0.35 : 0.18
+);
+if (progress < 0.001)
+  smoothProgress.current = 0;
       layers.forEach((layer, i) => {
         if (activeCard === i) return;
 
-        const card = document.getElementById(`card-${i}`);
+        const card = cardRefs.current[i];
         if (!card) return;
 
         const depth = i / layers.length;
-        const windowSize = 0.25;
-        const localProgress = (progress - depth) / windowSize;
-
+        const windowSize = 0.18;
+        const localProgress =
+  (smoothProgress.current - depth) / windowSize;
         const clamped = Math.min(localProgress, 1);
 
         const scale =
@@ -73,10 +82,11 @@ function Home() {
         }
 
         /* -------- BLUR -------- */
-        let blur = 0;
-        if (localProgress < 0.25) {
-          blur = (0.25 - localProgress) * 20;
-        }
+       let blur = 0;
+
+if (localProgress < 0.25) {
+  blur = Math.round((0.25 - localProgress) * 6);
+}
 
         /* -------- CLICK ENABLE THRESHOLD -------- */
         const clickable = blur < 1.5;
@@ -85,26 +95,37 @@ function Home() {
           (layers.length - i) * 1000 -
           Math.floor(localProgress * 10);
 
-        card.style.transform = `
-          translate(-50%, -50%)
-          translate(${x}vw, ${y}vh)
-          scale(${scale})
-        `;
+     const transformValue =
+`translate(-50%, -50%)
+ translate3d(${x}vw, ${y}vh, 0)
+ scale(${scale})`;
 
-        card.style.filter = `blur(${blur}px)`;
-        card.style.zIndex = zIndex;
+if (card.dataset.t !== transformValue) {
+  card.style.transform = transformValue;
+  card.dataset.t = transformValue;
+}
+
+const prevBlur = card.dataset.blur;
+
+if (prevBlur != blur) {
+  card.style.filter = `blur(${blur}px)`;
+  card.dataset.blur = blur;
+}
+card.style.zIndex = zIndex;
+card.style.pointerEvents =
+  clickable ? "auto" : "none";
 
         // disable clicking when far
-        card.style.pointerEvents = clickable
-          ? "auto"
-          : "none";
+
       });
 
       ticking = false;
     };
 
-    window.addEventListener("scroll", onScroll);
-    updateCards();
+    window.addEventListener("scroll", onScroll,{
+      passive: true,
+    });
+    requestAnimationFrame(updateCards);
 
     return () => window.removeEventListener("scroll", onScroll);
   }, [layers, activeCard]);
@@ -126,7 +147,8 @@ function Home() {
   return (
     <section
       id="tunnel-section"
-      className="relative h-[3000vh] bg-[var(--bg-main)] text-[var(--text-primary)]"
+       ref={sectionRef}
+      className="relative h-[2000vh] bg-[var(--bg-main)] text-[var(--text-primary)]"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 
@@ -142,7 +164,7 @@ function Home() {
         {layers.map((layer, i) => (
           <div
             key={i}
-            id={`card-${i}`}
+           ref={(el) => (cardRefs.current[i] = el)}
             onClick={(e) => {
               e.stopPropagation();
               setActiveCard(i);
@@ -157,19 +179,19 @@ function Home() {
                   }
                 : {}
             }
-            className="
-              absolute left-1/2 top-1/2
-              w-56 h-72
-              rounded-2xl
-              bg-[var(--bg-surface)]
-              backdrop-blur-xl
-              border border-[var(--border-subtle)]
-              flex items-center justify-center
-              text-[var(--text-primary)]
-              text-xl font-semibold
-              cursor-pointer
-              transition-transform duration-300
-            "
+          className="
+absolute left-1/2 top-1/2
+w-56 h-72
+rounded-2xl
+bg-[var(--bg-surface)]
+backdrop-blur-sm
+border border-[var(--border-subtle)]
+flex items-center justify-center
+text-[var(--text-primary)]
+text-xl font-semibold
+cursor-pointer
+will-change-transform
+"
           >
             {layer.Text}
           </div>

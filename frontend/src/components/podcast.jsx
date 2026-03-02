@@ -1,209 +1,133 @@
-import { useEffect, useRef, useState, useContext } from "react";
-import "../App.css";
-import { ThemeContext } from "../App";
-
-const teamMembers = [
-  {
-    name: "Luffy",
-    role: "Founder",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o1.jpeg",
-  },
-  {
-    name: "Monkey D. Luffy",
-    role: "Creative Director",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o2.jpeg",
-  },
-  {
-    name: "Luffy chan",
-    role: "Lead Developer",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o4.jpeg",
-  },
-  {
-    name: "Lucy",
-    role: "UX Designer",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o3.jpeg",
-  },
-  {
-    name: "Luffy kun",
-    role: "Marketing Manager",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o5.jpeg",
-  },
-  {
-    name: "Monkey chan",
-    role: "Product Manager",
-    img: "https://ik.imagekit.io/gopichakradhar/luffy/o6.jpeg",
-  },
-];
+import { useEffect, useRef, useState } from "react";
 
 export default function Podcast() {
-  const wrapperRef = useRef(null);
+  const items = Array.from({ length: 40 }).map((_, i) => ({
+    id: i,
+    name: `Character ${i + 1}`,
+    role: ["Captain", "Swordsman", "Sniper", "Doctor", "Navigator"][i % 5],
+    img: `https://picsum.photos/900/600?random=${i + 1}`,
+  }));
 
-  const { isDarkMode } = useContext(ThemeContext);
-
-  /* ================= STATE ================= */
-  const [pos, setPos] = useState(0);
-
+  const containerRef = useRef(null);
+  const scrollPos = useRef(0);
   const velocity = useRef(0);
   const raf = useRef(null);
 
-  const max = teamMembers.length;
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  /* ================= ANIMATION LOOP ================= */
+  const friction = 0.93;
+  const wheelStrength = 0.0014;
+  const snapStrength = 0.08;
+
+  /* =============================
+     STACK TRANSFORMS
+  ============================= */
+  const updateTransforms = () => {
+    const cards = containerRef.current?.children;
+    if (!cards) return;
+
+    for (let i = 0; i < cards.length; i++) {
+      const offset = i - scrollPos.current;
+      const distance = Math.abs(offset);
+
+      const translateY = offset * 180;
+      const scale = 1 - Math.min(distance * 0.12, 0.5);
+      const opacity = Math.max(1 - distance * 0.4, 0);
+
+      // FIXED stacking logic
+      const zIndex = Math.round(1000 - distance * 50);
+
+      cards[i].style.transform = `
+        translateY(${translateY}px)
+        scale(${scale})
+      `;
+      cards[i].style.opacity = opacity;
+      cards[i].style.zIndex = zIndex;
+    }
+  };
+
+  /* =============================
+     ANIMATION LOOP
+  ============================= */
   const animate = () => {
-    velocity.current *= 0.92; // friction
+    velocity.current *= friction;
+    scrollPos.current += velocity.current;
 
-    let next = pos + velocity.current;
+    scrollPos.current = Math.max(
+      0,
+      Math.min(items.length - 1, scrollPos.current)
+    );
 
-    if (next < 0) {
-      next = 0;
-      velocity.current = 0;
+    if (Math.abs(velocity.current) < 0.002) {
+      const nearest = Math.round(scrollPos.current);
+      scrollPos.current += (nearest - scrollPos.current) * snapStrength;
     }
 
-    if (next > max) {
-      next = max;
-      velocity.current = 0;
-    }
+    const newActive = Math.round(scrollPos.current);
+    setActiveIndex((prev) => (prev !== newActive ? newActive : prev));
 
-    if (Math.abs(velocity.current) < 0.001) {
-      next = Math.round(next);
-      velocity.current = 0;
-    }
-
-    setPos(next);
-
+    updateTransforms();
     raf.current = requestAnimationFrame(animate);
   };
 
+  /* =============================
+     WHEEL
+  ============================= */
   useEffect(() => {
-    raf.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf.current);
-  });
-
-  /* ================= WHEEL ================= */
-  useEffect(() => {
-    const el = wrapperRef.current;
+    const el = containerRef.current;
     if (!el) return;
 
     const onWheel = (e) => {
       e.preventDefault();
-      velocity.current += e.deltaY * 0.0007;
+      velocity.current += e.deltaY * wheelStrength;
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
+    raf.current = requestAnimationFrame(animate);
 
-    return () => el.removeEventListener("wheel", onWheel);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      cancelAnimationFrame(raf.current);
+    };
   }, []);
 
-  /* ================= RING GEOMETRY ================= */
-  const radius = 420;
-  const step = (2 * Math.PI) / teamMembers.length;
-
-  const cardStyle = (i) => {
-    const angle = (i - pos) * step;
-
-    const x = Math.sin(angle) * radius;
-    const z = Math.cos(angle) * radius - radius;
-
-    const scale = 1 - Math.abs(angle) * 0.15;
-
-    const opacity = Math.max(0.2, 1 - Math.abs(angle));
-
-    return {
-      transform: `
-        translate(-50%, -50%)
-        translateX(${x}px)
-        translateZ(${z}px)
-        rotateY(${angle * 40}deg)
-        scale(${scale})
-      `,
-      opacity,
-      zIndex: 1000 - Math.abs(z),
-    };
-  };
-
-  /* ================= JSX ================= */
+  /* =============================
+     UI
+  ============================= */
   return (
-    <div
-      ref={wrapperRef}
-      className="
-        min-h-screen
-        flex items-center justify-center
-        overflow-hidden
-        bg-[var(--bg-main)]
-        text-[var(--text-primary)]
-        transition-colors duration-500
-      "
-    >
-      <div className="flex max-w-[1300px] w-full items-center gap-24 px-10 md:flex-row flex-col">
-
-        {/* CAROUSEL */}
-        <div className="flex-1 relative h-[70vh] perspective-[1400px]">
-
-          <div className="relative w-full h-full preserve-3d">
-
-            {teamMembers.map((m, i) => (
-              <div
-                key={i}
-                style={cardStyle(i)}
-                className="
-                  absolute left-1/2 top-1/2
-                  w-[380px] h-[220px]
-                  rounded-2xl
-                  bg-[var(--bg-surface)]
-                  border border-white/10
-                  shadow-xl
-                  transform-3d
-                  transition-[transform,opacity]
-                  duration-200
-                  ease-out
-                  overflow-hidden
-                  backdrop-blur-xl
-                "
-              >
-                <img
-                  src={m.img}
-                  alt={m.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-
-          </div>
+    <div className="min-h-screen pt-28 flex flex-col lg:flex-row items-center justify-center bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
+      
+      {/* LEFT STACK */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center">
+        <div
+          ref={containerRef}
+          className="relative h-[650px] w-[520px] flex items-center justify-center"
+        >
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-color)]"
+            >
+              <img
+                src={item.img}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
         </div>
+      </div>
 
-        {/* INFO */}
-        <div className="flex-1 text-center space-y-4">
-
-          <h2 className="text-4xl font-bold">
-            {teamMembers[Math.round(pos) % teamMembers.length].name}
+      {/* RIGHT INFO */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-4xl font-bold mb-4 text-[var(--text-primary)]">
+            {items[activeIndex].name}
           </h2>
 
-          <p className="text-[var(--text-secondary)] uppercase tracking-widest">
-            {teamMembers[Math.round(pos) % teamMembers.length].role}
+          <p className="text-xl uppercase tracking-widest text-[var(--text-secondary)]">
+            {items[activeIndex].role}
           </p>
-
-          {/* DOTS */}
-          <div className="flex justify-center gap-3 pt-6">
-
-            {teamMembers.map((_, i) => (
-              <div
-                key={i}
-                onClick={() => {
-                  velocity.current = i - pos;
-                }}
-                className={`
-                  w-3 h-3 rounded-full cursor-pointer transition
-                  ${
-                    Math.round(pos) % teamMembers.length === i
-                      ? "bg-[var(--accent-primary)] scale-125"
-                      : "bg-[var(--text-secondary)]/40"
-                  }
-                `}
-              />
-            ))}
-
-          </div>
-
         </div>
       </div>
     </div>

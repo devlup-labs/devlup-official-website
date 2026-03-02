@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
-import PodcastComponent from "../components/Podcast.jsx/";
-const Podcast = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+import React from "react";
+import PodcastComponent from "../components/podcast";
+import Footer from "../components/Footer";
 
+const Podcast = () => {
   return (
-    <div>
-      <PodcastComponent/>
+    <div className="flex flex-col min-h-screen">
+      <PodcastComponent />
+    
     </div>
   );
 };

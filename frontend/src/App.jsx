@@ -11,8 +11,6 @@ import Team from "./pages/Team.jsx";
 import Timeline from "./pages/Timeline.jsx";
 import Videos from "./pages/Videos.jsx";
 import Podcast from "./pages/Podcast.jsx";
-
-
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 
@@ -32,6 +30,7 @@ function App() {
   }, [isDarkMode]);
 
   return (
+    
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
       <BrowserRouter>
         <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
@@ -42,8 +41,8 @@ function App() {
             <Route path="/blog" element={<Blog />} />
             <Route path="/team" element={<Team />} />
             <Route path="/timeline" element={<Timeline />} />
-            <Route path="/videos" element={<Videos />} />
-            <Route path="/Podcast" element={<Podcast />} />
+            <Route path="/video" element={<Videos />} />
+            <Route path="/podcast" element={<Podcast />} />
             
           </Routes>
 
@@ -51,6 +50,8 @@ function App() {
         </div>
       </BrowserRouter>
     </ThemeContext.Provider>
+
+    
   );
 }
 

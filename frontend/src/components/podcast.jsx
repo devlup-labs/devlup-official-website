@@ -12,11 +12,12 @@ export default function Podcast() {
   const scrollPos = useRef(0);
   const velocity = useRef(0);
   const raf = useRef(null);
+  const lastIndexUpdate = useRef(0);
 
   const [activeIndex, setActiveIndex] = useState(0);
 
   const friction = 0.93;
-  const wheelStrength = 0.0014;
+  const wheelStrength = 0.0025;
   const snapStrength = 0.08;
 
   /* =============================
@@ -26,22 +27,24 @@ export default function Podcast() {
     const cards = containerRef.current?.children;
     if (!cards) return;
 
+    const visibleRange = 6;
+
     for (let i = 0; i < cards.length; i++) {
       const offset = i - scrollPos.current;
-      const distance = Math.abs(offset);
 
+      if (Math.abs(offset) > visibleRange) {
+        cards[i].style.opacity = 0;
+        cards[i].style.transform = "translateY(9999px) scale(0.5)";
+        continue;
+      }
+
+      const distance = Math.abs(offset);
       const translateY = offset * 180;
       const scale = 1 - Math.min(distance * 0.12, 0.5);
-      const opacity = Math.max(1 - distance * 0.4, 0);
-
-      // FIXED stacking logic
       const zIndex = Math.round(1000 - distance * 50);
 
-      cards[i].style.transform = `
-        translateY(${translateY}px)
-        scale(${scale})
-      `;
-      cards[i].style.opacity = opacity;
+      cards[i].style.transform = `translateY(${translateY}px) scale(${scale})`;
+      cards[i].style.opacity = 1;
       cards[i].style.zIndex = zIndex;
     }
   };
@@ -49,7 +52,7 @@ export default function Podcast() {
   /* =============================
      ANIMATION LOOP
   ============================= */
-  const animate = () => {
+  const animate = (time) => {
     velocity.current *= friction;
     scrollPos.current += velocity.current;
 
@@ -64,10 +67,22 @@ export default function Podcast() {
     }
 
     const newActive = Math.round(scrollPos.current);
-    setActiveIndex((prev) => (prev !== newActive ? newActive : prev));
+
+    if (time - lastIndexUpdate.current > 80) {
+      setActiveIndex(newActive);
+      lastIndexUpdate.current = time;
+    }
 
     updateTransforms();
-    raf.current = requestAnimationFrame(animate);
+
+    if (
+      Math.abs(velocity.current) > 0.0005 ||
+      Math.abs(scrollPos.current - Math.round(scrollPos.current)) > 0.0005
+    ) {
+      raf.current = requestAnimationFrame(animate);
+    } else {
+      raf.current = null;
+    }
   };
 
   /* =============================
@@ -79,7 +94,16 @@ export default function Podcast() {
 
     const onWheel = (e) => {
       e.preventDefault();
-      velocity.current += e.deltaY * wheelStrength;
+
+      const normalizedDelta =
+        Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 60);
+
+      velocity.current += normalizedDelta * wheelStrength;
+      velocity.current = Math.max(-0.15, Math.min(0.15, velocity.current));
+
+      if (!raf.current) {
+        raf.current = requestAnimationFrame(animate);
+      }
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
@@ -94,8 +118,9 @@ export default function Podcast() {
   /* =============================
      UI
   ============================= */
+
   return (
-    <div className="min-h-screen pt-28 flex flex-col lg:flex-row items-center justify-center bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
+    <div className="flex-1 flex flex-col lg:flex-row items-center justify-center bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden">
       
       {/* LEFT STACK */}
       <div className="w-full lg:w-1/2 flex items-center justify-center">
@@ -103,9 +128,14 @@ export default function Podcast() {
           ref={containerRef}
           className="relative h-[650px] w-[520px] flex items-center justify-center"
         >
-          {items.map((item) => (
+          {items.map((item, i) => (
             <div
               key={item.id}
+              style={{
+                willChange: "transform, opacity",
+                transform: "translateZ(0)",
+                backfaceVisibility: "hidden",
+              }}
               className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-color)]"
             >
               <img
@@ -121,7 +151,7 @@ export default function Podcast() {
       {/* RIGHT INFO */}
       <div className="w-full lg:w-1/2 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-4xl font-bold mb-4 text-[var(--text-primary)]">
+          <h2 className="text-4xl font-bold mb-4">
             {items[activeIndex].name}
           </h2>
 

@@ -1,6 +1,48 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-function Team() {
+/* ================= MAX SPEED ================= */
+const MAX_SCROLL_SPEED = 40;
+const clamp = (v, min, max) =>
+  Math.max(min, Math.min(max, v));
+
+/* ================= TILE ================= */
+const Tile = React.memo(function Tile({
+  tile,
+  TILE_SIZE,
+  openTile,
+  onCardTransitionEnd,
+  tileRefs
+}) {
+  return (
+    <div
+      ref={(el) => (tileRefs.current[tile.id] = el)}
+      onClick={(e) => {
+        e.stopPropagation();
+        openTile(tile.id);
+      }}
+      className="absolute left-1/2 top-1/2"
+    >
+      <div
+        onTransitionEnd={() => onCardTransitionEnd(tile.id)}
+        className="flex items-center justify-center
+                   bg-white/10 border border-white/20
+                   rounded-full cursor-pointer select-none"
+        style={{
+          width: TILE_SIZE,
+          height: TILE_SIZE,
+          backfaceVisibility: "hidden",
+          willChange: "transform",
+          transform: "translateZ(0)"
+        }}
+      >
+        {tile.label}
+      </div>
+    </div>
+  );
+});
+
+/* ================= BLOG ================= */
+function Blog() {
   const TEAM = [
     "Aarav","Anabel","Kunal","Sneha","Aditya","Pooja",
     "Rahul","Ananya","Dev","Build","Ship","Scale",
@@ -8,7 +50,7 @@ function Team() {
   ];
 
   const RADIUS = 500;
-  const TILE_SIZE = 130;
+  const TILE_SIZE = 120;
   const ROWS = 5;
   const TILE_GAP = 8;
   const SPLIT_SHIFT = 280;
@@ -18,18 +60,36 @@ function Team() {
   const [nextTile, setNextTile] = useState(null);
   const [focusProgress, setFocusProgress] = useState(0);
 
-  // 🔒 prevents non-click opens
   const userInitiatedRef = useRef(false);
+  const tileRefs = useRef({});
+  const viewportRef = useRef({
+    w: window.innerWidth,
+    h: window.innerHeight,
+  });
+
+  const frameRef = useRef(null);
+  const scrollRafRef = useRef(null);
+  const wheelRafRef = useRef(null);
 
   /* ================= SCROLL ================= */
   useEffect(() => {
     if (activeTile !== null) return;
 
     let lastScroll = window.scrollY;
+
     const onScroll = () => {
-      const delta = window.scrollY - lastScroll;
+      let delta = window.scrollY - lastScroll;
       lastScroll = window.scrollY;
-      setRotation(r => (r - delta * 0.12) % 360);
+
+      // 🔒 SPEED LIMIT
+      delta = clamp(delta, -MAX_SCROLL_SPEED, MAX_SCROLL_SPEED);
+
+      if (scrollRafRef.current)
+        cancelAnimationFrame(scrollRafRef.current);
+
+      scrollRafRef.current = requestAnimationFrame(() => {
+        setRotation(r => (r - delta * 0.12) % 360);
+      });
     };
 
     window.addEventListener("scroll", onScroll);
@@ -40,7 +100,7 @@ function Team() {
     if (activeTile !== null) return;
 
     const onWheel = (e) => {
-      const deltaX =
+      let deltaX =
         Math.abs(e.deltaX) > Math.abs(e.deltaY)
           ? e.deltaX
           : e.shiftKey
@@ -48,7 +108,16 @@ function Team() {
           : 0;
 
       if (deltaX === 0) return;
-      setRotation(r => (r - deltaX * 0.12) % 360);
+
+      // 🔒 SPEED LIMIT
+      deltaX = clamp(deltaX, -MAX_SCROLL_SPEED, MAX_SCROLL_SPEED);
+
+      if (wheelRafRef.current)
+        cancelAnimationFrame(wheelRafRef.current);
+
+      wheelRafRef.current = requestAnimationFrame(() => {
+        setRotation(r => (r - deltaX * 0.12) % 360);
+      });
     };
 
     window.addEventListener("wheel", onWheel, { passive: true });
@@ -62,12 +131,15 @@ function Team() {
 
     let activeAngle = null;
     let activeRow = null;
+    let activeIndex = null;
 
     if (activeTile) {
-      const [r, i] = activeTile.split("-").map(Number);
-      const offset = r % 2 ? angleStep / 2 : 0;
-      activeAngle = i * angleStep + offset + rotation;
-      activeRow = r;
+      const parts = activeTile.split("-").map(Number);
+      activeRow = parts[0];
+      activeIndex = parts[1];
+
+      const offset = activeRow % 2 ? angleStep / 2 : 0;
+      activeAngle = activeIndex * angleStep + offset + rotation;
     }
 
     for (let row = 0; row < ROWS; row++) {
@@ -95,6 +167,8 @@ function Team() {
 
         out.push({
           id: `${row}-${i}`,
+          row,
+          index: i,
           label: TEAM[i],
           x, y, z,
           splitX,
@@ -110,25 +184,26 @@ function Team() {
   /* ================= APPLY LAYOUT ================= */
   useEffect(() => {
     tiles.forEach(tile => {
-      const wrapper = document.getElementById(tile.id);
+      const wrapper = tileRefs.current[tile.id];
       if (!wrapper) return;
 
       wrapper.style.zIndex = tile.zIndex;
       const inner = wrapper.firstChild;
       const isActive = tile.id === activeTile;
 
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
+      const cx = viewportRef.current.w / 2;
+      const cy = viewportRef.current.h / 2;
 
       const tileX = cx + tile.x + tile.splitX;
       const tileY = cy + tile.y;
 
       let extraX = 0, extraY = 0, extraZ = 0, extraScale = 1;
+
       if (isActive) {
         extraX = (cx - tileX) * focusProgress;
         extraY = (cy - tileY) * focusProgress;
         extraZ = 260 * focusProgress;
-        extraScale = 1 + focusProgress * 2;
+        extraScale = 1 + focusProgress;
       }
 
       wrapper.style.transform = `
@@ -138,6 +213,7 @@ function Team() {
 
       inner.style.transition =
         "transform 0.45s cubic-bezier(0.22,1,0.36,1)";
+
       inner.style.transform = `
         translateX(${tile.x + tile.splitX + extraX}px)
         translateY(${extraY}px)
@@ -149,7 +225,7 @@ function Team() {
   }, [tiles, activeTile, focusProgress]);
 
   /* ================= CLICK ================= */
-  const openTile = (id) => {
+  const openTile = React.useCallback((id) => {
     userInitiatedRef.current = true;
 
     if (id === activeTile) return;
@@ -181,15 +257,14 @@ function Team() {
       setRotation(startRotation + (targetRotation - startRotation) * eased);
       setFocusProgress(eased);
 
-      if (t < 1) requestAnimationFrame(animate);
+      if (t < 1) frameRef.current = requestAnimationFrame(animate);
     };
 
-    // 🚀 start immediately (no pause)
     animate(startTime);
-  };
+  }, [activeTile, rotation]);
 
   /* ================= AFTER CLOSE ================= */
-  const onCardTransitionEnd = (id) => {
+  const onCardTransitionEnd = React.useCallback((id) => {
     if (
       userInitiatedRef.current &&
       !activeTile &&
@@ -199,7 +274,7 @@ function Team() {
       setNextTile(null);
       openTile(id);
     }
-  };
+  }, [activeTile, nextTile, openTile]);
 
   /* ================= CLOSE ================= */
   const closeTile = () => {
@@ -217,9 +292,17 @@ function Team() {
     return () => window.removeEventListener("keydown", onKey);
   }, [activeTile]);
 
+  useEffect(() => {
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      if (scrollRafRef.current) cancelAnimationFrame(scrollRafRef.current);
+      if (wheelRafRef.current) cancelAnimationFrame(wheelRafRef.current);
+    };
+  }, []);
+
   /* ================= JSX ================= */
   return (
-    <section className="relative h-[300vh] bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
+    <section className="relative h-[300vh] bg-black text-white">
       <div
         className="sticky top-0 h-screen overflow-hidden
                    flex items-center justify-center"
@@ -227,31 +310,19 @@ function Team() {
           if (activeTile) closeTile();
         }}
       >
-        <div className="relative w-full h-full" style={{ perspective: "1600px" }}>
+        <div
+          className="relative w-full h-full"
+          style={{ perspective: "1600px" }}
+        >
           {tiles.map(tile => (
-            <div
+            <Tile
               key={tile.id}
-              id={tile.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                openTile(tile.id);
-              }}
-              className="absolute left-1/2 top-1/2"
-            >
-              <div
-                onTransitionEnd={() => onCardTransitionEnd(tile.id)}
-                className="flex items-center justify-center
-                           bg-[var(--bg-surface)] border border border-[var(--border-subtle)]
-                           rounded-full cursor-pointer select-none"
-                style={{
-                  width: TILE_SIZE,
-                  height: TILE_SIZE,
-                  backfaceVisibility: "hidden",
-                }}
-              >
-                {tile.label}
-              </div>
-            </div>
+              tile={tile}
+              TILE_SIZE={TILE_SIZE}
+              openTile={openTile}
+              onCardTransitionEnd={onCardTransitionEnd}
+              tileRefs={tileRefs}
+            />
           ))}
         </div>
       </div>
@@ -259,4 +330,4 @@ function Team() {
   );
 }
 
-export default Team;
+export default Blog;

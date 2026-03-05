@@ -3,189 +3,250 @@ import { Link } from "react-router-dom";
 import { ThemeContext } from "../App";
 
 function HeaderComponent() {
-  const [open, setOpen] = useState(false);
-  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+const [open, setOpen] = useState(false);
+const { isDarkMode, toggleTheme } = useContext(ThemeContext);
 
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Blog", path: "/blog" },
-    { name: "Team", path: "/team" },
-    { name: "Podcasts", path: "/podcast" },
-    { name: "Videos", path: "/video" },
-    { name: "Timeline", path: "/timeline" },
-  ];
+const navItems = [
+{ name: "Home", path: "/" },
+{ name: "Blog", path: "/blog" },
+{ name: "Team", path: "/team" },
+{ name: "Podcasts", path: "/podcast" },
+{ name: "Videos", path: "/video" },
+{ name: "Timeline", path: "/timeline" },
+];
 
-  // Prevent background scroll on mobile menu open
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "auto";
-  }, [open]);
+useEffect(() => {
+document.body.style.overflow = open ? "hidden" : "auto";
+}, [open]);
 
-  return (
-    <>
-      {/* HEADER */}
-  <header
-  className={`
-    fixed top-0 left-0 w-full z-50 pointer-events-auto
-    transition-all duration-500
-    ease-[cubic-bezier(0.16,1,0.3,1)]
+return (
+<>
+<header
+className={` fixed top-0 left-0 w-full z-50 pointer-events-auto
+          transition-all duration-500
+          ease-[cubic-bezier(0.16,1,0.3,1)]
+          ${open ? "bg-black/40 backdrop-blur-xl" : "bg-transparent"}
+          md:bg-transparent md:backdrop-blur-0
+        `}
+> <div className="flex items-center px-6 py-4">
 
-    ${open
-      ? "bg-black/40 backdrop-blur-xl"
-      : "bg-transparent "}
-    
-    md:bg-transparent md:backdrop-blur-0
-  `}
->
-   {/* <header
-  className="
-    fixed top-0 left-0 w-full z-50
-    bg-transparent
-    backdrop-blur-0
-    transition-all duration-500
-  "
-> */}
-        <div className="flex items-center justify-between px-6 py-4">
+      {/* LEFT */}
+      <Link
+        to="/"
+        className="bg-[var(--bg-surface)] hover:bg-[var(--bg-muted)]
+        backdrop-blur-md border border-[var(--border-subtle)]
+        rounded-xl flex items-center gap-3 px-6 py-2
+        transition hover:scale-110 cursor-pointer"
+      >
+        <img src="/logo.jpeg" alt="Logo" className="w-10 h-10 object-contain" />
+        <h1 className="text-[var(--text-primary)] text-lg font-semibold">
+          Devlup Labs
+        </h1>
+      </Link>
 
-          {/* LEFT */}
-          <div className="bg-[var(--bg-surface)] hover:bg-[var(--bg-muted)]
-            backdrop-blur-md border border-[var(--border-subtle)]
-            rounded-xl flex items-center gap-3 px-6 py-2
-            transition hover:scale-110 cursor-pointer">
-            <img src="/logo.jpeg" alt="Logo" className="w-10 h-10 object-contain" />
-            <h1 className="text-[var(--text-primary)] text-lg font-semibold">
-              Devlup Labs
-            </h1>
-          </div>
+      {/* RIGHT */}
+      <div className="flex items-center ml-auto">
 
-          {/* RIGHT */}
-          <div className="flex items-center">
-
-            {/* DESKTOP MENU */}
-            <div className={`hidden md:flex items-center gap-1 px-3 py-2
-              bg-[var(--bg-surface)] backdrop-blur-md
-              border border-[var(--border-subtle)]
-              rounded-xl transition-transform duration-200
-              ${!open ? "hover:scale-110 hover:bg-[var(--bg-muted)]" : ""}`}>
-
-              <nav className={`flex items-center gap-6 overflow-hidden
-                transition-all duration-300 ease-out
-                ${open ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"}`}>
-                {navItems.map(item => (
-                  <Link
-                    key={item.name}
-                    to={item.path}
-                    onClick={() => setOpen(false)}
-                    className="text-[var(--text-primary)] whitespace-nowrap
-                    hover:text-blue-500 transition"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-
-                <button
-                  onClick={toggleTheme}
-                  className="px-3 py-1 rounded-lg
-                  bg-[var(--btn-secondary-bg)]
-                  text-[var(--btn-secondary-text)]
-                  border border-[var(--border-subtle)]"
-                >
-                  {isDarkMode ? "Light" : "Dark"}
-                </button>
-              </nav>
-
-              {/* DESKTOP HAMBURGER */}
-              <button
-                onClick={() => setOpen(!open)}
-                className="flex flex-col gap-1.5 px-2 py-1"
+        {/* DESKTOP MENU */}
+        <div
+          className={`hidden md:flex items-center gap-1 px-3 py-2
+          bg-[var(--bg-surface)] backdrop-blur-md
+          border border-[var(--border-subtle)]
+          rounded-xl transition-transform duration-200
+          ${!open ? "hover:scale-110 hover:bg-[var(--bg-muted)]" : ""}`}
+        >
+          <nav
+            className={`flex items-center gap-6 overflow-hidden
+            transition-all duration-300 ease-out
+            ${open ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"}`}
+          >
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={() => setOpen(false)}
+                className="text-[var(--text-primary)] whitespace-nowrap hover:text-blue-500 transition"
               >
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                  transition-all ${open ? "rotate-45 translate-y-2" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                  transition-all ${open ? "opacity-0" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                  transition-all ${open ? "-rotate-45 -translate-y-2" : ""}`} />
-              </button>
-            </div>
+                {item.name}
+              </Link>
+            ))}
 
-            {/* MOBILE HAMBURGER */}
+            {/* THEME TOGGLE (ICON) */}
             <button
-              onClick={() => setOpen(!open)}
-              className="md:hidden flex flex-col gap-1.5 px-2 py-1 z-50"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg
+              bg-[var(--bg-surface)]
+              border border-[var(--border-subtle)]
+              flex items-center justify-center
+              hover:cursor-pointer"
             >
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                transition-all ${open ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                transition-all ${open ? "opacity-0" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)]
-                transition-all ${open ? "-rotate-45 -translate-y-2" : ""}`} />
+              {isDarkMode ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 text-[var(--text-primary)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <circle cx="12" cy="12" r="5" />
+                  <line x1="12" y1="1" x2="12" y2="3" />
+                  <line x1="12" y1="21" x2="12" y2="23" />
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                  <line x1="1" y1="12" x2="3" y2="12" />
+                  <line x1="21" y1="12" x2="23" y2="12" />
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 text-[var(--text-primary)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+              )}
             </button>
+          </nav>
 
-          </div>
+          {/* DESKTOP HAMBURGER */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="flex flex-col gap-1.5 px-2 py-1"
+          >
+            <span
+              className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+                open ? "rotate-45 translate-y-2" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+                open ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+                open ? "-rotate-45 -translate-y-2" : ""
+              }`}
+            />
+          </button>
         </div>
-      </header>
 
-{/* MOBILE MENU – TRANSPARENT → GLASS */}
-<div
-  className={`
-   fixed top-[72px] left-0 right-0 bottom-0
-    z-40 md:hidden
+        {/* MOBILE HAMBURGER */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden flex flex-col gap-1.5 px-2 py-1 z-50"
+        >
+          <span
+            className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+              open ? "rotate-45 translate-y-2" : ""
+            }`}
+          />
+          <span
+            className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+              open ? "opacity-0" : ""
+            }`}
+          />
+          <span
+            className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${
+              open ? "-rotate-45 -translate-y-2" : ""
+            }`}
+          />
+        </button>
+      </div>
+    </div>
+  </header>
 
-    bg-black/40 backdrop-blur-2xl
-
-    flex flex-col items-center justify-center
-    space-y-8
-    text-2xl font-semibold text-white
-
-    transition-all duration-500
-    ease-[cubic-bezier(0.16,1,0.3,1)]
-    transform-gpu
-
-    ${open
-      ? "opacity-100 translate-y-0 pointer-events-auto"
-      : "opacity-0 -translate-y-4 pointer-events-none"}
-  `}
->
-  <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
-  {navItems.map((item, index) => (
-    <Link
-      key={item.name}
-      to={item.path}
-      onClick={() => setOpen(false)}
-      style={{ transitionDelay: `${index * 70}ms` }}
-      className={`
-        transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
-        transform-gpu
-
-        ${open
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-6"}
-
-        hover:text-blue-400
-      `}
-    >
-      {item.name}
-    </Link>
-  ))}
-
-  {/* THEME BUTTON */}
-  <button
-    onClick={toggleTheme}
-    style={{ transitionDelay: `${navItems.length * 70}ms` }}
+  {/* MOBILE MENU */}
+  <div
     className={`
-      mt-6 px-6 py-2 rounded-lg border border-white
-      transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
+      fixed top-[72px] left-0 right-0 bottom-0
+      z-40 md:hidden
+      bg-black/40 backdrop-blur-2xl
+      flex flex-col items-center justify-center
+      space-y-8 text-2xl font-semibold text-white
+      transition-all duration-500
+      ease-[cubic-bezier(0.16,1,0.3,1)]
       transform-gpu
-
       ${open
-        ? "opacity-100 translate-y-0"
-        : "opacity-0 translate-y-6"}
+        ? "opacity-100 translate-y-0 pointer-events-auto"
+        : "opacity-0 -translate-y-4 pointer-events-none"}
     `}
   >
-    {isDarkMode ? "Light Mode" : "Dark Mode"}
-  </button>
-</div>
-    </>
-  );
+    <div className="absolute top-0 left-0 right-0 h-px bg-white/10" />
+
+    {navItems.map((item, index) => (
+      <Link
+        key={item.name}
+        to={item.path}
+        onClick={() => setOpen(false)}
+        style={{ transitionDelay: `${index * 70}ms` }}
+        className={`
+          transition-all duration-500
+          transform-gpu
+          ${open ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
+          hover:text-blue-400
+        `}
+      >
+        {item.name}
+      </Link>
+    ))}
+
+    {/* MOBILE THEME TOGGLE */}
+<button
+  onClick={toggleTheme}
+  style={{ transitionDelay: `${navItems.length * 70}ms` }}
+  className={`
+    mt-6 p-3 rounded-lg
+    bg-[var(--bg-surface)]
+    border border-[var(--border-subtle)]
+    flex items-center justify-center
+    transition-all duration-500 transform-gpu
+    ${open ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
+  `}
+>
+  {isDarkMode ? (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-6 h-6 text-[var(--text-primary)]"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  ) : (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-6 h-6 text-[var(--text-primary)]"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={2}
+    >
+      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+    </svg>
+  )}
+</button>
+  </div>
+</>
+
+
+);
 }
 
 export default HeaderComponent;

@@ -1,0 +1,256 @@
+import React, { useRef, useEffect, useState } from "react";
+import gsap from "gsap";
+
+export default function CircularTimeline() {
+  const scrollRef = useRef(null);
+  const textContainerRef = useRef(null);
+  const glowRefs = useRef([]); // Refs for the GSAP glow animations
+
+  const sliceAngle = 90;
+  const radius = 600;
+  const diameter = radius * 2;
+
+  const startRotation = -45; 
+
+  const projects = Array.from({ length: 10 }, (_, i) => ({
+    title: `Project ${i + 1}`,
+    img: `https://picsum.photos/1200/1200?random=${i + 1}`
+  }));
+
+  const [smoothRotation, setSmoothRotation] = useState(startRotation);
+  const [displayedIndex, setDisplayedIndex] = useState(0);
+
+  const targetRotation = useRef(startRotation);
+  const proxyRef = useRef({ rotation: startRotation });
+
+  const maxIndex = projects.length - 1;
+  const maxRotation = startRotation; 
+  const minRotation = startRotation - maxIndex * sliceAngle; 
+
+  const theta = (sliceAngle * Math.PI) / 180;
+  const endX = radius + radius * Math.sin(theta);
+  const endY = radius - radius * Math.cos(theta);
+
+  const sectorPath = `path("M${radius} ${radius} L${radius} 0 A${radius} ${radius} 0 0 1 ${endX} ${endY} Z")`;
+
+  // --- Scroll Logic ---
+  useEffect(() => {
+    const el = scrollRef.current;
+
+    const handleWheel = (e) => {
+      const scrollFactor = 0.25;
+      targetRotation.current -= e.deltaY * scrollFactor;
+
+      targetRotation.current = Math.max(
+        minRotation,
+        Math.min(maxRotation, targetRotation.current)
+      );
+
+      gsap.to(proxyRef.current, {
+        rotation: targetRotation.current,
+        duration: 0.5,
+        ease: "power2.out",
+        overwrite: "auto",
+        onUpdate: () => {
+          setSmoothRotation(proxyRef.current.rotation);
+        }
+      });
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, [maxRotation, minRotation]);
+
+  // --- Click Logic ---
+  const handleSliceClick = (clickedIndex) => {
+    const newTargetRotation = startRotation - clickedIndex * sliceAngle;
+    targetRotation.current = newTargetRotation;
+
+    gsap.to(proxyRef.current, {
+      rotation: targetRotation.current,
+      duration: 0.6,
+      ease: "power3.out", 
+      overwrite: true, 
+      onUpdate: () => {
+        setSmoothRotation(proxyRef.current.rotation);
+      }
+    });
+  };
+
+  const activeIndex = Math.round(Math.abs((smoothRotation - startRotation) / sliceAngle));
+  const clampedCenterIndex = Math.max(0, Math.min(activeIndex, projects.length - 1));
+
+  // --- GSAP Glow & Text Transitions ---
+  useEffect(() => {
+    // 1. Handle Active Slice Glow Pulse
+    glowRefs.current.forEach((el, i) => {
+      if (i !== clampedCenterIndex && el) {
+        // Kill pulse and fade out inactive glows
+        gsap.killTweensOf(el);
+        gsap.to(el, { opacity: 0, duration: 0.4, ease: "power2.out" });
+      }
+    });
+
+    if (glowRefs.current[clampedCenterIndex]) {
+      // Start a continuous breathing pulse on the newly active glow
+      gsap.killTweensOf(glowRefs.current[clampedCenterIndex]);
+      gsap.fromTo(
+        glowRefs.current[clampedCenterIndex],
+        { opacity: 0.3 },
+        {
+          opacity: 1,
+          duration: 1,
+          repeat: -1,
+          yoyo: true, // Makes it smoothly breathe in and out
+          ease: "sine.inOut",
+        }
+      );
+    }
+
+    // 2. Handle Directional Text Swapping
+    if (clampedCenterIndex !== displayedIndex) {
+      const isAntiClockwise = clampedCenterIndex > displayedIndex;
+      const dir = isAntiClockwise ? -1 : 1; 
+
+      gsap.killTweensOf(textContainerRef.current);
+
+      gsap.to(textContainerRef.current, {
+        opacity: 0,
+        rotation: dir * 10,
+        x: dir * 40,
+        duration: 0.15,
+        ease: "power1.in",
+        onComplete: () => {
+          setDisplayedIndex(clampedCenterIndex);
+          
+          gsap.fromTo(
+            textContainerRef.current,
+            { opacity: 0, rotation: -dir * 10, x: -dir * 40 },
+            { opacity: 1, rotation: 0, x: 0, duration: 0.3, ease: "power2.out" }
+          );
+        }
+      });
+    }
+  }, [clampedCenterIndex, displayedIndex]);
+
+  return (
+    <div
+      ref={scrollRef}
+      // Added a rich dark blue radial gradient for depth
+      className="w-full h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] flex flex-col items-center overflow-hidden"
+    >
+      <div className="text-center text-white mt-12 mb-8 z-10 pointer-events-none drop-shadow-lg">
+        <h1 className="text-5xl font-bold uppercase tracking-wider text-slate-100">Our Learning Timeline</h1>
+        {/* Added a subtle cyan pop to the subtitle */}
+        <p className="mt-3 text-[var(--text-muted)] uppercase tracking-widest text-sm font-semibold">
+          explore the journey branch by branch
+        </p>
+      </div>
+
+      <div className="relative w-[1200px] h-[780px] overflow-hidden">
+        
+        {/* Wheel container */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: diameter,
+            height: diameter,
+            bottom: "-640px",
+            transform: `rotate(${smoothRotation}deg)`
+          }}
+        >
+          {projects.map((project, i) => {
+            const angle = i * sliceAngle;
+            const centerAngle = smoothRotation + angle + 45;
+            const distanceFromCenter = Math.abs(centerAngle);
+
+            const isVisible = distanceFromCenter <= 135;
+            
+            // Re-mapped to make 1 perfectly centered, 0 at the edges
+            const centerProximity = Math.max(0, 1 - Math.min(distanceFromCenter / 90, 1));
+            
+            const brightness = 0.3 + centerProximity * 0.7; 
+            const scale = 1.0 + centerProximity * 0.05;
+
+            return (
+              <div
+                key={i}
+                className="absolute w-full h-full pointer-events-none"
+                style={{ 
+                  transform: `rotate(${angle}deg)`,
+                  visibility: isVisible ? "visible" : "hidden" 
+                }}
+              >
+                {/* --- GSAP GLOW LAYER --- */}
+                {/* This sits perfectly behind the image, emitting a cyan drop-shadow */}
+                <div
+                  ref={(el) => (glowRefs.current[i] = el)}
+                  className="absolute w-full h-full pointer-events-none opacity-0"
+                  style={{ 
+                    filter: "drop-shadow(0px 0px 35px rgba(34, 211, 238, 0.9))" 
+                  }}
+                >
+                  <div
+                    className="absolute w-full h-full"
+                    style={{ 
+                      clipPath: sectorPath, 
+                      backgroundColor: 'rgba(34,211,238,0.35)' 
+                    }}
+                  />
+                </div>
+
+                {/* --- ACTUAL IMAGE SLICE --- */}
+                <div
+                  onClick={() => handleSliceClick(i)}
+                  className="absolute w-full h-full overflow-hidden cursor-pointer pointer-events-auto"
+                  style={{ clipPath: sectorPath }}
+                >
+                  <div
+                    className="relative w-full h-full transition-transform duration-300 hover:scale-[1.07] pointer-events-none"
+                    style={{
+                      filter: `brightness(${brightness})`,
+                      transform: `scale(${scale})`
+                    }}
+                  >
+                    <img
+                      src={project.img}
+                      className="w-full h-full object-cover"
+                      alt={project.title}
+                    />
+                    
+                    <div 
+                      className="absolute inset-0 bg-slate-900" 
+                      style={{ opacity: (1 - centerProximity) * 0.7 }} 
+                    />
+                  </div>
+                </div>
+
+                <div className="absolute left-1/2 top-0 w-[2px] h-full bg-black/60 pointer-events-none"></div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Inner Dark Center Card */}
+        {/* FIX: Changed pointer-events-none to pointer-events-auto right below to block clicks */}
+        <div className="absolute bottom-[-220px] left-1/2 -translate-x-1/2 w-[540px] h-[540px] rounded-full bg-[#090f1f] flex items-center justify-center z-10 pointer-events-auto border border-cyan-900/40 shadow-[inset_0_0_30px_rgba(34,211,238,0.05),_0_0_80px_rgba(0,0,0,0.9)]">
+          
+          <div 
+            ref={textContainerRef}
+            className="text-center translate-y-[-100px] pointer-events-auto flex flex-col items-center origin-bottom"
+          >
+            <h2 className="text-white text-4xl font-bold mb-3 uppercase tracking-widest drop-shadow-md">
+              {projects[displayedIndex].title}
+            </h2>
+            <div className="w-12 h-[2px] bg-cyan-800 mb-5"></div>
+            <button className="border border-cyan-600 text-cyan-50 px-8 py-3 text-xs font-semibold tracking-widest hover:bg-cyan-500 hover:text-slate-950 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all duration-300">
+              VIEW PROJECT
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  );
+}

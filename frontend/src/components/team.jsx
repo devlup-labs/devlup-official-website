@@ -9,17 +9,17 @@ const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
   const showProfileUI = isActive && focusProgress > 0.8;
-
-  const handleViewProfile = (e) => {
+ const handleViewProfile = (e) => {
     e.stopPropagation();
-    navigate(`/${tile.label.toLowerCase()}`);
+   const nameSlug = tile.name.trim().split(' ')[0].toLowerCase();
+    navigate(`/${nameSlug}`);
   };
 
   return (
     <div
       ref={(el) => (tileRefs.current[tile.id] = el)}
       className="absolute top-0 left-0"
-      style={{ willChange: "transform, opacity", zIndex: isActive ? 5000 : 1 }}
+       style={{ willChange: "transform", zIndex: isActive ? 5000 : 1 }}
     >
       <div
         onClick={(e) => { e.stopPropagation(); openTile(tile.id); }}
@@ -28,19 +28,16 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
             ? "rounded-full"
             : "rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-md"
         }`}
-        style={{
-          width: TILE_SIZE,
-          height: TILE_SIZE,
-          backfaceVisibility: "hidden",
-          overflow: "visible"
-        }}
+      style={{ width: TILE_SIZE, height: TILE_SIZE, backfaceVisibility: "hidden" }}
+
       >
-        {/* IMAGE */}
+        {/* THE SMOOTH BAND IMAGE (Always fast) */}
         <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-          <img src={tile.img} alt="" className="w-full h-full object-cover opacity-70" />
+        <img src={tile.profileImage} alt="" className="w-full h-full object-cover opacity-60" />
+           
         </div>
 
-        {/* PROFILE CARD */}
+        {/* THE PROFILE CARD OVERLAY (Matches Image 1) */}
         {isActive && (
           <div
             className="absolute flex flex-col items-center justify-center rounded-full shadow-2xl border backdrop-blur-xl"
@@ -49,61 +46,32 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
               height: window.innerWidth < 768 ? '320px' : '420px',
               transform: `scale(${focusProgress})`,
               opacity: focusProgress,
-              background: "var(--gradient-primary)",
-              borderColor: "var(--border-subtle)",
-              color: "var(--text-primary)"
+            
             }}
           >
-            {showProfileUI && (
-              <div className="flex flex-col items-center w-full px-8">
-
-                {/* IMAGE + NAME */}
-                <div className="flex flex-row items-start gap-4 mb-2">
-                  <div className="w-40 h-40 rounded-full border overflow-hidden flex-shrink-0 -ml-6 shadow-lg border-[var(--border-subtle)]">
-                    <img 
-                      src={tile.img} 
-                      alt={tile.label} 
-                      className="w-[125%] h-[125%] object-cover -ml-2 -mt-1" 
-                    />
+            {showProfileUI && ( <div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
+                <div className="flex flex-row items-center gap-4 mb-4">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg">
+                    <img src={tile.profileImage} alt={tile.name} className="w-full h-full object-cover" />
                   </div>
-
-                  <div className="flex flex-col items-center pt-16">
-                    <h2 className="text-2xl font-black uppercase tracking-tight">
-                      {tile.label}
-                    </h2>
-
-                    <div className="flex gap-3 text-lg opacity-70">
-                      <FontAwesomeIcon icon={faGithub} className="hover:text-[var(--text-secondary)] transition" />
-                      <FontAwesomeIcon icon={faEnvelope} className="hover:text-[var(--text-secondary)] transition" />
-                      <FontAwesomeIcon icon={faLinkedin} className="hover:text-[var(--text-secondary)] transition" />
+                  <div className="flex flex-col">
+                    <h2 className="text-xl md:text-2xl font-black uppercase leading-tight">{tile.name}</h2>
+                    <p className="text-[10px] font-bold opacity-70 uppercase">{tile.designation}</p>
+                    <div className="flex gap-3 mt-2 text-lg">
+                      <a href={tile.github} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faGithub} /></a>
+                      <a href={`mailto:${tile.email}`} onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faEnvelope} /></a>
+                      <a href={tile.linkedin} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faLinkedin} /></a>
                     </div>
                   </div>
                 </div>
-
-                {/* ABOUT */}
-                <div className="mt-2 border-t pt-3 w-full border-[var(--border-subtle)]">
-                  <h4 className="font-bold text-sm mb-2 text-center">
-                    About
-                  </h4>
-
-                  <p className="text-center text-xs opacity-80 leading-tight">
-                    {tile.bio || "Hi everyone! I'm passionate about building innovative tech solutions and scaling impactful products."}
-                  </p>
+                <div className="border-t border-black/10 pt-3 w-full text-center">
+                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.tag}</span>
+                  <p className="text-[11px] leading-tight mt-1 line-clamp-3 px-4">{tile.bio}</p>
                 </div>
-
-                {/* BUTTON */}
-                <button
-                  onClick={handleViewProfile}
-                  className="mt-4 px-6 py-2 text-xs font-bold rounded-lg transition-all active:scale-95"
-                  style={{
-                    background: "var(--bg-surface)",
-                    border: "1px solid var(--border-subtle)",
-                    color: "var(--text-primary)"
-                  }}
-                >
+                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-blue-500 text-white text-[10px] font-bold rounded-full hover:bg-blue-600 transition-all">
                   VIEW PROFILE
                 </button>
-
+  
               </div>
             )}
           </div>
@@ -114,19 +82,23 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
 });
 
 function Team() {
-  const IMAGES = [
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop"
-  ];
+  const [members, setMembers] = useState([]);
+  const [rotation, setRotation] = useState(0);
+  const [activeTile, setActiveTile] = useState(null);
+  const [focusProgress, setFocusProgress] = useState(0);
 
-  const TEAM_NAMES = ["Priyanshu","Anabel","Kunal","Sneha","Aditya","Pooja","Rahul","Ananya","Dev","Build","Ship","Scale","Design","Animate","Deploy","Optimize","Grow","Evolve"];
+  const tileRefs = useRef({});
+  const rotationRef = useRef(0);
+  const scrollVelocity = useRef(0);
+  const frameRef = useRef(null); // Fixed the missing ReferenceError
+  const touchStartRef = useRef(0);
 
-  const TEAM = useMemo(() => TEAM_NAMES.map((name, i) => ({
-    name,
-    img: IMAGES[i % IMAGES.length]
-  })), []);
+  useEffect(() => {
+    fetch("/data/priyanshu.json")
+      .then(res => res.json())
+      .then(data => setMembers(Array.isArray(data) ? data : [data]))
+      .catch(err => console.error("Error loading JSON:", err));
+  }, []);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const ROWS = 5;
@@ -135,16 +107,9 @@ function Team() {
   const RADIUS = isMobile ? 320 : 700;  
   const SPLIT_SHIFT = isMobile ? 200 : 400; 
 
-  const [rotation, setRotation] = useState(0);
-  const [activeTile, setActiveTile] = useState(null);
-  const [focusProgress, setFocusProgress] = useState(0);
+ 
 
-  const tileRefs = useRef({});
-  const scrollVelocity = useRef(0);
-  const rotationRef = useRef(0);
-  const frameRef = useRef(null); 
-  const touchStartRef = useRef(0);
-
+  // RESTORED: Exactly your original friction and scroll logic
   const openTile = (id) => {
     if (activeTile === id) { closeCurrent(); return; }
     if (activeTile) { closeCurrent(() => triggerOpen(id)); } 
@@ -159,7 +124,10 @@ function Team() {
       const eased = 1 - Math.pow(1 - t, 3);
       setFocusProgress(startVal * (1 - eased));
       if (t < 1) requestAnimationFrame(run);
-      else { setActiveTile(null); if (callback) callback(); }
+      else { 
+        setActiveTile(null); 
+        if (callback) callback(); 
+      }
     };
     requestAnimationFrame(run);
   };
@@ -172,7 +140,7 @@ function Team() {
 
   const animateToCenter = (id) => {
     const [row, index] = id.split("-").map(Number);
-    const angleStep = 360 / TEAM.length;
+    const angleStep = 360 / 18;
     const offset = row % 2 ? angleStep / 2 : 0;
     const targetPosAngle = (index * angleStep + offset);
     const combinedAngle = (targetPosAngle + rotationRef.current) % 360;
@@ -211,7 +179,7 @@ function Team() {
       if (Math.abs(scrollVelocity.current) > 0.01) {
         rotationRef.current = (rotationRef.current - scrollVelocity.current) % 360;
         setRotation(rotationRef.current);
-        scrollVelocity.current *= 0.96;
+        scrollVelocity.current *= 0.96; // RESTORED ORIGINAL FRICTION
       }
       frameRef.current = requestAnimationFrame(update);
     };
@@ -229,24 +197,28 @@ function Team() {
   }, [activeTile, isMobile]);
 
   const tilesData = useMemo(() => {
+    if (members.length === 0) return [];
     const out = [];
-    const angleStep = 360 / TEAM.length;
+    const COLS = 18; 
+    const angleStep = 360 / COLS;
     for (let row = 0; row < ROWS; row++) {
-      for (let i = 0; i < TEAM.length; i++) {
-        out.push({
-          id: `${row}-${i}`,
-          label: TEAM[i].name,
-          img: TEAM[i].img,
-          baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0),
-          row
+      for (let i = 0; i < COLS; i++) {
+        const member = members[i % members.length];
+        out.push({ 
+          id: `${row}-${i}`, 
+          ...member, 
+          baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0), 
+          row 
         });
       }
     }
     return out;
-  }, [TEAM]);
+  }, [members]);
 
   useEffect(() => {
-    const angleStep = 360 / TEAM.length;
+    if (tilesData.length === 0) return;
+    const COLUMNS = 18;
+    const angleStep = 360 / COLUMNS;
     let activeAngle = null;
 
     if (activeTile) {
@@ -310,9 +282,9 @@ function Team() {
   return (
     <section className="relative h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
       <div 
-        className="w-full h-full relative z-20" 
+        className="w-full h-full relative" 
         onClick={() => activeTile && closeCurrent()} 
-        style={{ perspective: isMobile ? "800px" : "1600px" }}
+        style={{ perspective: "1200px" }}
       >
         {tilesData.map((tile) => (
           <Tile

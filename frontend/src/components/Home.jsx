@@ -42,7 +42,7 @@ useEffect(() => {
     <div className="relative h-screen w-full bg-[url('/construction.jpg')] bg-cover bg-center">
       
       {/* Dark overlay */}
-      <div className="absolute inset-0 bg-[var(--bg-main)] " />
+      <div className="absolute inset-0 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] " />
 
       {/* Content */}
       <div className="relative z-10 h-full max-w-7xl mx-auto px-8 flex items-center">

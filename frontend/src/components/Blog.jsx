@@ -166,7 +166,7 @@ card.style.pointerEvents =
     <section
       id="tunnel-section"
        ref={sectionRef}
-      className="relative h-[2000vh] bg-[var(--bg-main)] text-[var(--text-primary)]"
+      className="relative h-[2000vh] [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 

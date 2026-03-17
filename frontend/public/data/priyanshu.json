@@ -1,0 +1,50 @@
+{
+  "name": "Priyanshu Mishra",
+  "location": "Kanpur, India",
+  "rollNumber": "B25CS1001",
+  "designation": "Lead Frontend Developer",
+  "tag":"GodFather of Frontend",
+  "email": "priyanshu@example.com",
+  "linkedin": "https://www.linkedin.com/in/priyanshu-mishra",
+  "github": "https://github.com/riddhisarak-jpg",
+  "profileImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+
+  "bio": "Frontend developer with a strong focus on React, Tailwind CSS, and smooth UI animations using GSAP. Passionate about building modern, performance-driven web experiences with clean design aesthetics.",
+
+  "education": [
+    {
+      "level": "Bachelor of Technology (B.Tech)",
+      "place": "XYZ Institute of Technology"
+    },
+    {
+      "level": "Higher Secondary Education",
+      "place": "ABC Senior Secondary School"
+    }
+  ],
+
+  "softwareSkills": [
+    "React",
+    "Tailwind CSS",
+    "JavaScript",
+    "GSAP",
+    "HTML",
+    "CSS",
+    "Git",
+    "Figma"
+  ],
+
+  "secretData": {
+"hiddencontribution":{
+  "id": "contribution-001",
+  "title": "Frontend Architecture and Optimization",
+  "description": "Priyanshu has been instrumental in designing and implementing the frontend architecture of the Devlup official portal. He has contributed to optimizing the user interface for better performance and accessibility, ensuring a seamless experience for all users. His expertise in React and Tailwind CSS has led to the creation of a visually appealing and responsive design that aligns with the brand's identity."
+},
+"hiddenavatar":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+"hiddenquote":"Code is like humor. When you have to explain it, it’s bad.",
+"hiddencomments":"Priyanshu is a talented frontend developer who has made significant contributions to the Devlup official portal.",
+    "codename": "MISHRA-ALPHA-01", 
+    "accessLevel": "Level 4 (Admin)",
+    "hiddenNote": "Identity verified. This user is the lead developer for the Devlup official portal. Access to internal repositories is granted.",
+    "specialBadge": "Frontend Architect Verified"
+  }
+}

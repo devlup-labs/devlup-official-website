@@ -120,7 +120,7 @@ export default function Podcast() {
   ============================= */
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row items-center justify-center bg-[var(--bg-main)] text-[var(--text-primary)] overflow-hidden">
+    <div className="flex-1 flex flex-col lg:flex-row items-center justify-center [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden">
       
       {/* LEFT STACK */}
       <div className="w-full lg:w-1/2 flex items-center justify-center">

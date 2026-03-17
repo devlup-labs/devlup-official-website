@@ -4,7 +4,20 @@
    LIGHT THEME (DEFAULT) 
 ======================= */
 :root {
-  --bg-main: #e7f6ff;
+  /* Use a specific name to remind yourself this is an image, not a color */
+  --bg-main-gradient: linear-gradient(
+    1200deg,
+
+    #75c5ff,
+     #8fb3e5,
+   
+    #8fb3e5,
+    #75bfff
+  );
+  
+  /* Fallback color for slow connections */
+  --bg-fallback: #f5f8ff;
+
   --bg-surface: #ffffff;
   --bg-muted: #eaf0f8;
 
@@ -34,7 +47,16 @@
    DARK THEME
 ======================= */
 [data-theme="dark"] {
-  --bg-main: #050b1a;
+ --bg-main-gradient:linear-gradient(
+    120deg,
+    #0b122a 0%,
+    #0b1530 30%,
+    #050b1a 50%,
+    #0b1530 70%,
+    #0b122a 100%
+  ); 
+  --bg-fallback: #0b122a;
+  
   --bg-surface: #0b1530;
   --bg-muted: #0f1c3f;
 

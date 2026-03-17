@@ -1,43 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
-export default function SearchBar({ onToggle }) {
+export default function SearchBar() {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    onToggle(open);
-  }, [open, onToggle]);
-
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="text"
-        placeholder="Search Thumbnails"
-        className={`
-          h-7
-          rounded
-          bg-purple-400 text-black
-
-          transition-all duration-500
-          ${open
-            ? "w-[320px] px-2 opacity-100"
-            : "w-0 px-0 opacity-0"
-          }
-        `}
-      />
-
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className="
-          h-7 w-10
-          rounded
-          bg-purple-400
-          flex items-center justify-center
-          cursor-pointer
-        "
-      >
-        <CiSearch />
-      </button>
+    <div className="flex items-center relative group z-[20000] ">
+      <div className={`
+        flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-full transition-all duration-500 ease-out
+        ${open ? "w-[300px] px-4 ring-2 ring-purple-500/50" : "w-10 px-0"}
+      `}>
+        <CiSearch className="text-white min-w-[20px] cursor-pointer" onClick={() => setOpen(!open)} size={20} />
+        <input
+          type="text"
+          placeholder="Search videos..."
+          className={`
+            bg-transparent border-none outline-none text-white text-sm transition-all duration-300
+            ${open ? "w-full ml-3 opacity-100" : "w-0 opacity-0"}
+          `}
+        />
+      </div>
     </div>
   );
 }

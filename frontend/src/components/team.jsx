@@ -1,56 +1,132 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import this
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
+import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
+// If you need solid icons later: import { faUser } from '@fortawesome/free-solid-svg-icons';
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
-const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs }) => (
-  <div
-    ref={(el) => (tileRefs.current[tile.id] = el)}
-    className="absolute top-0 left-0"
-    style={{ willChange: "transform, opacity", pointerEvents: tile.isBack ? 'none' : 'auto' }}
-  >
+const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
+ const navigate = useNavigate(); // Initialize navigate
+ 
+  // Use a high threshold for the heavy UI to keep rotation light
+  const showProfileUI = isActive && focusProgress > 0.8;
+const handleViewProfile = (e) => {
+  e.stopPropagation(); 
+  const name = tile.label.toLowerCase(); 
+  
+  // CHANGE THIS: From window.open to navigate
+  navigate(`/${name}`); 
+};
+
+  return (
     <div
-      onClick={(e) => { e.stopPropagation(); openTile(tile.id); }}
-      className="flex flex-col items-center justify-center bg-white/10 border border-white/20 rounded-full cursor-pointer select-none text-[10px] font-bold backdrop-blur-md text-center shadow-xl hover:border-white/50 transition-colors overflow-hidden"
-      style={{
-        width: TILE_SIZE, height: TILE_SIZE,
-        transition: "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s",
-        backfaceVisibility: "hidden",
+      ref={(el) => (tileRefs.current[tile.id] = el)}
+      className="absolute top-0 left-0"
+      style={{ 
+        willChange: "transform, opacity", 
+        zIndex: isActive ? 5000 : 1 
       }}
     >
-      {/* Added Image Background */}
-      <img src={tile.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
-      <span className="relative z-10 bg-black/40 px-2 py-1 rounded-full text-white">{tile.label}</span>
+      <div
+        onClick={(e) => { e.stopPropagation(); openTile(tile.id); }}
+        className={`relative flex flex-col items-center justify-center transition-colors duration-500 ${
+          isActive ? "rounded-full" : "rounded-full bg-white/10 border border-white/20 backdrop-blur-md"
+        }`}
+        style={{
+          // We use scale instead of width/height to avoid layout reflows (the "lag")
+          width: TILE_SIZE,
+          height: TILE_SIZE,
+          backfaceVisibility: "hidden",
+          overflow: "visible"
+        }}
+      >
+        {/* THE SMOOTH BAND IMAGE (Always fast) */}
+        <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
+           <img src={tile.img} alt="" className="w-full h-full object-cover opacity-60" />
+           
+        </div>
+
+        {/* THE PROFILE CARD OVERLAY (Matches Image 1) */}
+        {isActive && (
+          <div 
+            className="absolute flex flex-col items-center justify-center bg-gradient-to-b from-[#9dbdf8] to-[#cbdcfc] rounded-full shadow-2xl border-4 border-white/30 text-black"
+            style={{
+              // We scale this up from the center of the TILE_SIZE
+              width: window.innerWidth < 768 ? '320px' : '420px',
+              height: window.innerWidth < 768 ? '320px' : '420px',
+              transform: `scale(${focusProgress})`,
+              opacity: focusProgress,
+              transition: 'none' // Controlled by focusProgress frame-by-frame
+            }}
+          >
+            {showProfileUI && (
+              <div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
+      
+                
+           <div className="flex flex-row items-start gap-4 mb-2">
+    
+    {/* 📸 SHIFTED LEFT IMAGE */}
+    <div className="w-45 h-45 rounded-full border-2 border-white/40 overflow-hidden flex-shrink-0 -ml-8 shadow-lg">
+      <img 
+        src={tile.img} 
+        alt={tile.label} 
+        className="w-[125%] h-[125%] object-cover -ml-2 -mt-1" 
+      />
+    </div>
+
+    {/* 🏷️ NAME AND ICONS */}
+    <div className="flex flex-col items-center pt-20">
+      <h2 className="text-2xl font-black uppercase tracking-tighter leading-none mb-1">
+        {tile.label || "PROFILE"}
+      </h2>
+      <div className="flex gap-3 text-lg opacity-60">
+        <FontAwesomeIcon icon={faGithub} className="hover:text-blue-400 transition-colors" />
+        <FontAwesomeIcon icon={faEnvelope} className="hover:text-blue-400 transition-colors" />
+        <FontAwesomeIcon icon={faLinkedin} className="hover:text-blue-400 transition-colors" />
+      </div>
     </div>
   </div>
-));
+
+  {/* 📝 ABOUT SECTION */}
+  <div className="mt-2 border-t border-black/10 pt-3">
+    <h4 className="ml-40 font-bold text-sm mb-2">About</h4>
+    <p className="text-center text-[10px] leading-tight opacity-90 line-clamp-4">
+      {tile.bio || "Hi everyone! I'm a student at IIT. Leading the Web and Coding Club. Passionate about building innovative tech solutions."}
+    </p>
+  </div>
+
+  {/* 🔘 ACTION BUTTON */}
+  <div className="mt-auto flex justify-center pb-2">
+    <button 
+      onClick={handleViewProfile}
+      className="mt-2 px-8 py-2 bg-blue-300/50 border border-blue-400 text-xs font-bold rounded shadow-sm hover:bg-blue-500 transition-all active:scale-95"
+    >
+      VIEW PROFILE
+    </button>
+  </div>
+              </div>
+
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
 
 function Team() {
-  // Array of random portrait images
-  const IMAGES = [
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop"
-  ];
-
-  const TEAM_NAMES = ["Aarav", "Anabel", "Kunal", "Sneha", "Aditya", "Pooja", "Rahul", "Ananya", "Dev", "Build", "Ship", "Scale", "Design", "Animate", "Deploy", "Optimize", "Grow", "Evolve"];
-  
-  const TEAM = useMemo(() => TEAM_NAMES.map((name, i) => ({
-    name,
-    img: IMAGES[i % IMAGES.length]
-  })), []);
+  const IMAGES = ["https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop"];
+  const TEAM_NAMES = ["Priyanshu", "Anabel", "Kunal", "Sneha", "Aditya", "Pooja", "Rahul", "Ananya", "Dev", "Build", "Ship", "Scale", "Design", "Animate", "Deploy", "Optimize", "Grow", "Evolve"];
+  const TEAM = useMemo(() => TEAM_NAMES.map((name, i) => ({ name, img: IMAGES[i % IMAGES.length] })), []);
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const ROWS = 5;
-  const TILE_SIZE = isMobile ? 85 : 110; 
-  const TILE_GAP = isMobile ? 12 : 20;  
-  const RADIUS = isMobile ? 350 : 650;  
-  const SPLIT_SHIFT = isMobile ? 240 : 250; 
-
-  const SCROLL_SENSITIVITY = isMobile ? 0.015 : 0.01; 
-  const MAX_VELOCITY = 10; 
-  const FRICTION = 0.95; 
+  const TILE_SIZE = isMobile ? 95 : 110; 
+  const TILE_GAP = isMobile ? 15 : 20;  
+  const RADIUS = isMobile ? 320 : 700;  
+  const SPLIT_SHIFT = isMobile ? 200 : 400; 
 
   const [rotation, setRotation] = useState(0);
   const [activeTile, setActiveTile] = useState(null);
@@ -62,18 +138,11 @@ function Team() {
   const frameRef = useRef(null); 
   const touchStartRef = useRef(0);
 
-  // --- NEW LOGIC: ONE CLOSE THEN OTHER OPEN ---
+  // RESTORED: Exactly your original friction and scroll logic
   const openTile = (id) => {
-    if (activeTile === id) {
-      closeCurrent();
-      return;
-    }
-    
-    if (activeTile) {
-      closeCurrent(() => triggerOpen(id));
-    } else {
-      triggerOpen(id);
-    }
+    if (activeTile === id) { closeCurrent(); return; }
+    if (activeTile) { closeCurrent(() => triggerOpen(id)); } 
+    else { triggerOpen(id); }
   };
 
   const closeCurrent = (callback) => {
@@ -82,14 +151,9 @@ function Team() {
     const run = (time) => {
       const t = Math.min((time - startTime) / 400, 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      const val = startVal * (1 - eased);
-      setFocusProgress(val);
-      if (t < 1) {
-        requestAnimationFrame(run);
-      } else {
-        setActiveTile(null);
-        if (callback) callback();
-      }
+      setFocusProgress(startVal * (1 - eased));
+      if (t < 1) requestAnimationFrame(run);
+      else { setActiveTile(null); if (callback) callback(); }
     };
     requestAnimationFrame(run);
   };
@@ -111,7 +175,7 @@ function Team() {
     const startRot = rotationRef.current;
     const startTime = performance.now();
     const run = (time) => {
-      const t = Math.min((time - startTime) / 700, 1);
+      const t = Math.min((time - startTime) / 600, 1);
       const eased = 1 - Math.pow(1 - t, 4);
       rotationRef.current = startRot - delta * eased;
       setRotation(rotationRef.current);
@@ -124,20 +188,14 @@ function Team() {
   useEffect(() => {
     const handleWheel = (e) => {
       if (activeTile) return;
-      e.preventDefault();
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      scrollVelocity.current = clamp(scrollVelocity.current + (delta * SCROLL_SENSITIVITY), -MAX_VELOCITY, MAX_VELOCITY);
-    };
-
-    const handleTouchStart = (e) => {
-      touchStartRef.current = e.touches[0].clientX;
-      scrollVelocity.current = 0; 
+      scrollVelocity.current = clamp(scrollVelocity.current + (delta * (isMobile ? 0.02 : 0.01)), -10, 10);
     };
 
     const handleTouchMove = (e) => {
       if (activeTile) return;
       const touchX = e.touches[0].clientX;
-      const delta = (touchStartRef.current - touchX) * (isMobile ? 0.5 : 0.4); 
+      const delta = (touchStartRef.current - touchX) * (isMobile ? 0.3 : 0.4); 
       rotationRef.current = (rotationRef.current - delta) % 360;
       setRotation(rotationRef.current);
       touchStartRef.current = touchX;
@@ -147,26 +205,35 @@ function Team() {
       if (Math.abs(scrollVelocity.current) > 0.01) {
         rotationRef.current = (rotationRef.current - scrollVelocity.current) % 360;
         setRotation(rotationRef.current);
-        scrollVelocity.current *= FRICTION;
+        scrollVelocity.current *= 0.96; // RESTORED ORIGINAL FRICTION
       }
       frameRef.current = requestAnimationFrame(update);
     };
 
     window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("touchstart", handleTouchStart);
+    window.addEventListener("touchstart", (e) => touchStartRef.current = e.touches[0].clientX);
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     frameRef.current = requestAnimationFrame(update);
-
     return () => {
       window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       cancelAnimationFrame(frameRef.current);
     };
   }, [activeTile, isMobile]);
 
-  const tiles = useMemo(() => {
+  const tilesData = useMemo(() => {
     const out = [];
+    const angleStep = 360 / TEAM.length;
+    for (let row = 0; row < ROWS; row++) {
+      for (let i = 0; i < TEAM.length; i++) {
+        out.push({ id: `${row}-${i}`, label: TEAM[i].name, img: TEAM[i].img, baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0), row });
+      }
+    }
+    return out;
+  }, [TEAM]);
+
+  // Transform logic kept strictly as you had it for maximum performance
+  useEffect(() => {
     const angleStep = 360 / TEAM.length;
     let activeAngle = null;
     if (activeTile) {
@@ -174,69 +241,64 @@ function Team() {
       activeAngle = idx * angleStep + (r % 2 ? angleStep / 2 : 0) + rotation;
     }
 
-    for (let row = 0; row < ROWS; row++) {
-      for (let i = 0; i < TEAM.length; i++) {
-        const angle = i * angleStep + (row % 2 ? angleStep / 2 : 0) + rotation;
-        const rad = (angle * Math.PI) / 180;
-        const x = Math.sin(rad) * RADIUS;
-        const z = Math.cos(rad) * RADIUS;
-        const y = (row - (ROWS - 1) / 2) * (TILE_SIZE + TILE_GAP);
-        const hRatio = Math.abs(x) / RADIUS;
-        const curvedY = y * (1 - hRatio * (isMobile ? 0.35 : 0.45));
-        
-        // VIBRATION FIX: We scale splitX by focusProgress so it slides, doesn't jump
-        let splitX = 0;
-        if (activeAngle !== null && `${row}-${i}` !== activeTile) {
-          const d = ((angle - activeAngle + 540) % 360) - 180;
-          const targetSplit = d < 0 ? -SPLIT_SHIFT : SPLIT_SHIFT;
-          splitX = targetSplit * focusProgress; 
-        }
-
-        out.push({
-          id: `${row}-${i}`, label: TEAM[i].name, img: TEAM[i].img, x, curvedY, z, splitX,
-          faceRotation: angle, baseScale: 0.5 + ((z + RADIUS) / (2 * RADIUS)) * 0.5,
-          isBack: z < 0, zIndex: Math.round(1000 + z)
-        });
-      }
-    }
-    return out;
-  }, [rotation, activeTile, isMobile, RADIUS, TILE_SIZE, focusProgress]);
-
-  useEffect(() => {
-    tiles.forEach((tile) => {
+    tilesData.forEach((tile) => {
       const wrapper = tileRefs.current[tile.id];
       if (!wrapper) return;
       const inner = wrapper.firstChild;
+      const angle = tile.baseAngle + rotation;
+      const rad = (angle * Math.PI) / 180;
+      const x = Math.sin(rad) * RADIUS;
+      const z = Math.cos(rad) * RADIUS;
+      const yBase = (tile.row - (ROWS - 1) / 2) * (TILE_SIZE + TILE_GAP);
+      const verticalCurve = Math.cos(rad);
+      const curvedY = yBase * (verticalCurve > 0 ? Math.sqrt(verticalCurve) : 0);
+
+      let splitX = 0;
+      if (activeAngle !== null && tile.id !== activeTile) {
+        const d = ((angle - activeAngle + 540) % 360) - 180;
+        splitX = (d < 0 ? -SPLIT_SHIFT : SPLIT_SHIFT) * focusProgress; 
+      }
+
       const isActive = tile.id === activeTile;
       const cx = window.innerWidth / 2;
       const cy = window.innerHeight / 2;
 
-      let exX = 0, exY = 0, exZ = 0, exScale = 0;
+      let exX = 0, exY = 0, exZ = 0;
       if (isActive) {
-        exX = -tile.x * focusProgress; 
-        exY = -tile.curvedY * focusProgress;
-        exZ = (isMobile ? 350 : 600 - tile.z) * focusProgress;
-        exScale = focusProgress * (isMobile ? 1.3 : 0.9);
+        exX = -x * focusProgress; 
+        exY = -curvedY * focusProgress;
+        exZ = (isMobile ? 250 : 600 - z) * focusProgress;
       }
 
-      wrapper.style.zIndex = tile.zIndex;
+      const baseScale = 0.5 + ((z + RADIUS) / (2 * RADIUS)) * 0.5;
+      const opacity = isActive ? 1 : Math.max(0, 0.05 + ((z + RADIUS) / (RADIUS * 2)) * 0.95);
+
+      wrapper.style.zIndex = isActive ? 5000 : Math.round(1000 + z);
       wrapper.style.transform = `translate3d(${cx}px, ${cy}px, 0)`;
-      inner.style.transform = `translate3d(${tile.x + tile.splitX + exX}px, ${tile.curvedY + exY}px, ${tile.z + exZ}px) rotateY(${tile.faceRotation}deg) translateX(-50%) translateY(-50%) scale(${tile.baseScale + exScale})`;
-      inner.style.opacity = isActive ? 1 : Math.max(0, 0.05 + ((tile.z + RADIUS) / (RADIUS * 2)) * 0.95);
+      wrapper.style.display = (z > -200 || isActive) ? 'block' : 'none';
+
+      inner.style.transform = `translate3d(${x + splitX + exX}px, ${curvedY + exY}px, ${z + exZ}px) rotateY(${angle}deg) translateX(-50%) translateY(-50%) scale(${baseScale})`;
+      inner.style.opacity = opacity;
     });
-  }, [tiles, activeTile, focusProgress, isMobile, RADIUS]);
+  }, [rotation, activeTile, focusProgress, isMobile, tilesData]);
 
   return (
-    <section className="relative h-screen bg-black text-white transition-colors duration-500 overflow-hidden overscroll-none">
-      <div className="absolute inset-0 pointer-events-none z-10 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.8)_95%)]" />
-      
+    <section className="relative h-screen bg-black text-white overflow-hidden touch-none overscroll-none">
       <div 
         className="w-full h-full relative z-20" 
         onClick={() => activeTile && closeCurrent()} 
-        style={{ perspective: "1600px" }}
+        style={{ perspective: isMobile ? "800px" : "1600px" }}
       >
-        {tiles.map((tile) => (
-          <Tile key={tile.id} tile={tile} TILE_SIZE={TILE_SIZE} openTile={openTile} tileRefs={tileRefs} />
+        {tilesData.map((tile) => (
+          <Tile 
+            key={tile.id} 
+            tile={tile} 
+            TILE_SIZE={TILE_SIZE} 
+            openTile={openTile} 
+            tileRefs={tileRefs} 
+            isActive={activeTile === tile.id}
+            focusProgress={focusProgress}
+          />
         ))}
       </div>
     </section>

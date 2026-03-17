@@ -170,7 +170,7 @@ card.style.pointerEvents =
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 
-        <div className="absolute inset-0 bg-[var(--bg-main)]" />
+        <div className="absolute inset-0 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]" />
 
         {activeCard !== null && (
           <div

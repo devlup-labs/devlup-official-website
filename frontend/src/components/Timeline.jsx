@@ -19,7 +19,7 @@ export default function Timeline() {
   };
 
   return (
-    <div className="relative min-h-[300vh] overflow-hidden pt-64">
+    <div className="relative min-h-[300vh] overflow-hidden pt-64 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]">
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
  
 

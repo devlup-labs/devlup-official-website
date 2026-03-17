@@ -1,6 +1,6 @@
-import React, { useRef } from 'react';
-import { gsap } from 'gsap';
-import { useGSAP } from '@gsap/react';
+import React, { useRef } from "react";
+import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -9,129 +9,166 @@ const Footer = () => {
   const refFooter = useRef(null);
   const refContent = useRef(null);
   const refWave = useRef(null);
-  const refDot = useRef(null); 
+  const refDot = useRef(null);
 
   useGSAP(() => {
     const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: refFooter.current,
-      start: "top 80%",      // footer enters viewport
-      end: "bottom 60%",
-      once: true,            // 🔥 play only once
-     },
-     });
+      scrollTrigger: {
+        trigger: refFooter.current,
+        start: "top 80%",
+        once: true,
+      },
+    });
+
     const columns = refContent.current.children;
 
-    // 1. Setup initial states
-    // Dot starts way above the screen
-    gsap.set(refDot.current, { y: -500, opacity: 1, scale: 1 });
-    // Wave is invisible and small
-    gsap.set(refWave.current, { scale: 0, opacity: 0 });
-    // Content columns are blurred and hidden
-    gsap.set(columns, { opacity: 0, y: 30, filter: "blur(12px)" });
+    // initial states
+    gsap.set(refDot.current, {
+      y: -300,
+      xPercent: -50,
+      yPercent: -50,
+      left: "50%",
+      top: "50%",
+    });
 
-    // 2. The Dot drops from top to the center of the footer
+    gsap.set(refWave.current, {
+      scale: 0,
+      opacity: 0,
+      xPercent: -50,
+      yPercent: -50,
+      left: "50%",
+      top: "50%",
+    });
+
+    gsap.set(columns, {
+      opacity: 0,
+      y: 40,
+      filter: "blur(10px)",
+    });
+
     tl.to(refDot.current, {
       y: 0,
-      duration: 0.7,
-      ease: "power3.in", // Fast impact
+      duration: 0.6,
+      ease: "power3.in",
     })
-    
-    // 3. Impact: Dot "shatters" into the wave
-    .to(refDot.current, {
-      scale: 2.5,
-      opacity: 0,
-      duration: 0.3,
-      ease: "power2.out"
-    })
-    .to(refWave.current, {
-      opacity: 1,
-      scale: 10, // Massive expansion wave
-      duration: 1.8,
-      ease: "expo.out",
-    }, "-=0.25") // Starts slightly before dot finishes shattering
 
-    // 4. Reveal content from CENTER to END (Symmetrical reveal)
-    .to(columns, {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      duration: 0.5,
-      stagger: {
-        each: 0.12,
-        from: "center"
-      },
-      ease: "power3.out"
-    }, "-=1.6") // Triggers as the wave passes through the columns
+      // impact
+      .to(refDot.current, {
+        scale: 2.5,
+        opacity: 0,
+        duration: 0.3,
+      })
 
-    // 5. Cleanup: Ensure wave fades out completely
-    .to(refWave.current, {
-      opacity: 0,
-      duration: 0.8,
-      ease: "power2.inOut"
-    }, "-=0.4");
+      // 🌊 centered wave
+      .to(
+        refWave.current,
+        {
+          scale: 10,
+          opacity: 1,
+          duration: 1.6,
+          ease: "expo.out",
+        },
+        "-=0.2"
+      )
 
+      // content reveal
+      .to(
+        columns,
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 0.7,
+          stagger: {
+            each: 0.12,
+            from: "center",
+          },
+          ease: "power3.out",
+        },
+        "-=1.2"
+      )
+
+      // fade wave
+      .to(refWave.current, {
+        opacity: 0,
+        duration: 0.8,
+      });
   }, { scope: refFooter });
 
   return (
-<div className="w-full bg-black text-white">
-    
+    <footer
+      ref={refFooter}
+      className="relative w-full bg-black text-white overflow-hidden"
+    >
+      {/* 🔥 COOL GRADIENT BACKGROUND */}
+      <div className="absolute inset-0 
+        bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.25),transparent_60%),
+             radial-gradient(circle_at_top,rgba(16,185,129,0.15),transparent_70%)]
+      " />
 
-      {/* FOOTER (LAST) */}
-      <footer
-        ref={refFooter}
-        className="relative w-full h-[300px] bg-[#020617] overflow-hidden flex items-center justify-center font-sans"
+      {/* subtle noise/glow */}
+      <div className="absolute inset-0 opacity-[0.05]
+        bg-[linear-gradient(to_right,#fff_1px,transparent_1px),
+            linear-gradient(to_bottom,#fff_1px,transparent_1px)]
+        bg-[size:50px_50px]" />
+
+      {/* DOT (centered) */}
+      <div
+        ref={refDot}
+        className="absolute z-40 w-3 h-3 rounded-full bg-white
+        shadow-[0_0_30px_rgba(255,255,255,1)]"
+      />
+
+      {/* 🌊 WAVE (centered) */}
+      <div
+        ref={refWave}
+        className="absolute z-20 w-60 h-60 rounded-full 
+        bg-white/10 backdrop-blur-[80px]"
+      />
+
+      {/* CONTENT */}
+      <div
+        ref={refContent}
+        className="relative z-30 max-w-7xl mx-auto px-8 py-28
+        grid grid-cols-2 md:grid-cols-5 gap-12"
       >
-        {/* Falling Dot */}
-        <div
-          ref={refDot}
-          className="absolute z-40 w-4 h-4 rounded-full bg-blue-400 shadow-[0_0_40px_rgba(96,165,250,1)]"
-        />
-
-        {/* Impact Wave */}
-        <div
-          ref={refWave}
-          className="absolute z-10 w-40 h-40 border-[1.5px] border-blue-400 rounded-full bg-blue-500/5"
-          style={{ boxShadow: "0 0 80px rgba(59,130,246,0.3)" }}
-        />
-
-        {/* ✅ FINAL CONTENT */}
-        <div
-          ref={refContent}
-          className="relative w-full h-full max-w-8xl px-12 grid grid-cols-2 md:grid-cols-5 bg-[#0a0a0a] border border-green-500/20 font-mono"
-        >
-          <div className="p-6 border-r border-green-500/10">
-            <h4 className="text-green-500 text-[10px] font-bold">
-              /DEV/SOCIAL
-            </h4>
-          </div>
-
-          <div className="p-6 border-r border-green-500/10">
-            <h4 className="text-green-500 text-[10px] font-bold">
-              /BIN/COMMUNITY
-            </h4>
-          </div>
-
-          <div className="flex items-center justify-center bg-green-500/[0.03]">
-            <h2 className="text-2xl font-black text-green-500">
-              DEVLUP_LABS
-            </h2>
-          </div>
-
-          <div className="p-6 border-l border-green-500/10">
-            <h4 className="text-green-500 text-[10px] font-bold">
-              /ETC/CLUB
-            </h4>
-          </div>
-
-          <div className="p-6 border-l border-green-500/10">
-            <h4 className="text-green-500 text-[10px] font-bold">
-              /USR/HELP
-            </h4>
-          </div>
+        {/* LOGO */}
+        <div className="col-span-2 md:col-span-1">
+          <h2 className="text-3xl font-semibold tracking-wide">
+            Devlup Labs
+          </h2>
+          <p className="text-sm text-gray-400 mt-4">
+            Building systems. Scaling ideas. Creating impact.
+          </p>
         </div>
-      </footer>
-    </div>
+
+        {[
+          ["Community", ["Events", "Hackathons", "Workshops"]],
+          ["Resources", ["Projects", "Blogs", "Podcasts"]],
+          ["Connect", ["GitHub", "LinkedIn", "Twitter"]],
+          ["Support", ["Contact", "FAQ", "Help"]],
+        ].map(([title, items], i) => (
+          <div key={i}>
+            <h4 className="text-sm font-medium mb-4 text-gray-300">
+              {title}
+            </h4>
+            {items.map((item, j) => (
+              <p
+                key={j}
+                className="text-sm text-gray-500 mb-2 hover:text-white transition cursor-pointer"
+              >
+                {item}
+              </p>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* BOTTOM */}
+      <div className="border-t border-white/10 text-center py-6 text-sm text-gray-500">
+        © {new Date().getFullYear()} Devlup Labs
+      </div>
+    </footer>
   );
 };
 

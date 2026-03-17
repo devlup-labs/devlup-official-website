@@ -22,7 +22,7 @@ document.body.style.overflow = open ? "hidden" : "auto";
 return (
 <>
 <header
-className={` fixed top-0 left-0 w-full z-50 pointer-events-auto
+className={` fixed top-0 left-0 w-full z-9999 pointer-events-auto
           transition-all duration-500
           ease-[cubic-bezier(0.16,1,0.3,1)]
           ${open ? "bg-black/40 backdrop-blur-xl" : "bg-transparent"}

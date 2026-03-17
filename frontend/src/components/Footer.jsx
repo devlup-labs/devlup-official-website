@@ -3,6 +3,14 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faGithub,
+  faLinkedin,
+  faInstagram,
+} from "@fortawesome/free-brands-svg-icons";
+import { faEnvelope } from "@fortawesome/free-regular-svg-icons";
+
 gsap.registerPlugin(ScrollTrigger);
 
 const Footer = () => {
@@ -16,157 +24,150 @@ const Footer = () => {
       scrollTrigger: {
         trigger: refFooter.current,
         start: "top 80%",
+        end: "bottom 60%",
         once: true,
       },
     });
 
     const columns = refContent.current.children;
 
-    // initial states
-    gsap.set(refDot.current, {
-      y: -300,
-      xPercent: -50,
-      yPercent: -50,
-      left: "50%",
-      top: "50%",
-    });
+    // Initial states
+    gsap.set(refDot.current, { y: -500, opacity: 1, scale: 1 });
+    gsap.set(refWave.current, { scale: 0, opacity: 0 });
+    gsap.set(columns, { opacity: 0, y: 40, filter: "blur(10px)" });
 
-    gsap.set(refWave.current, {
-      scale: 0,
-      opacity: 0,
-      xPercent: -50,
-      yPercent: -50,
-      left: "50%",
-      top: "50%",
-    });
-
-    gsap.set(columns, {
-      opacity: 0,
-      y: 40,
-      filter: "blur(10px)",
-    });
-
+    // Animation (UNCHANGED CORE)
     tl.to(refDot.current, {
       y: 0,
-      duration: 0.6,
+      duration: 0.7,
       ease: "power3.in",
     })
-
-      // impact
       .to(refDot.current, {
         scale: 2.5,
         opacity: 0,
         duration: 0.3,
       })
-
-      // 🌊 centered wave
       .to(
         refWave.current,
         {
-          scale: 10,
           opacity: 1,
+          scale: 12,
           duration: 1.6,
           ease: "expo.out",
         },
         "-=0.2"
       )
-
-      // content reveal
       .to(
         columns,
         {
           opacity: 1,
           y: 0,
           filter: "blur(0px)",
-          duration: 0.7,
-          stagger: {
-            each: 0.12,
-            from: "center",
-          },
+          duration: 0.6,
+          stagger: 0.15,
           ease: "power3.out",
         },
-        "-=1.2"
+        "-=1.3"
       )
-
-      // fade wave
-      .to(refWave.current, {
-        opacity: 0,
-        duration: 0.8,
-      });
+      .to(
+        refWave.current,
+        {
+          opacity: 0,
+          duration: 0.6,
+        },
+        "-=0.3"
+      );
   }, { scope: refFooter });
 
   return (
     <footer
       ref={refFooter}
-      className="relative w-full bg-black text-white overflow-hidden"
+      className="relative w-full pt-28 pb-10 overflow-hidden"
+      style={{ background: "var(--bg-main-gradient)" }}
     >
-      {/* 🔥 COOL GRADIENT BACKGROUND */}
-      <div className="absolute inset-0 
-        bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.25),transparent_60%),
-             radial-gradient(circle_at_top,rgba(16,185,129,0.15),transparent_70%)]
-      " />
-
-      {/* subtle noise/glow */}
-      <div className="absolute inset-0 opacity-[0.05]
-        bg-[linear-gradient(to_right,#fff_1px,transparent_1px),
-            linear-gradient(to_bottom,#fff_1px,transparent_1px)]
-        bg-[size:50px_50px]" />
-
-      {/* DOT (centered) */}
+      {/* DOT */}
       <div
         ref={refDot}
-        className="absolute z-40 w-3 h-3 rounded-full bg-white
-        shadow-[0_0_30px_rgba(255,255,255,1)]"
+        className="absolute z-40 w-3 h-3 rounded-full bg-blue-400 left-1/2 -translate-x-1/2 shadow-[0_0_30px_rgba(96,165,250,1)]"
       />
 
-      {/* 🌊 WAVE (centered) */}
+      {/* WAVE */}
       <div
         ref={refWave}
-        className="absolute z-20 w-60 h-60 rounded-full 
-        bg-white/10 backdrop-blur-[80px]"
+        className="absolute z-10 w-40 h-40 rounded-full border border-blue-400 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
       />
 
-      {/* CONTENT */}
+      {/* MAIN CONTENT */}
       <div
         ref={refContent}
-        className="relative z-30 max-w-7xl mx-auto px-8 py-28
-        grid grid-cols-2 md:grid-cols-5 gap-12"
+        className="relative z-20 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-start"
       >
-        {/* LOGO */}
-        <div className="col-span-2 md:col-span-1">
-          <h2 className="text-3xl font-semibold tracking-wide">
-            Devlup Labs
-          </h2>
-          <p className="text-sm text-gray-400 mt-4">
-            Building systems. Scaling ideas. Creating impact.
-          </p>
+        {/* LEFT SIDE */}
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-4xl font-black tracking-tight text-[var(--text-primary)]">
+              DevlUp Labs
+            </h2>
+            <br />
+            <br />
+            <p className="mt-2 text-[var(--text-secondary)] max-w-sm text-sm leading-relaxed">
+              Building developers, shipping ideas, and creating an ecosystem
+              where learning meets real-world impact.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-[var(--text-secondary)] text-sm">
+            <p>🌐 devlup_labs.official</p>
+            <p>📧 devluplabs@gmail.com</p>
+          </div>
+
+          <div className="flex gap-5 pt-2 text-lg text-[var(--text-primary)]">
+            <FontAwesomeIcon icon={faGithub} className="hover:text-blue-400 transition cursor-pointer" />
+            <FontAwesomeIcon icon={faLinkedin} className="hover:text-blue-400 transition cursor-pointer" />
+            <FontAwesomeIcon icon={faInstagram} className="hover:text-blue-400 transition cursor-pointer" />
+            <FontAwesomeIcon icon={faEnvelope} className="hover:text-blue-400 transition cursor-pointer" />
+          </div>
         </div>
 
-        {[
-          ["Community", ["Events", "Hackathons", "Workshops"]],
-          ["Resources", ["Projects", "Blogs", "Podcasts"]],
-          ["Connect", ["GitHub", "LinkedIn", "Twitter"]],
-          ["Support", ["Contact", "FAQ", "Help"]],
-        ].map(([title, items], i) => (
-          <div key={i}>
-            <h4 className="text-sm font-medium mb-4 text-gray-300">
-              {title}
-            </h4>
-            {items.map((item, j) => (
-              <p
-                key={j}
-                className="text-sm text-gray-500 mb-2 hover:text-white transition cursor-pointer"
-              >
-                {item}
-              </p>
-            ))}
-          </div>
-        ))}
+        {/* RIGHT SIDE */}
+        <div className="space-y-6">
+          <h3 className="text-2xl font-semibold text-[var(--text-primary)]">
+            Get in Touch!
+          </h3>
+
+          <form className="space-y-4">
+            <input
+              type="text"
+              placeholder="Your Name"
+              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
+            />
+
+            <input
+              type="email"
+              placeholder="Your Email"
+              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
+            />
+
+            <textarea
+              rows="4"
+              placeholder="Your Message"
+              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
+            />
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-lg font-semibold text-white transition-all hover:scale-[1.02] active:scale-95"
+              style={{ background: "var(--gradient-primary)" }}
+            >
+              Submit
+            </button>
+          </form>
+        </div>
       </div>
 
-      {/* BOTTOM */}
-      <div className="border-t border-white/10 text-center py-6 text-sm text-gray-500">
-        © {new Date().getFullYear()} Devlup Labs
+      {/* BOTTOM BAR */}
+      <div className="mt-16 border-t border-[var(--border-subtle)] pt-6 text-center text-xs text-[var(--text-muted)]">
+        © {new Date().getFullYear()} DevlUp Labs • Built with 💻 + ☕
       </div>
     </footer>
   );

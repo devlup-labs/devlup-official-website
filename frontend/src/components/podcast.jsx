@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import TopControls from "../components/Video/TopControls";
 
 export default function Podcast() {
   const items = Array.from({ length: 40 }).map((_, i) => ({
@@ -120,45 +121,53 @@ export default function Podcast() {
   ============================= */
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row items-center justify-center [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden">
-      
-      {/* LEFT STACK */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center">
-        <div
-          ref={containerRef}
-          className="relative h-[650px] w-[520px] flex items-center justify-center"
-        >
-          {items.map((item, i) => (
-            <div
-              key={item.id}
-              style={{
-                willChange: "transform, opacity",
-                transform: "translateZ(0)",
-                backfaceVisibility: "hidden",
-              }}
-              className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-color)]"
-            >
-              <img
-                src={item.img}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="min-h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]">
 
-      {/* RIGHT INFO */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold mb-4">
-            {items[activeIndex].name}
-          </h2>
+      {/* 🔥 TOP CONTROLS */}
+      <TopControls />
 
-          <p className="text-xl uppercase tracking-widest text-[var(--text-secondary)]">
-            {items[activeIndex].role}
-          </p>
+      {/* 🔥 MAIN CONTENT */}
+      <div className="flex flex-col lg:flex-row items-center justify-center px-6">
+
+        {/* LEFT STACK */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center">
+          <div
+            ref={containerRef}
+            className="relative h-[650px] w-[520px] flex items-center justify-center"
+          >
+            {items.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  willChange: "transform, opacity",
+                  transform: "translateZ(0)",
+                  backfaceVisibility: "hidden",
+                }}
+                className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-soft)]"
+              >
+                <img
+                  src={item.img}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* RIGHT INFO */}
+        <div className="w-full lg:w-1/2 flex items-center justify-center mt-10 lg:mt-0">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold mb-4">
+              {items[activeIndex].name}
+            </h2>
+
+            <p className="text-xl uppercase tracking-widest text-[var(--text-secondary)]">
+              {items[activeIndex].role}
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
   );

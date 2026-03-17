@@ -7,7 +7,6 @@ const [open, setOpen] = useState(false);
 const { isDarkMode, toggleTheme } = useContext(ThemeContext);
 
 const navItems = [
-{ name: "Home", path: "/" },
 { name: "Blog", path: "/blog" },
 { name: "Team", path: "/team" },
 { name: "Podcasts", path: "/podcast" },
@@ -22,7 +21,7 @@ document.body.style.overflow = open ? "hidden" : "auto";
 return (
 <>
 <header
-className={` fixed top-0 left-0 w-full z-9999 pointer-events-auto
+className={` fixed top-0 left-0 w-full z-[99] pointer-events-auto
           transition-all duration-500
           ease-[cubic-bezier(0.16,1,0.3,1)]
           ${open ? "bg-black/40 backdrop-blur-xl" : "bg-transparent"}
@@ -57,7 +56,7 @@ className={` fixed top-0 left-0 w-full z-9999 pointer-events-auto
         >
           <nav
             className={`flex items-center gap-6 overflow-hidden
-            transition-all duration-300 ease-out
+            transition-all duration-300 ease-out 
             ${open ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"}`}
           >
             {navItems.map((item) => (

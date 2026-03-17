@@ -6,7 +6,7 @@ export default function FilterButton() {
   const tags = ["All", "3D Web", "Blockchain", "JS", "React", "Cloud"];
 
   return (
-    <div className="flex items-center gap-2 z-[20000]">
+    <div className="flex items-center gap-2 z-200">
       {/* The Button */}
       <button
         onClick={() => setOpen(!open)}

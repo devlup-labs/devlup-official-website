@@ -10,6 +10,7 @@ export default function Podcast() {
   }));
 
   const containerRef = useRef(null);
+  const wrapperRef = useRef(null); // 🔥 NEW
   const scrollPos = useRef(0);
   const velocity = useRef(0);
   const raf = useRef(null);
@@ -22,7 +23,7 @@ export default function Podcast() {
   const snapStrength = 0.08;
 
   /* =============================
-     STACK TRANSFORMS
+     TRANSFORMS
   ============================= */
   const updateTransforms = () => {
     const cards = containerRef.current?.children;
@@ -87,88 +88,116 @@ export default function Podcast() {
   };
 
   /* =============================
-     WHEEL
+     WHEEL (IMPORTANT CHANGE)
   ============================= */
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
+  const container = containerRef.current;
+  if (!container) return;
 
-    const onWheel = (e) => {
-      e.preventDefault();
+  let isHoveringCards = false;
 
-      const normalizedDelta =
-        Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 60);
+  // ✅ Track hover properly
+  const handleEnter = () => (isHoveringCards = true);
+  const handleLeave = () => (isHoveringCards = false);
 
-      velocity.current += normalizedDelta * wheelStrength;
-      velocity.current = Math.max(-0.15, Math.min(0.15, velocity.current));
+  container.addEventListener("mouseenter", handleEnter);
+  container.addEventListener("mouseleave", handleLeave);
 
-      if (!raf.current) {
-        raf.current = requestAnimationFrame(animate);
-      }
-    };
+  const onWheel = (e) => {
+    // 👉 If NOT hovering cards → allow normal page scroll
+    if (!isHoveringCards) return;
 
-    el.addEventListener("wheel", onWheel, { passive: false });
-    raf.current = requestAnimationFrame(animate);
+    // 👉 If hovering → animate cards
+    e.preventDefault();
 
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      cancelAnimationFrame(raf.current);
-    };
-  }, []);
+    const normalizedDelta =
+      Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 60);
+
+    velocity.current += normalizedDelta * wheelStrength;
+    velocity.current = Math.max(-0.15, Math.min(0.15, velocity.current));
+
+    if (!raf.current) {
+      raf.current = requestAnimationFrame(animate);
+    }
+  };
+
+  window.addEventListener("wheel", onWheel, { passive: false });
+  raf.current = requestAnimationFrame(animate);
+
+  return () => {
+    container.removeEventListener("mouseenter", handleEnter);
+    container.removeEventListener("mouseleave", handleLeave);
+    window.removeEventListener("wheel", onWheel);
+    cancelAnimationFrame(raf.current);
+  };
+}, []);
 
   /* =============================
      UI
   ============================= */
 
   return (
-    <div className="min-h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]">
+    <div className="[background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]">
 
-      {/* 🔥 TOP CONTROLS */}
-      <TopControls />
-
-      {/* 🔥 MAIN CONTENT */}
-      <div className="flex flex-col lg:flex-row items-center justify-center px-6">
-
-        {/* LEFT STACK */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center">
-          <div
-            ref={containerRef}
-            className="relative h-[650px] w-[520px] flex items-center justify-center"
-          >
-            {items.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  willChange: "transform, opacity",
-                  transform: "translateZ(0)",
-                  backfaceVisibility: "hidden",
-                }}
-                className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-soft)]"
-              >
-                <img
-                  src={item.img}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            ))}
-          </div>
+      {/* 🔥 CONTROLS */}
+      <div className="fixed top-1 left-0 w-full flex justify-center z-[3000] pointer-events-none">
+        <div className="pointer-events-auto">
+          <TopControls />
         </div>
-
-        {/* RIGHT INFO */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center mt-10 lg:mt-0">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold mb-4">
-              {items[activeIndex].name}
-            </h2>
-
-            <p className="text-xl uppercase tracking-widest text-[var(--text-secondary)]">
-              {items[activeIndex].role}
-            </p>
-          </div>
-        </div>
-
       </div>
+
+      {/* 🔥 ANIMATION AREA (SCROLL LOCKED HERE) */}
+      <div
+        ref={wrapperRef}
+        className="h-screen flex items-center justify-center overflow-hidden"
+      >
+        <div className="flex flex-col lg:flex-row items-center justify-between px-16">
+
+          {/* LEFT STACK */}
+          <div className="w-full lg:w-[20%] flex items-center justify-start">
+            <div
+              ref={containerRef}
+              className="relative h-[650px] w-[520px] flex items-center justify-center"
+            >
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    willChange: "transform, opacity",
+                    transform: "translateZ(0)",
+                    backfaceVisibility: "hidden",
+                  }}
+                  className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_var(--shadow-color)]"
+                >
+                  <img
+                    src={item.img}
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* RIGHT INFO */}
+          <div className="w-full lg:w-[50%] flex items-center justify-end">
+            <div className="text-left max-w-md">
+              <h2 className="text-4xl font-bold mb-4">
+                {items[activeIndex].name}
+              </h2>
+
+              <p className="text-xl uppercase tracking-widest text-[var(--text-secondary)]">
+                {items[activeIndex].role}
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* 🔥 NORMAL PAGE CONTINUES → FOOTER SAFE */}
+      {/* Your footer will now appear BELOW without overlap */}
+
     </div>
   );
 }

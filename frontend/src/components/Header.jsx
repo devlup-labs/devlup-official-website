@@ -2,6 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ThemeContext } from "../App";
 
+
 function HeaderComponent() {
 const [open, setOpen] = useState(false);
 const { isDarkMode, toggleTheme } = useContext(ThemeContext);
@@ -21,7 +22,7 @@ document.body.style.overflow = open ? "hidden" : "auto";
 return (
 <>
 <header
-className={` fixed top-0 left-0 w-full z-[99] pointer-events-auto
+className={` fixed top-0 left-0 w-full z-[1000] pointer-events-auto
           transition-all duration-500
           ease-[cubic-bezier(0.16,1,0.3,1)]
           ${open ? "bg-black/40 backdrop-blur-xl" : "bg-transparent"}

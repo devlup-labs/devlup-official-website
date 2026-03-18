@@ -5,7 +5,7 @@ export default function SearchBar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex items-center relative group z-200 ">
+    <div className="flex items-center relative group z-[2000] ">
       <div className={`
         flex items-center bg-white/5 border border-white/10 backdrop-blur-xl rounded-full transition-all duration-500 ease-out
         ${open ? "w-[300px] px-4 ring-2 ring-purple-500/50" : "w-10 px-0"}

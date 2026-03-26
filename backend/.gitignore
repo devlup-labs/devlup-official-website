@@ -1,0 +1,84 @@
+# -----------------------------
+# Python cache & compiled files
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+venv/
+env/
+myenv/
+.venv/
+ENV/
+
+# -----------------------------
+# Environment variables
+# -----------------------------
+.env
+.env.*
+
+# -----------------------------
+# IDE / Editor files
+# -----------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------------------
+# Logs & databases
+# -----------------------------
+*.log
+*.sqlite3
+*.db
+
+# -----------------------------
+# OS files
+# -----------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------
+# Test / coverage reports
+# -----------------------------
+.coverage
+htmlcov/
+.pytest_cache/
+
+# -----------------------------
+# Build / distribution
+# -----------------------------
+build/
+dist/
+*.egg-info/
+
+# -----------------------------
+# FastAPI / Uvicorn specific
+# -----------------------------
+*.pid
+*.sock
+
+# -----------------------------
+# Mypy / Ruff / lint caches
+# -----------------------------
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# -----------------------------
+# Jupyter Notebook
+# -----------------------------
+.ipynb_checkpoints/
+
+# -----------------------------
+# Docker
+# -----------------------------
+docker-compose.override.yml
+
+# -----------------------------
+# Node (if frontend in same repo)
+# -----------------------------
+node_modules/

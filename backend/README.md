@@ -45,12 +45,27 @@ source myenv/bin/activate
 
 ---
 
+## Backend Dependencies
+
+## Backend Dependencies
+
+This project uses the following technologies:
+
+- FastAPI (Backend Framework)
+- MongoDB (Database)
+- Motor (Async MongoDB Driver)
+- JWT Authentication (python-jose)
+- Password Hashing (passlib + bcrypt)
+- Environment Variables (python-dotenv)
+ 
+ --- 
+
 ##  Install Dependencies
 
 Install all required Python packages:
 
 ```bash
-pip install fastapi uvicorn pymongo python-dotenv
+pip install fastapi uvicorn pymongo motor python-dotenv python-jose passlib[bcrypt] python-multipart
 ```
 
 ---

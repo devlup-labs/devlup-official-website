@@ -4,6 +4,8 @@ import os
 from routes.devlup import blogs
 from routes.devlup import videos
 from routes.devlup import podcasts
+from routes.devlup import team
+from routes.devlup import timeline
 from routes.devlup import auth, admin
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -33,3 +35,5 @@ app.include_router(admin.router)
 app.include_router(blogs.router)
 app.include_router(videos.router)
 app.include_router(podcasts.router)
+app.include_router(team.router)
+app.include_router(timeline.router)

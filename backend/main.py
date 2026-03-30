@@ -37,3 +37,7 @@ app.include_router(videos.router)
 app.include_router(podcasts.router)
 app.include_router(team.router)
 app.include_router(timeline.router)
+
+@app.get("/test")
+def test_api():
+    return {"message": "Backend connected successfully "}

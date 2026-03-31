@@ -1,0 +1,96 @@
+# =============================
+# Python cache & compiled files
+# =============================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =============================
+# Virtual environments
+# =============================
+venv/
+env/
+myenv/
+.venv/
+ENV/
+
+# =============================
+# Environment variables
+# =============================
+.env
+.env.*
+
+# =============================
+# IDE / Editor files
+# =============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =============================
+# Logs & databases
+# =============================
+*.log
+*.sqlite3
+*.db
+
+# =============================
+# OS files
+# =============================
+.DS_Store
+Thumbs.db
+
+# =============================
+# Windows Zone Identifier (IMPORTANT FIX)
+# =============================
+*:Zone.Identifier
+*Zone.Identifier*
+
+# =============================
+# Test / coverage reports
+# =============================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =============================
+# Build / distribution
+# =============================
+build/
+dist/
+*.egg-info/
+
+# =============================
+# FastAPI / Uvicorn
+# =============================
+*.pid
+*.sock
+
+# =============================
+# Lint / cache
+# =============================
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# =============================
+# Jupyter Notebook
+# =============================
+.ipynb_checkpoints/
+
+# =============================
+# Docker
+# =============================
+docker-compose.override.yml
+
+# =============================
+# Node / Frontend
+# =============================
+node_modules/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

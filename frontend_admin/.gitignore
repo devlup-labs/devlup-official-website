@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# =============================
+# Windows Zone Identifier (IMPORTANT FIX)
+# =============================
+*:Zone.Identifier
+*Zone.Identifier*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

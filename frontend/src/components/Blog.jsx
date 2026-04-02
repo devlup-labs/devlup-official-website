@@ -1,4 +1,6 @@
 import { useEffect, useRef, useMemo, useState } from "react";
+import { getBlogs } from "../api/services";
+
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
@@ -26,6 +28,17 @@ const smoothProgress = useRef(0);
       };
     });
   }, []);
+
+  const [blogs, setBlogs] = useState([]);
+
+useEffect(() => { // backend connection test
+  getBlogs()
+    .then(res => {
+      console.log(res.data);
+      setBlogs(res.data);
+    })
+    .catch(err => console.error(err));
+}, []);
 
   /* ================= SMOOTH SCROLL ANIMATION ================= */
 

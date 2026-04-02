@@ -4,7 +4,12 @@ import {
   LayoutDashboard, Home, Users, Mic2, Video, 
   FileText, Clock, LogOut, Plus, Search, X, CheckCircle, Trash2, Edit3 
 } from 'lucide-react';
+
 import PodcastForm from './PodcastForm';
+import BlogForm from './BlogForm';
+import VideoForm from './VideoForm';
+import TeamForm from './TeamForm';
+import TimelineForm from './TimelineForm';
 
 const Dashboard = ({ token, setToken }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -12,21 +17,123 @@ const Dashboard = ({ token, setToken }) => {
   const [showModal, setShowModal] = useState(false);
   const [items, setItems] = useState([]); 
   const [editingItem, setEditingItem] = useState(null);
+  const [selectedTag, setSelectedTag] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [counts, setCounts] = useState({
+  home: 0,
+  team: 0,
+  podcast: 0,
+  video: 0,
+  blog: 0,
+  timeline: 0
+});
+
+  // ✅ FIX: endpoint mapping
+  const getEndpoint = () => {
+    switch (activeTab) {
+      case 'podcast': return 'podcasts';
+      case 'blog': return 'blogs';
+      case 'video': return 'videos';
+      case 'team': return 'team';
+      case 'timeline': return 'timeline';
+      default: return `${activeTab}s`;
+    }
+  };
+
+  // ✅ FIX: dynamic helpers
+  const getItemId = (item) =>
+    item.podcast_id ||
+    item.blog_id ||
+    item.video_id ||
+    item.member_id ||
+    item.event_id ||
+    item.id;
+
+  const getItemTitle = (item) =>
+    item.podcast_title ||
+    item.blog_title ||
+    item.video_title ||
+    item.member_name ||
+    item.event_title ||
+    item.name;
+
+  const getItemAuthor = (item) =>
+    item.podcast_author ||
+    item.blog_author ||
+    item.member_designation ||
+    item.event_subtitle ||
+    item.category;
+
+    const getTags = (item) => //added for filtering
+  item.video_tags ||
+  item.blog_tags ||
+  item.podcast_tags ||
+  [];
+
 
   // --- API LOGIC ---
-
   const fetchData = useCallback(async () => {
-    if (activeTab === 'dashboard') return;
+    // ✅ IMPORTANT FIX: skip home (no API)
+    if (activeTab === 'dashboard' || activeTab === 'home') return;
+
     try {
-      const response = await axios.get(`/api/${activeTab}s`, {
+      const endpoint = getEndpoint();
+
+      const response = await axios.get(`/api/${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setItems(response.data.data || []); 
+
+      // ✅ timeline fix
+      if (activeTab === 'timeline') {
+        setItems(response.data.events || []);
+      } else {
+        setItems(response.data.data || []);
+      }
+
     } catch (err) {
       console.error("Fetch error:", err);
       setItems([]);
     }
   }, [activeTab, token]);
+
+const fetchCounts = useCallback(async () => {  //  Separate function to fetch counts for dashboard cards
+  try {
+    const endpoints = [
+      { key: "team", url: "team" },
+      { key: "podcast", url: "podcasts" },
+      { key: "video", url: "videos" },
+      { key: "blog", url: "blogs" },
+      { key: "timeline", url: "timeline" }
+    ];
+
+    const results = await Promise.all(
+      endpoints.map(e =>
+        axios.get(`/api/${e.url}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      )
+    );
+
+    const newCounts = {
+      home: 3, // keep static OR change if API exists
+      team: results[0].data.data?.length || 0,
+      podcast: results[1].data.data?.length || 0,
+      video: results[2].data.data?.length || 0,
+      blog: results[3].data.data?.length || 0,
+      timeline: results[4].data.events?.length || 0
+    };
+
+    setCounts(newCounts);
+
+  } catch (err) {
+    console.error("Count fetch error:", err);
+  }
+}, [token]);
+
+
+  useEffect(() => {
+  fetchCounts();
+}, [fetchCounts]); // NEW: Fetch counts on load
 
   useEffect(() => {
     fetchData();
@@ -35,10 +142,14 @@ const Dashboard = ({ token, setToken }) => {
   const deleteItem = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
-      await axios.delete(`/api/${activeTab}s/${id}`, {
+      const endpoint = getEndpoint();
+
+      await axios.delete(`/api/${endpoint}/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
       fetchData();
+      fetchCounts(); // Refresh the counts after deletion
     } catch (err) {
       alert("Failed to delete item.");
     }
@@ -59,6 +170,7 @@ const Dashboard = ({ token, setToken }) => {
     setToken(null);
   };
 
+  
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'home', label: 'Home', icon: <Home size={20} /> },
@@ -68,9 +180,31 @@ const Dashboard = ({ token, setToken }) => {
     { id: 'blog', label: 'Blog', icon: <FileText size={20} /> },
     { id: 'timeline', label: 'Timeline', icon: <Clock size={20} /> }
   ];
+//  TAG LIST
+  const allTags =
+    activeTab === 'video' || activeTab === 'blog' || activeTab === 'podcast'
+      ? ["all", ...new Set(items.flatMap(item => getTags(item).filter(Boolean)))]
+      : [];
+
+  //  FILTER LOGIC (SEARCH + TAG)
+  const filteredItems = items.filter((item) => {
+    const tags = getTags(item).map(t => t.toLowerCase());
+
+    const matchesTag =
+      selectedTag === "all" ||
+      tags.includes(selectedTag.toLowerCase());
+
+    const title = getItemTitle(item)?.toLowerCase() || "";
+    const author = getItemAuthor(item)?.toLowerCase() || "";
+
+    const matchesSearch =
+      title.includes(searchQuery.toLowerCase()) ||
+      author.includes(searchQuery.toLowerCase());
+
+    return matchesTag && matchesSearch;
+  });
 
   // --- UI Components ---
-
   const StatCard = ({ title, count, icon, color, tabId }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex justify-between items-start transition-transform hover:scale-[1.02]">
       <div>
@@ -99,6 +233,7 @@ const Dashboard = ({ token, setToken }) => {
             <X size={20} className={isSidebarOpen ? "" : "rotate-45"} />
           </button>
         </div>
+
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => (
             <button
@@ -113,6 +248,7 @@ const Dashboard = ({ token, setToken }) => {
             </button>
           ))}
         </nav>
+
         <div className="p-4 border-t border-slate-800">
           <button onClick={logout} className="w-full flex items-center gap-4 p-3 text-red-400 hover:bg-red-500/10 rounded-lg">
             <LogOut size={20} />
@@ -121,6 +257,7 @@ const Dashboard = ({ token, setToken }) => {
         </div>
       </div>
 
+      {/* Main */}
       <main className="flex-1 overflow-y-auto">
         <header className="bg-white border-b border-slate-200 p-4 flex justify-between items-center sticky top-0 z-10">
           <h2 className="text-xl font-bold text-slate-800 capitalize flex items-center gap-2">
@@ -137,21 +274,57 @@ const Dashboard = ({ token, setToken }) => {
         <div className="p-8 max-w-7xl mx-auto">
           {activeTab === 'dashboard' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <StatCard title="Home Section" count="3" icon={<Home size={24} />} color="bg-blue-500 text-blue-500" tabId="home" />
-              <StatCard title="Team Members" count="12" icon={<Users size={24} />} color="bg-green-500 text-green-500" tabId="team" />
-              <StatCard title="Podcasts" count="8" icon={<Mic2 size={24} />} color="bg-purple-500 text-purple-500" tabId="podcast" />
-              <StatCard title="Videos" count="15" icon={<Video size={24} />} color="bg-orange-500 text-orange-500" tabId="video" />
-              <StatCard title="Blog Posts" count="24" icon={<FileText size={24} />} color="bg-pink-500 text-pink-500" tabId="blog" />
-              <StatCard title="Timeline Events" count="5" icon={<Clock size={24} />} color="bg-teal-500 text-teal-500" tabId="timeline" />
+             <StatCard title="Home Section" count={counts.home} icon={<Home size={24} />} color="bg-blue-500 text-blue-500" tabId="home" />
+<StatCard title="Team Members" count={counts.team} icon={<Users size={24} />} color="bg-green-500 text-green-500" tabId="team" />
+<StatCard title="Podcasts" count={counts.podcast} icon={<Mic2 size={24} />} color="bg-purple-500 text-purple-500" tabId="podcast" />
+<StatCard title="Videos" count={counts.video} icon={<Video size={24} />} color="bg-orange-500 text-orange-500" tabId="video" />
+<StatCard title="Blog Posts" count={counts.blog} icon={<FileText size={24} />} color="bg-pink-500 text-pink-500" tabId="blog" />
+<StatCard title="Timeline Events" count={counts.timeline} icon={<Clock size={24} />} color="bg-teal-500 text-teal-500" tabId="timeline" />
             </div>
           ) : (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Manage {activeTab}</h3>
-                <button onClick={handleAddNew} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold hover:bg-blue-700 transition-all">
-                  <Plus size={18} /> Add New {activeTab}
-                </button>
+               <div className="flex items-center gap-3">
+
+  {/*  Search */}
+  <div className="relative">
+    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm"
+    />
+  </div>
+
+  {/* Tag Dropdown */}
+  {(activeTab === 'video' || activeTab === 'blog' || activeTab === 'podcast') && (
+    <select
+      value={selectedTag}
+      onChange={(e) => setSelectedTag(e.target.value)}
+      className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+    >
+      {allTags.map(tag => (
+        <option key={tag} value={tag}>
+          {tag.toUpperCase()}
+        </option>
+      ))}
+    </select>
+  )}
+
+  {/*  Add Button */}
+  <button 
+    onClick={handleAddNew} 
+    className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold hover:bg-blue-700 transition-all"
+  >
+    <Plus size={18} /> Add New {activeTab}
+  </button>
+
+</div>
               </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
@@ -161,14 +334,15 @@ const Dashboard = ({ token, setToken }) => {
                       <th className="p-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
+
                   <tbody className="divide-y divide-slate-100">
-                    {items.map((item) => (
-                      <tr key={item.podcast_id || item.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-4 font-medium text-slate-700">{item.podcast_title || item.name}</td>
-                        <td className="p-4 text-slate-500">{item.podcast_author || item.category}</td>
+                    {filteredItems.map((item) => (
+                      <tr key={getItemId(item)} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="p-4 font-medium text-slate-700">{getItemTitle(item)}</td>
+                        <td className="p-4 text-slate-500">{getItemAuthor(item)}</td>
                         <td className="p-4 text-right flex justify-end gap-2">
-                          <button onClick={() => handleEdit(item)} className="p-2 text-slate-400 hover:text-blue-600 transition-colors"><Edit3 size={18}/></button>
-                          <button onClick={() => deleteItem(item.podcast_id || item.id)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={18}/></button>
+                          <button onClick={() => handleEdit(item)} className="p-2 text-slate-400 hover:text-blue-700 transition-colors"><Edit3 size={18}/></button>
+                          <button onClick={() => deleteItem(getItemId(item))} className="p-2 text-slate-400 hover:text-red-800 transition-colors"><Trash2 size={18}/></button>
                         </td>
                       </tr>
                     ))}
@@ -180,6 +354,7 @@ const Dashboard = ({ token, setToken }) => {
         </div>
       </main>
 
+      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
@@ -187,14 +362,12 @@ const Dashboard = ({ token, setToken }) => {
               <h3 className="text-xl font-bold text-slate-800">{editingItem ? 'Edit' : 'Add'} {activeTab}</h3>
               <button onClick={() => setShowModal(false)}><X size={24} className="text-slate-400" /></button>
             </div>
-            {activeTab === 'podcast' && (
-              <PodcastForm 
-                token={token} 
-                initialData={editingItem} 
-                onSuccess={() => { setShowModal(false); fetchData(); }} 
-                onCancel={() => setShowModal(false)}
-              />
-            )}
+
+            {activeTab === 'podcast' && <PodcastForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
+            {activeTab === 'blog' && <BlogForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
+            {activeTab === 'video' && <VideoForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
+            {activeTab === 'team' && <TeamForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
+            {activeTab === 'timeline' && <TimelineForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
           </div>
         </div>
       )}

@@ -4,28 +4,33 @@
    LIGHT THEME (DEFAULT) 
 ======================= */
 :root {
-  /* Use a specific name to remind yourself this is an image, not a color */
+  /* Background (main page) */
   --bg-main-gradient: linear-gradient(
-    1200deg,
-
+    120deg,
     #75c5ff,
-     #8fb3e5,
-   
     #8fb3e5,
     #75bfff
   );
-  
-  /* Fallback color for slow connections */
-  --bg-fallback: #f5f8ff;
 
-  --bg-surface: #ffffff;
-  --bg-muted: #eaf0f8;
+  --bg-fallback: #e9ecef;
 
+  /* ✅ THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
+  --bg-surface: #ffffff;   /* clean neutral grey */
+
+  --bg-muted: #e85d5d;
+  --bg-secondary: #0d1b2a;
+  --bg-main1: #81cce6;
+ --bg-port: linear-gradient(
+  to bottom,
+  #8fa8d0 0%,
+  #a9bbd6 50%,
+  #d6dde6 100%
+);
   --text-primary: #0f1e3a;
-  --text-secondary: #4a628a;
+  --text-secondary: #0d1b2a;
   --text-muted: #7b8fb3;
 
-  --border-subtle: #dbe4f3;
+  --border-subtle: #c3d3ec;
 
   --gradient-bg: linear-gradient(
     180deg,
@@ -47,17 +52,18 @@
    DARK THEME
 ======================= */
 [data-theme="dark"] {
- --bg-main-gradient:linear-gradient(
+  --bg-main-gradient: linear-gradient(
     120deg,
-    #0b122a 0%,
-    #0b1530 30%,
-    #050b1a 50%,
-    #0b1530 70%,
-    #0b122a 100%
-  ); 
+    #0b122a,
+    #0b1530,
+    #050b1a
+  );
+
   --bg-fallback: #0b122a;
-  
-  --bg-surface: #0b1530;
+
+  /* ✅ SAME VARIABLE → CHANGES HEADER COLOR */
+  --bg-surface: #1f2937;   /* dark grey (NOT transparent) */
+
   --bg-muted: #0f1c3f;
 
   --text-primary: #e6eeff;

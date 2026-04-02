@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "2",
+    "blog_title": "Explore Design",
+    "blog_subtitle": "Creative UI systems",
+    "blog_tags": ["design", "ui"],
+    "blog_thumbnail": "https://picsum.photos/800/300?3",
+    "blog_author": "Alex",
+    "blog_date": "25 FEB, 2024",
+    "blog_url": "https://example.com/blog-2"
+  }
+}

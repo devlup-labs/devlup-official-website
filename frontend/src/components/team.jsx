@@ -33,7 +33,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
       >
         {/* THE SMOOTH BAND IMAGE (Always fast) */}
         <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-        <img src={tile.profileImage} alt="" className="w-full h-full object-cover opacity-60" />
+        <img src={tile.profileImage} alt="" className="w-full h-full object-cover" />
            
         </div>
 
@@ -68,7 +68,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
                   <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.tag}</span>
                   <p className="text-[11px] leading-tight mt-1 line-clamp-3 px-4">{tile.bio}</p>
                 </div>
-                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-blue-500 text-white text-[10px] font-bold rounded-full hover:bg-blue-600 transition-all">
+                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-[var(--bg-muted)] text-white text-[10px] font-bold rounded-full hover:bg-[bvar(--bg-muted)] transition-all">
                   VIEW PROFILE
                 </button>
   
@@ -280,11 +280,12 @@ function Team() {
   }, [rotation, activeTile, focusProgress, isMobile, tilesData]);
 
   return (
-    <section className="relative h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
+    <section className="relative h-screen bg-[url('/bgweb3.jpeg')] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
       <div 
         className="w-full h-full relative" 
         onClick={() => activeTile && closeCurrent()} 
         style={{ perspective: "1200px" }}
+        
       >
         {tilesData.map((tile) => (
           <Tile

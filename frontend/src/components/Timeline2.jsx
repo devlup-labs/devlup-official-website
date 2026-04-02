@@ -144,7 +144,7 @@ export default function CircularTimeline() {
   return (
     <div
       ref={scrollRef}
-      className="w-full h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] flex flex-col items-center overflow-hidden"
+      className="w-full h-screen bg-[var(--bg-fallback)] text-[var(--text-primary)] flex flex-col items-center overflow-hidden"
     >
       {/* 🔥 TOP CONTROLS */}
       <div className="fixed top-6 left-0 w-full flex justify-center z-[9999] pointer-events-none">
@@ -155,7 +155,7 @@ export default function CircularTimeline() {
 
       {/* HEADING */}
       <div className="text-center mt-24 mb-8 z-10 pointer-events-none">
-        <h1 className="text-5xl font-bold uppercase tracking-wider text-slate-100">
+        <h1 className="text-5xl font-bold uppercase tracking-wider text-[var(--text-secondary)]">
           Our Learning Timeline
         </h1>
         <p className="mt-3 text-[var(--text-muted)] uppercase tracking-widest text-sm font-semibold">
@@ -164,7 +164,7 @@ export default function CircularTimeline() {
       </div>
 
       {/* MAIN WHEEL */}
-      <div className="relative w-[1200px] h-[780px] overflow-hidden">
+      <div className=" bg-[var] relative w-[1200px] h-[780px] overflow-hidden">
         <div
           className="absolute rounded-full"
           style={{

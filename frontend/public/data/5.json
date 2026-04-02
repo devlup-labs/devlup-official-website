@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "5",
+    "blog_title": "Optimize Code",
+    "blog_subtitle": "Performance matters",
+    "blog_tags": ["code", "optimize"],
+    "blog_thumbnail": "https://picsum.photos/800/300?6",
+    "blog_author": "Ravi",
+    "blog_date": "3 MAR, 2024",
+    "blog_url": "https://example.com/blog-5"
+  }
+}

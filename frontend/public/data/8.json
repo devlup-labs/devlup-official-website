@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "8",
+    "blog_title": "Create Impact",
+    "blog_subtitle": "Building meaningful products",
+    "blog_tags": ["impact", "future"],
+    "blog_thumbnail": "https://picsum.photos/800/300?10",
+    "blog_author": "Liam",
+    "blog_date": "12 MAR, 2024",
+    "blog_url": "https://example.com/blog-8"
+  }
+}

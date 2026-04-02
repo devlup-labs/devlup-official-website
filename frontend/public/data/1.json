@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "1",
+    "blog_title": "Build Systems",
+    "blog_subtitle": "Scalable frontend architecture",
+    "blog_tags": ["dev", "tech"],
+    "blog_thumbnail": "https://picsum.photos/800/300?2",
+    "blog_author": "Priyanshu",
+    "blog_date": "20 FEB, 2024",
+    "blog_url": "https://example.com/blog-1"
+  }
+}

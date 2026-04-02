@@ -137,7 +137,7 @@ export default function Podcast() {
   ============================= */
 
   return (
-    <div className="[background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]">
+    <div className=" bg-[url('/bgweb3.jpeg')] bg-[var(--bg-fallback)] text-[var(--text-primary)]">
 
       {/* 🔥 CONTROLS */}
       <div className="fixed top-1 left-0 w-full flex justify-center z-[3000] pointer-events-none">

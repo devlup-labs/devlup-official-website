@@ -31,12 +31,10 @@ const Footer = () => {
 
     const columns = refContent.current.children;
 
-    // Initial states
     gsap.set(refDot.current, { y: -500, opacity: 1, scale: 1 });
     gsap.set(refWave.current, { scale: 0, opacity: 0 });
     gsap.set(columns, { opacity: 0, y: 40, filter: "blur(10px)" });
 
-    // Animation (UNCHANGED CORE)
     tl.to(refDot.current, {
       y: 0,
       duration: 0.7,
@@ -82,9 +80,10 @@ const Footer = () => {
   return (
     <footer
       ref={refFooter}
-      className="relative w-full pt-28 pb-10 overflow-hidden"
-      style={{ background: "var(--bg-main-gradient)" }}
+      className="relative w-full pt-10 pb-5 overflow-hidden"
+      style={{ background: "var(--bg-main1)" }}
     >
+
       {/* DOT */}
       <div
         ref={refDot}
@@ -97,76 +96,97 @@ const Footer = () => {
         className="absolute z-10 w-40 h-40 rounded-full border border-blue-400 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
       />
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
       <div
         ref={refContent}
-        className="relative z-20 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-20 items-start"
+        className="relative z-20 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-start"
       >
+
         {/* LEFT SIDE */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div>
-            <h2 className="text-4xl font-black tracking-tight text-[var(--text-primary)]">
+            <h2 className="text-5xl font-black text-white">
               DevlUp Labs
             </h2>
-            <br />
-            <br />
-            <p className="mt-2 text-[var(--text-secondary)] max-w-sm text-sm leading-relaxed">
+
+            <p className="mt-4 pt-5 text-white max-w-md text-sm leading-relaxed">
               Building developers, shipping ideas, and creating an ecosystem
-              where learning meets real-world impact.
+              where learning meets real-world impact
             </p>
           </div>
 
-          <div className="space-y-2 text-[var(--text-secondary)] text-sm">
-            <p>🌐 devlup_labs.official</p>
-            <p>📧 devluplabs@gmail.com</p>
+          <div className="space-y-2 text-white text-sm">
+            <p>devlup.labs.official</p>
+            <p>devluplabs@gmail.com</p>
           </div>
 
-          <div className="flex gap-5 pt-2 text-lg text-[var(--text-primary)]">
-            <FontAwesomeIcon icon={faGithub} className="hover:text-blue-400 transition cursor-pointer" />
-            <FontAwesomeIcon icon={faLinkedin} className="hover:text-blue-400 transition cursor-pointer" />
-            <FontAwesomeIcon icon={faInstagram} className="hover:text-blue-400 transition cursor-pointer" />
-            <FontAwesomeIcon icon={faEnvelope} className="hover:text-blue-400 transition cursor-pointer" />
+          <div className="flex gap-5 pt-4 text-lg text-white">
+            <FontAwesomeIcon icon={faGithub} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
+            <FontAwesomeIcon icon={faLinkedin} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
+            <FontAwesomeIcon icon={faInstagram} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
+            <FontAwesomeIcon icon={faEnvelope} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
           </div>
         </div>
 
         {/* RIGHT SIDE */}
         <div className="space-y-6">
-          <h3 className="text-2xl font-semibold text-[var(--text-primary)]">
+
+          <h3 className="text-3xl font-semibold text-white">
             Get in Touch!
           </h3>
 
-          <form className="space-y-4">
-            <input
-              type="text"
-              placeholder="Your Name"
-              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
+          <form className="space-y-8">
 
-            <input
-              type="email"
-              placeholder="Your Email"
-              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
+            {/* NAME */}
+            <div> 
+              <input
+                type="text"
+                placeholder="Name"
+                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+              />
+            </div>
 
-            <textarea
-              rows="4"
-              placeholder="Your Message"
-              className="w-full px-4 py-3 rounded-lg bg-[var(--bg-surface)]/60 backdrop-blur-md border border-[var(--border-subtle)] text-[var(--text-primary)] outline-none focus:ring-2 focus:ring-blue-400 transition"
-            />
+            {/* EMAIL */}
+            <div>
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+              />
+            </div>
 
+            {/* 🔥 CONTACT NUMBER */}
+            <div>
+              <input
+                type="tel"
+                placeholder="Contact"
+                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+              />
+            </div>
+
+            {/* MESSAGE */}
+            <div>
+              <textarea
+                rows="2"
+                placeholder="Your message"
+                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+              />
+            </div>
+
+            {/* BUTTON */}
             <button
               type="submit"
-              className="w-full py-3 rounded-lg font-semibold text-white transition-all hover:scale-[1.02] active:scale-95"
-              style={{ background: "var(--gradient-primary)" }}
+              className="w-full py-3 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95"
             >
               Submit
             </button>
+
           </form>
         </div>
       </div>
 
-      {/* BOTTOM BAR */}
-      <div className="mt-16 border-t border-[var(--border-subtle)] pt-6 text-center text-xs text-[var(--text-muted)]">
+      {/* BOTTOM */}
+      <div className="mt-20 border-t border-[var(--border-subtle)] pt-6 text-center text-xs text-[var(--text-muted)]">
         © {new Date().getFullYear()} DevlUp Labs • Built with 💻 + ☕
       </div>
     </footer>

@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "0",
+    "blog_title": "Animate UI",
+    "blog_subtitle": "Smooth animations using GSAP",
+    "blog_tags": ["animation", "ui"],
+    "blog_thumbnail": "https://picsum.photos/800/300?7",
+    "blog_author": "Min",
+    "blog_date": "5 MAR, 2024",
+    "blog_url": "https://example.com/blog-0"
+  }
+}

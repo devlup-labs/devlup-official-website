@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "7",
+    "blog_title": "Evolve Systems",
+    "blog_subtitle": "Long-term architecture",
+    "blog_tags": ["systems", "scale"],
+    "blog_thumbnail": "https://picsum.photos/800/300?9",
+    "blog_author": "Noah",
+    "blog_date": "10 MAR, 2024",
+    "blog_url": "https://example.com/blog-7"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "4",
+    "blog_title": "Grow Fast",
+    "blog_subtitle": "Scaling strategies",
+    "blog_tags": ["growth", "scale"],
+    "blog_thumbnail": "https://picsum.photos/800/300?5",
+    "blog_author": "Emma",
+    "blog_date": "1 MAR, 2024",
+    "blog_url": "https://example.com/blog-4"
+  }
+}

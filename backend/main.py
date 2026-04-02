@@ -19,6 +19,7 @@ origins = [
     "http://localhost:5173",  # Vite default
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",#but our request on this
+    "http://127.0.0.1:5174",#but our request on this
 ]
 
 # 2. Add the middleware

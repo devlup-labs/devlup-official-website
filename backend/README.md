@@ -67,7 +67,13 @@ Install all required Python packages:
 ```bash
 pip install fastapi uvicorn pymongo motor python-dotenv python-jose passlib[bcrypt] python-multipart
 ```
+extra:(if frontend_admin doesn't work)
 
+```bash
+pip uninstall bcrypt passlib -y
+pip install bcrypt==4.0.1
+pip install passlib==1.7.4
+```
 ---
 
 ##  Environment Variables

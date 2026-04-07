@@ -20,9 +20,18 @@ const Footer = () => {
   const refDot = useRef(null);
 
   useGSAP(() => {
+    const footer = refFooter.current;
+    const dot = refDot.current;
+
+    const footerHeight = footer.offsetHeight;
+    const dotSize = dot.offsetHeight;
+
+    // 🎯 exact center of footer
+    const centerY = footerHeight / 2 - dotSize / 2;
+
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: refFooter.current,
+        trigger: footer,
         start: "top 80%",
         end: "bottom 60%",
         once: true,
@@ -31,16 +40,16 @@ const Footer = () => {
 
     const columns = refContent.current.children;
 
-    gsap.set(refDot.current, { y: -500, opacity: 1, scale: 1 });
+    gsap.set(dot, { y: -500, opacity: 1, scale: 1 });
     gsap.set(refWave.current, { scale: 0, opacity: 0 });
     gsap.set(columns, { opacity: 0, y: 40, filter: "blur(10px)" });
 
-    tl.to(refDot.current, {
-      y: 0,
+    tl.to(dot, {
+      y: centerY,
       duration: 0.7,
       ease: "power3.in",
     })
-      .to(refDot.current, {
+      .to(dot, {
         scale: 2.5,
         opacity: 0,
         duration: 0.3,
@@ -80,10 +89,9 @@ const Footer = () => {
   return (
     <footer
       ref={refFooter}
-      className="relative w-full pt-10 pb-5 overflow-hidden"
+      className="relative w-full pt-6 pb-3 overflow-hidden"
       style={{ background: "var(--bg-main1)" }}
     >
-
       {/* DOT */}
       <div
         ref={refDot}
@@ -99,28 +107,27 @@ const Footer = () => {
       {/* MAIN */}
       <div
         ref={refContent}
-        className="relative z-20 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-start"
+        className="relative z-20 max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-start"
       >
-
-        {/* LEFT SIDE */}
-        <div className="space-y-8">
+        {/* LEFT */}
+        <div className="space-y-6">
           <div>
             <h2 className="text-5xl font-black text-white">
               DevlUp Labs
             </h2>
 
-            <p className="mt-4 pt-5 text-white max-w-md text-sm leading-relaxed">
+            <p className="mt-3 text-white max-w-md text-sm leading-relaxed">
               Building developers, shipping ideas, and creating an ecosystem
               where learning meets real-world impact
             </p>
           </div>
 
-          <div className="space-y-2 text-white text-sm">
+          <div className="space-y-1 text-white text-sm">
             <p>devlup.labs.official</p>
             <p>devluplabs@gmail.com</p>
           </div>
 
-          <div className="flex gap-5 pt-4 text-lg text-white">
+          <div className="flex gap-5 pt-2 text-lg text-white">
             <FontAwesomeIcon icon={faGithub} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
             <FontAwesomeIcon icon={faLinkedin} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
             <FontAwesomeIcon icon={faInstagram} className="hover:text-[var(--text-primary)] transition cursor-pointer" />
@@ -128,26 +135,22 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
-        <div className="space-y-6">
-
+        {/* RIGHT (UNCHANGED LAYOUT) */}
+        <div className="space-y-4">
           <h3 className="text-3xl font-semibold text-white">
             Get in Touch!
           </h3>
 
-          <form className="space-y-8">
+          <form className="space-y-5">
 
-            {/* NAME */}
-            <div> 
+            {/* NAME + EMAIL */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <input
                 type="text"
                 placeholder="Name"
                 className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
               />
-            </div>
 
-            {/* EMAIL */}
-            <div>
               <input
                 type="email"
                 placeholder="Email"
@@ -155,28 +158,17 @@ const Footer = () => {
               />
             </div>
 
-            {/* 🔥 CONTACT NUMBER */}
-            <div>
-              <input
-                type="tel"
-                placeholder="Contact"
-                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
-              />
-            </div>
-
             {/* MESSAGE */}
-            <div>
-              <textarea
-                rows="2"
-                placeholder="Your message"
-                className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
-              />
-            </div>
+            <textarea
+              rows="2"
+              placeholder="Your message"
+              className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+            />
 
-            {/* BUTTON */}
+            {/* BUTTON (fixed width, not stretched) */}
             <button
               type="submit"
-              className="w-full py-3 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95"
+              className="px-25 py-2.5 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
             >
               Submit
             </button>
@@ -186,7 +178,7 @@ const Footer = () => {
       </div>
 
       {/* BOTTOM */}
-      <div className="mt-20 border-t border-[var(--border-subtle)] pt-6 text-center text-xs text-[var(--text-muted)]">
+      <div className="mt-10 border-t border-[var(--border-subtle)] pt-4 text-center text-xs text-[var(--text-muted)]">
         © {new Date().getFullYear()} DevlUp Labs • Built with 💻 + ☕
       </div>
     </footer>

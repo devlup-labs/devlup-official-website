@@ -1,32 +1,39 @@
 import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
-import TopControls from "../components/Video/TopControls";
 
 export default function CircularTimeline() {
-  const scrollRef = useRef(null);
-  const textContainerRef = useRef(null);
-  const glowRefs = useRef([]);
+  const ringRef = useRef(null);
+  const centerTextRef = useRef(null);
+  const descriptionRef = useRef(null);
+
+  const isHoveringRing = useRef(false);
 
   const sliceAngle = 90;
   const radius = 600;
   const diameter = radius * 2;
 
-  const startRotation = -45;
+  const startRotation = -sliceAngle / 2;
 
-  const projects = Array.from({ length: 10 }, (_, i) => ({
-    title: `Project ${i + 1}`,
-    img: `https://picsum.photos/1200/1200?random=${i + 1}`
+  // ✅ BACKEND SCHEMA DATA
+  const events = Array.from({ length: 10 }, (_, i) => ({
+    event_id: i + 1,
+    event_title: `Event ${i + 1}`,
+    event_subtitle: `Subtitle for Event ${i + 1}`,
+    event_description: `This is a detailed description for Event ${i + 1}. This changes dynamically for each event.`,
+    event_date: "2025-01-01",
+    event_photos: [`https://picsum.photos/1200/1200?random=${i + 1}`]
   }));
 
-  const [smoothRotation, setSmoothRotation] = useState(startRotation);
-  const [displayedIndex, setDisplayedIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const targetRotation = useRef(startRotation);
-  const proxyRef = useRef({ rotation: startRotation });
+  const rotationRef = useRef(startRotation);
+  const proxy = useRef({ rotation: startRotation });
 
-  const maxIndex = projects.length - 1;
+  const setRotate = useRef(null);
+
   const maxRotation = startRotation;
-  const minRotation = startRotation - maxIndex * sliceAngle;
+  const minRotation =
+    startRotation - (events.length - 1) * sliceAngle;
 
   const theta = (sliceAngle * Math.PI) / 180;
   const endX = radius + radius * Math.sin(theta);
@@ -34,233 +41,171 @@ export default function CircularTimeline() {
 
   const sectorPath = `path("M${radius} ${radius} L${radius} 0 A${radius} ${radius} 0 0 1 ${endX} ${endY} Z")`;
 
+  /* ================= INIT ================= */
+  useEffect(() => {
+    setRotate.current = gsap.quickSetter(
+      ringRef.current,
+      "rotate",
+      "deg"
+    );
+    setRotate.current(startRotation);
+  }, []);
+
+  /* ================= ROTATION ================= */
+  const updateRotation = (r) => {
+    const clamped = Math.max(minRotation, Math.min(maxRotation, r));
+
+    rotationRef.current = clamped;
+    setRotate.current(clamped);
+
+    const index = Math.round((startRotation - clamped) / sliceAngle);
+    const safeIndex = Math.max(0, Math.min(events.length - 1, index));
+
+    setActiveIndex((prev) => (prev !== safeIndex ? safeIndex : prev));
+  };
+
   /* ================= SCROLL ================= */
   useEffect(() => {
-    const el = scrollRef.current;
-
     const handleWheel = (e) => {
-      const scrollFactor = 0.25;
-      targetRotation.current -= e.deltaY * scrollFactor;
+      if (!isHoveringRing.current) return;
 
-      targetRotation.current = Math.max(
-        minRotation,
-        Math.min(maxRotation, targetRotation.current)
-      );
+      e.preventDefault();
 
-      gsap.to(proxyRef.current, {
-        rotation: targetRotation.current,
-        duration: 0.5,
+      gsap.to(proxy.current, {
+        rotation: proxy.current.rotation - e.deltaY * 0.25,
+        duration: 0.4,
         ease: "power2.out",
-        overwrite: "auto",
-        onUpdate: () => {
-          setSmoothRotation(proxyRef.current.rotation);
-        }
+        onUpdate: () => updateRotation(proxy.current.rotation)
       });
     };
 
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, [maxRotation, minRotation]);
+    const ring = ringRef.current;
+
+    const onEnter = () => (isHoveringRing.current = true);
+    const onLeave = () => (isHoveringRing.current = false);
+
+    ring.addEventListener("mouseenter", onEnter);
+    ring.addEventListener("mouseleave", onLeave);
+    window.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      ring.removeEventListener("mouseenter", onEnter);
+      ring.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("wheel", handleWheel);
+    };
+  }, []);
 
   /* ================= CLICK ================= */
   const handleSliceClick = (clickedIndex) => {
-    const newTargetRotation = startRotation - clickedIndex * sliceAngle;
-    targetRotation.current = newTargetRotation;
+    const targetRotation =
+      startRotation - clickedIndex * sliceAngle;
 
-    gsap.to(proxyRef.current, {
-      rotation: targetRotation.current,
-      duration: 0.6,
+    const newRotation = Math.max(
+      minRotation,
+      Math.min(maxRotation, targetRotation)
+    );
+
+    gsap.to(proxy.current, {
+      rotation: newRotation,
+      duration: 0.5,
       ease: "power3.out",
-      overwrite: true,
-      onUpdate: () => {
-        setSmoothRotation(proxyRef.current.rotation);
-      }
+      onUpdate: () => updateRotation(proxy.current.rotation)
     });
   };
 
-  const activeIndex = Math.round(
-    Math.abs((smoothRotation - startRotation) / sliceAngle)
-  );
-
-  const clampedCenterIndex = Math.max(
-    0,
-    Math.min(activeIndex, projects.length - 1)
-  );
-
-  /* ================= GLOW + TEXT ================= */
+  /* ================= TEXT ================= */
   useEffect(() => {
-    glowRefs.current.forEach((el, i) => {
-      if (i !== clampedCenterIndex && el) {
-        gsap.killTweensOf(el);
-        gsap.to(el, { opacity: 0, duration: 0.4 });
-      }
-    });
+    gsap.fromTo(
+      centerTextRef.current,
+      { opacity: 0, y: -15 },
+      { opacity: 1, y: 0, duration: 0.3 }
+    );
 
-    if (glowRefs.current[clampedCenterIndex]) {
-      gsap.killTweensOf(glowRefs.current[clampedCenterIndex]);
-      gsap.fromTo(
-        glowRefs.current[clampedCenterIndex],
-        { opacity: 0.3 },
-        {
-          opacity: 1,
-          duration: 1,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut"
-        }
-      );
-    }
+    gsap.fromTo(
+      descriptionRef.current,
+      { opacity: 0, y: -10 },
+      { opacity: 1, y: 0, duration: 0.3 }
+    );
+  }, [activeIndex]);
 
-    if (clampedCenterIndex !== displayedIndex) {
-      const isAntiClockwise = clampedCenterIndex > displayedIndex;
-      const dir = isAntiClockwise ? -1 : 1;
+  const activeEvent = events[activeIndex];
 
-      gsap.killTweensOf(textContainerRef.current);
-
-      gsap.to(textContainerRef.current, {
-        opacity: 0,
-        rotation: dir * 10,
-        x: dir * 40,
-        duration: 0.15,
-        onComplete: () => {
-          setDisplayedIndex(clampedCenterIndex);
-
-          gsap.fromTo(
-            textContainerRef.current,
-            { opacity: 0, rotation: -dir * 10, x: -dir * 40 },
-            {
-              opacity: 1,
-              rotation: 0,
-              x: 0,
-              duration: 0.3
-            }
-          );
-        }
-      });
-    }
-  }, [clampedCenterIndex, displayedIndex]);
-
-  /* ================= UI ================= */
   return (
-    <div
-      ref={scrollRef}
-      className="w-full h-screen bg-[var(--bg-fallback)] text-[var(--text-primary)] flex flex-col items-center overflow-hidden"
-    >
-      {/* 🔥 TOP CONTROLS */}
-      <div className="fixed top-6 left-0 w-full flex justify-center z-[9999] pointer-events-none">
-        <div className="pointer-events-auto">
-          <TopControls />
-        </div>
-      </div>
+    <div className="w-full min-h-screen bg-[var(--bg-fallback)] flex flex-col items-center">
 
       {/* HEADING */}
-      <div className="text-center mt-24 mb-8 z-10 pointer-events-none">
-        <h1 className="text-5xl font-bold uppercase tracking-wider text-[var(--text-secondary)]">
+      <div className="text-center mt-24 mb-4">
+        <h1 className="text-5xl font-bold uppercase">
           Our Learning Timeline
         </h1>
-        <p className="mt-3 text-[var(--text-muted)] uppercase tracking-widest text-sm font-semibold">
-          explore the journey branch by branch
+      </div>
+
+      {/* DESCRIPTION (TOP) */}
+      <div ref={descriptionRef} className="mb-6 max-w-2xl text-center">
+        <p className="text-gray-400">
+          {activeEvent.event_description}
         </p>
       </div>
 
-      {/* MAIN WHEEL */}
-      <div className=" bg-[var] relative w-[1200px] h-[780px] overflow-hidden">
+      {/* RING */}
+      <div className="relative w-[1200px] h-[780px] overflow-hidden">
         <div
+          ref={ringRef}
           className="absolute rounded-full"
           style={{
             width: diameter,
             height: diameter,
-            bottom: "-640px",
-            transform: `rotate(${smoothRotation}deg)`
+            bottom: "-640px"
           }}
         >
-          {projects.map((project, i) => {
+          {events.map((event, i) => {
             const angle = i * sliceAngle;
-            const centerAngle = smoothRotation + angle + 45;
-            const distanceFromCenter = Math.abs(centerAngle);
 
-            const isVisible = distanceFromCenter <= 135;
+            const normalized =
+              rotationRef.current + angle + sliceAngle / 2;
 
-            const centerProximity = Math.max(
-              0,
-              1 - Math.min(distanceFromCenter / 90, 1)
-            );
-
-            const brightness = 0.3 + centerProximity * 0.7;
-            const scale = 1.0 + centerProximity * 0.05;
+            const isVisible = Math.abs(normalized) <= 180;
 
             return (
               <div
-                key={i}
-                className="absolute w-full h-full pointer-events-none"
+                key={event.event_id}
+                className="absolute w-full h-full"
                 style={{
                   transform: `rotate(${angle}deg)`,
-                  visibility: isVisible ? "visible" : "hidden"
+                  opacity: isVisible ? 1 : 0,
+                  pointerEvents: isVisible ? "auto" : "none"
                 }}
               >
-                {/* GLOW */}
-                <div
-                  ref={(el) => (glowRefs.current[i] = el)}
-                  className="absolute w-full h-full opacity-0"
-                  style={{
-                    filter:
-                      "drop-shadow(0px 0px 35px rgba(34, 211, 238, 0.9))"
-                  }}
-                >
-                  <div
-                    className="absolute w-full h-full"
-                    style={{
-                      clipPath: sectorPath,
-                      backgroundColor: "rgba(34,211,238,0.35)"
-                    }}
-                  />
-                </div>
-
-                {/* IMAGE */}
                 <div
                   onClick={() => handleSliceClick(i)}
-                  className="absolute w-full h-full overflow-hidden cursor-pointer pointer-events-auto"
+                  className="absolute w-full h-full cursor-pointer"
                   style={{ clipPath: sectorPath }}
                 >
-                  <div
-                    className="relative w-full h-full transition-transform duration-300 hover:scale-[1.07]"
-                    style={{
-                      filter: `brightness(${brightness})`,
-                      transform: `scale(${scale})`
-                    }}
-                  >
-                    <img
-                      src={project.img}
-                      className="w-full h-full object-cover"
-                      alt={project.title}
-                    />
-
-                    <div
-                      className="absolute inset-0 bg-slate-900"
-                      style={{ opacity: (1 - centerProximity) * 0.7 }}
-                    />
-                  </div>
+                  <img
+                    src={event.event_photos[0]}
+                    className="w-full h-full object-cover"
+                    alt=""
+                  />
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* CENTER CARD */}
-        <div className="absolute bottom-[-220px] left-1/2 -translate-x-1/2 w-[540px] h-[540px] rounded-full bg-[#090f1f] flex items-center justify-center z-10 pointer-events-auto border border-cyan-900/40 shadow-[inset_0_0_30px_rgba(34,211,238,0.05),_0_0_80px_rgba(0,0,0,0.9)]">
-          <div
-            ref={textContainerRef}
-            className="text-center translate-y-[-100px]"
-          >
-            <h2 className="text-white text-4xl font-bold mb-3 uppercase tracking-widest">
-              {projects[displayedIndex].title}
+        {/* CENTER */}
+        <div className="absolute bottom-[-220px] left-1/2 -translate-x-1/2 w-[540px] h-[540px] rounded-full bg-[#090f1f] flex items-center justify-center pointer-events-none">
+          <div ref={centerTextRef} className="text-center -translate-y-16">
+            <h2 className="text-white text-4xl mb-10 font-bold uppercase">
+              {activeEvent.event_title}
             </h2>
 
-            <div className="w-12 h-[2px] bg-cyan-800 mb-5"></div>
-
-            <button className="border border-cyan-600 text-cyan-50 px-8 py-3 text-xs font-semibold tracking-widest hover:bg-cyan-500 hover:text-slate-950 transition-all duration-300">
-              VIEW PROJECT
-            </button>
+            {/* 📅 DATE */}
+            <p className="text-xs text-gray-400 mb-4 tracking-wider uppercase">
+              {new Date(activeEvent.event_date).toDateString()}
+            </p>
+            <p className="text-gray-400 mt-2 mb-33 text-sm">
+              {activeEvent.event_subtitle}
+            </p>
           </div>
         </div>
       </div>

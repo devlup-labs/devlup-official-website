@@ -9,7 +9,7 @@ import Timeline from './pages/Timeline.jsx'
 import Videos from './pages/Videos.jsx'
 import Header from './components/Header.jsx'
 import Footer from './components/Footer.jsx'
-import Home from './components/Home.jsx'
+import Home from './components/Router.jsx'
 
 export const ThemeContext = createContext({
   isDarkMode: false,

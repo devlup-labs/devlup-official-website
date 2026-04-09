@@ -1,115 +1,223 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from "react";
+import React, { useRef, useMemo, useState, useCallback, useEffect, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Line, ScrollControls, useScroll, Html, SpotLight } from "@react-three/drei";
+import { Environment, ScrollControls, Scroll, useScroll, OrbitControls, Html, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
 
-/* CONSTANTS */
-const SECTIONS = [
-  { name: "Home", icon: "🏠", tagline: "Welcome to DevlUp Labs", description: "Your command center for everything we build." },
-  { name: "Timeline", icon: "📅", tagline: "Chronicle Your Journey", description: "Visualize your milestones and progress." },
-  { name: "Videos", icon: "🎬", tagline: "Cinematic Storytelling", description: "Immersive video content crafted for maximum impact." },
-  { name: "Podcast", icon: "🎙️", tagline: "Voices That Resonate", description: "Deep conversations and thought-provoking discussions." },
-  { name: "Blogs", icon: "✍️", tagline: "Words That Inspire", description: "In-depth articles and thought leadership." },
-  { name: "Team", icon: "👥", tagline: "The Minds Behind the Vision", description: "Passionate creators building the future." },
-];
+/* ==================== DISC COMPONENTS ==================== */
 
-const BLOCK_COLORS = ["#F43F5E", "#E11D48", "#8B5CF6", "#F59E0B", "#10B981", "#D946EF"];
-const X_RADIUS = 6.5, Z_RADIUS = 6.5;
-const matConfig = (color) => ({ color, metalness: 0.1, roughness: 0.8, transparent: true });
+function UniformDisc() {
+	// Create a 2D shape with a hole, then we will extrude it into 3D
+	const shape = useMemo(() => {
+		const s = new THREE.Shape();
+		s.absarc(0, 0,8, 0, Math.PI * 2, false); // Outer radius
+		const hole = new THREE.Path();
+		hole.absarc(0, 0, 5.1, 0, Math.PI * 2, true); // Inner radius (hole)
+		s.holes.push(hole);
+		return s;
+	}, []);
 
-const BLOCK_CONFIGS = [
-  { render: () => (<group position={[0, 0.45, 0]}><mesh><boxGeometry args={[0.4, 0.35, 0.4]} /><meshPhysicalMaterial {...matConfig("#F43F5E")} /></mesh><mesh position={[0, 0.27, 0]}><coneGeometry args={[0.35, 0.25, 4]} /><meshPhysicalMaterial {...matConfig("#FDA4AF")} /></mesh><mesh position={[0, -0.08, 0.21]}><boxGeometry args={[0.1, 0.15, 0.02]} /><meshPhysicalMaterial {...matConfig("#e2e8f0")} /></mesh></group>) },
-  { render: () => {const steps = [{ w: 0.5, h: 0.08, x: -0.15, y: 0.1 }, { w: 0.4, h: 0.08, x: -0.05, y: 0.22 }, { w: 0.3, h: 0.08, x: 0.05, y: 0.34 }, { w: 0.2, h: 0.08, x: 0.15, y: 0.46 }]; return (<group position={[0, 0.15, 0]}>{steps.map((s, i) => (<mesh key={i} position={[s.x, s.y, 0]}><boxGeometry args={[s.w, s.h, 0.35]} /><meshPhysicalMaterial {...matConfig(["#BE123C", "#E11D48", "#F43F5E", "#e2e8f0"][i])} /></mesh>))}<mesh position={[0.15, 0.6, 0]}><cylinderGeometry args={[0.01, 0.01, 0.2, 8]} /><meshPhysicalMaterial {...matConfig("#e2e8f0")} /></mesh><mesh position={[0.21, 0.63, 0]}><boxGeometry args={[0.1, 0.06, 0.01]} /><meshPhysicalMaterial {...matConfig("#F43F5E")} /></mesh></group>);} },
-  { render: () => (<group position={[0, 0.45, 0]}><mesh><boxGeometry args={[0.55, 0.35, 0.04]} /><meshPhysicalMaterial {...matConfig("#2E1065")} /></mesh><mesh position={[0, 0, -0.01]}><boxGeometry args={[0.6, 0.4, 0.02]} /><meshPhysicalMaterial {...matConfig("#8B5CF6")} /></mesh><mesh position={[0, 0, 0.04]} rotation={[0, 0, -Math.PI / 2]}><coneGeometry args={[0.08, 0.14, 3]} /><meshPhysicalMaterial {...matConfig("#DDD6FE")} /></mesh></group>) },
-  { render: () => (<group position={[0, 0.25, 0]}><mesh position={[0, 0.35, 0]}><sphereGeometry args={[0.12, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshPhysicalMaterial {...matConfig("#F59E0B")} /></mesh><mesh position={[0, 0.28, 0]}><cylinderGeometry args={[0.12, 0.12, 0.14, 32]} /><meshPhysicalMaterial {...matConfig("#FCD34D")} /></mesh><mesh position={[0, 0.1, 0]}><cylinderGeometry args={[0.025, 0.025, 0.3, 16]} /><meshPhysicalMaterial {...matConfig("#cbd5e1")} /></mesh><mesh position={[0, -0.05, 0]}><cylinderGeometry args={[0.15, 0.15, 0.03, 32]} /><meshPhysicalMaterial {...matConfig("#B45309")} /></mesh>{[0.16, 0.22, 0.28].map((r, i) => (<mesh key={i} position={[0, 0.33, 0]}><torusGeometry args={[r, 0.008, 8, 32, Math.PI]} /><meshPhysicalMaterial {...matConfig("#FDE68A")} opacity={0.5 - i * 0.12} /></mesh>))}</group>) },
-  { render: () => (<group position={[0, 0.3, 0]}>{[0, 0.06, 0.12].map((y, i) => (<mesh key={i} position={[0, y, -i * 0.03]}><boxGeometry args={[0.35, 0.04, 0.45]} /><meshPhysicalMaterial {...matConfig(["#e2e8f0", "#cbd5e1", "#94a3b8"][i])} opacity={0.85} /></mesh>))}{[0.08, 0.02, -0.04, -0.1].map((z, i) => (<mesh key={`l-${i}`} position={[0, 0.15, z]}><boxGeometry args={[0.22 - i * 0.03, 0.008, 0.015]} /><meshPhysicalMaterial {...matConfig("#10B981")} /></mesh>))}<mesh position={[0.22, 0.18, 0.05]} rotation={[0, 0, 0.3]}><cylinderGeometry args={[0.012, 0.012, 0.25, 8]} /><meshPhysicalMaterial {...matConfig("#34D399")} /></mesh></group>) },
-  { render: () => {const nodes = [{ pos: [0, 0.55, 0], size: 0.09 }, { pos: [-0.2, 0.35, 0.1], size: 0.07 }, { pos: [0.2, 0.35, -0.1], size: 0.07 }, { pos: [-0.12, 0.2, -0.15], size: 0.06 }, { pos: [0.15, 0.2, 0.12], size: 0.06 }]; const cols = ["#D946EF", "#C084FC", "#E879F9", "#e2e8f0", "#A21CAF"]; return (<group position={[0, 0.1, 0]}>{nodes.map((n, i) => (<group key={i}><mesh position={n.pos}><sphereGeometry args={[n.size, 16, 16]} /><meshPhysicalMaterial {...matConfig(cols[i])} /></mesh><mesh position={[n.pos[0], n.pos[1] - n.size - 0.04, n.pos[2]]}><capsuleGeometry args={[n.size * 0.5, n.size * 0.6, 4, 8]} /><meshPhysicalMaterial {...matConfig(cols[i])} /></mesh></group>))}{[[0, 1], [0, 2], [1, 3], [2, 4], [1, 2], [3, 4]].map(([a, b], i) => (<Line key={`tl-${i}`} points={[nodes[a].pos, nodes[b].pos]} color="#D946EF" lineWidth={1} transparent opacity={0.4} />))}</group>);} },
-];
+	return (
+		// Positioned slightly down so the extrusion (which goes "up") centers around Y=0
+		<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]}>
+			{/* ExtrudeGeometry gives the flat shape thickness (depth) along what becomes the Y axis */}
+			<extrudeGeometry args={[shape, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }]} />
+			<meshStandardMaterial color="#1565C0" emissive="#0D47A1" emissiveIntensity={0.08} metalness={0} roughness={1} />
+		</mesh>
+	);
+}
 
-const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
-  const angle = (i * Math.PI * 2) / 6;
-  return { 
-    position: [Math.sin(angle) * X_RADIUS, 1.2, Math.cos(angle) * Z_RADIUS],
-    color: BLOCK_COLORS[i], speed: [0.8, 1.1, 0.6, 0.9, 1.3, 0.7][i],
-    rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i], scale: [1.15, 1.1, 0.9, 0.9, 1.1, 1.0][i],
-  };
-});
+export function Disc() {
+	return (
+		<div className="w-screen h-screen bg-[#070b16]">
+			<Canvas camera={{ position: [0, 4, 8], fov: 50 }} dpr={[1, 1.2]}>
+				<color attach="background" args={["#070b16"]} />
+				<ambientLight intensity={0.45} />
+				<directionalLight position={[6, 8, 4]} intensity={1.1} />
+				<pointLight position={[-5, 3, -4]} intensity={0.6} color="#2ea8ff" />
+				<UniformDisc />
+				<OrbitControls enablePan={false} />
+			</Canvas>
+		</div>
+	);
+}
 
-/* COMPONENTS */
-function AnimatedBlock({ visible, children }) {
+/* ==================== EFFECTS COMPONENTS ==================== */
+
+export function AnimatedBlock({ visible, popped = false, children }) {
   const groupRef = useRef();
   const currentScale = useRef(0);
   useFrame((_, delta) => {
-    const target = visible ? 1.8 : 0;
+    const target = visible ? (popped ? 2.05 : 1.8) : 0;
     currentScale.current = THREE.MathUtils.lerp(currentScale.current, target, 1 - Math.exp(-4 * delta));
     if (groupRef.current) groupRef.current.scale.setScalar(currentScale.current);
   });
   return <group ref={groupRef} scale={0}>{children}</group>;
 }
 
-function FloatingDisc({ position, color, scale = 1, isFocused, onClick, softness = 2.0 }) {
-  const meshRef = useRef(), caseMatRef = useRef(), beamMatRef = useRef();
+export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn = true, allowHoverScale = true, onClick, softness = 2.0 }) {
+  const meshRef = useRef(), caseMatRef = useRef();
   const [hovered, setHovered] = useState(false);
+  const targetScale = useRef(scale);
 
   useFrame((_, delta) => {
-    const tCaseOp = isFocused ? 1.2 : 0.4, tBeamOp = isFocused ? 0.8 : (hovered ? 0.15 : 0);
+    const tCaseOp = isLightOn ? 0.4 : 0;
     if (caseMatRef.current) {
       caseMatRef.current.uniforms.uGlobalOpacity.value = THREE.MathUtils.lerp(caseMatRef.current.uniforms.uGlobalOpacity.value, tCaseOp, 1 - Math.exp(-4 * delta));
       caseMatRef.current.uniforms.uTime.value += delta;
-      if (caseMatRef.current.uniforms.uBeamSoftness) caseMatRef.current.uniforms.uBeamSoftness.value = softness;
     }
-    if (beamMatRef.current) beamMatRef.current.opacity = THREE.MathUtils.lerp(beamMatRef.current.opacity, tBeamOp, 1 - Math.exp(-4 * delta));
+    
+    if (meshRef.current) {
+      targetScale.current = hovered && allowHoverScale ? scale * 1.05 : scale;
+      const currentScale = meshRef.current.scale.x;
+      const newScale = THREE.MathUtils.lerp(currentScale, targetScale.current, 1 - Math.exp(-8 * delta));
+      meshRef.current.scale.setScalar(newScale);
+    }
   });
 
+  const dotsCount = 16;
+  const dots = useMemo(() => {
+    return Array.from({ length: dotsCount }).map((_, i) => {
+      const angle = (i / dotsCount) * Math.PI * 2;
+      return [Math.cos(angle) * 1.3, 0.21, Math.sin(angle) * 1.3];
+    });
+  }, []);
+
   return (
-    <group ref={meshRef} position={position} scale={hovered ? scale * 1.05 : scale} onClick={onClick} onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}>
-      <SpotLight color={color || "#00D2FF"} distance={15} angle={0.6} attenuation={4} anglePower={5} intensity={isFocused ? 20 : 0} opacity={isFocused ? 0.8 : 0} position={[0, 6, 0]} penumbra={1} />
-      <mesh castShadow receiveShadow><cylinderGeometry args={[1.45, 1.45, 0.4, 64]} /><meshStandardMaterial color="#050814" roughness={0.8} metalness={0.2} /></mesh>
-      <mesh position={[0, 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}><torusGeometry args={[1.45, 0.03, 16, 64]} /><meshBasicMaterial color="#FF004D" /></mesh>
-      <mesh position={[0, -0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}><torusGeometry args={[1.45, 0.03, 16, 64]} /><meshBasicMaterial color="#FF004D" /></mesh>
-      <mesh position={[0, 0, 0]}><cylinderGeometry args={[1.48, 1.48, 0.42, 64, 1, true]} /><meshBasicMaterial color="#FF0080" transparent opacity={0.25} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
-      <mesh position={[0, 2.2, 0]}><cylinderGeometry args={[1.45, 1.45, 4.0, 64, 1, true]} /><shaderMaterial ref={caseMatRef} transparent depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} uniforms={{ uTime: { value: 0 }, uColorInner: { value: new THREE.Color('#FF0080') }, uColorOuter: { value: new THREE.Color('#00E5FF') }, uGlobalOpacity: { value: 1.2 }, uBeamCount: { value: 2500 }, uBeamSoftness: { value: 5}, uHeight: { value: 1.0 }, uRadius: { value: 1.45 }, uNoiseScale: { value: 2.5 }, uNoiseSpeed: { value: 0.6 }, uRotation: { value: 0 } }} vertexShader="varying vec2 vUv; varying vec3 vPosition; void main() { vUv = uv; vPosition = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }" fragmentShader="precision mediump float; varying vec2 vUv; varying vec3 vPosition; uniform float uTime; uniform vec3 uColorInner; uniform vec3 uColorOuter; uniform float uGlobalOpacity; uniform float uBeamCount; uniform float uBeamSoftness; float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); } float noise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); float a = hash(i); float b = hash(i + vec2(1.0, 0.0)); float c = hash(i + vec2(0.0, 1.0)); float d = hash(i + vec2(1.0, 1.0)); vec2 u = f * f * (3.0 - 2.0 * f); return mix(a, b, u.x) + (c - a)*u.y*(1.0 - u.x) + (d - b)*u.x*u.y; } void main() { float theta = vUv.x * 6.28318530718 + uTime * 0.1; float y = vUv.y; float n = noise(vec2(theta * 2.5, y * 2.5) + vec2(uTime * 0.6)); float phase = (n - 0.5) * 2.0; float p = theta * uBeamCount + phase * 1.2; float lob = max(0.0, cos(p)); float beam = pow(lob, 1.0 + uBeamSoftness * 2.0); float vfall = pow(1.0 - smoothstep(0.0, 1.0, y), uBeamSoftness); float radial = 1.0 - abs(length(vec2(vPosition.x, vPosition.z)) - 1.45) / (1.45 * 0.6); radial = clamp(radial, 0.0, 1.0); float intensity = beam * vfall * radial; float shimmer = noise(vec2(theta * 1.5, uTime * 0.5)) * 0.25; intensity += shimmer * 0.35; vec3 col = mix(uColorInner, uColorOuter, clamp(beam * 2.0, 0.0, 1.0)); vec3 outCol = col * intensity * uGlobalOpacity * 1.6; gl_FragColor = vec4(outCol, clamp(intensity * uGlobalOpacity, 0.0, 1.0)); }" /></mesh>
-      {[0.4, 0.65, 0.9].map((r, i) => (<mesh key={i} position={[0, 0.202, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[r, r + 0.02, 64]} /><meshBasicMaterial color="#20010aff" transparent opacity={0.15 + (i * 0.15)} blending={THREE.AdditiveBlending} /></mesh>))}
-      <mesh position={[0, 0.205, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.15, 32]} /><meshBasicMaterial transparent opacity={1.0} blending={THREE.AdditiveBlending} /></mesh>
-      <mesh position={[0, 0.203, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.5, 32]} /><meshBasicMaterial color="#00E5FF" transparent opacity={hovered ? 0.8 : 0.6} blending={THREE.AdditiveBlending} /></mesh>
+    <group ref={meshRef} position={position} onClick={(e) => { if (e.intersections.length > 0 && e.intersections[0].eventObject !== e.eventObject) return; onClick(e); }} onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}>
+      <pointLight color={color || "#00D2FF"} distance={10} intensity={isLightOn ? 8 : 0} position={[0, 2, 0]} />
+      
+      <mesh><cylinderGeometry args={[1.45, 1.5, 0.4, 32]} /><meshStandardMaterial color="#020408" roughness={0.6} metalness={0.4} /></mesh>
+
+      {isLightOn && (
+        <>
+          <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[1.1, 1.15, 36]} /><meshBasicMaterial color="#00E5FF" transparent opacity={0.8} /></mesh>
+          <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.9, 0.92, 36]} /><meshBasicMaterial color="#0044FF" transparent opacity={0.4} /></mesh>
+
+          {dots.map((pos, i) => (
+            <mesh key={i} position={pos} rotation={[-Math.PI / 2, 0, 0]}>
+              <circleGeometry args={[0.04, 16]} />
+              <meshBasicMaterial color="#00E5FF" transparent opacity={0.9} blending={THREE.AdditiveBlending} />
+            </mesh>
+          ))}
+
+          <mesh position={[0, 4.0, 0]}>
+            <cylinderGeometry args={[0.2, 1.15, 8.0, 32, 1, true]} />
+            <shaderMaterial 
+              ref={caseMatRef} 
+              transparent 
+              depthWrite={false} 
+              blending={THREE.AdditiveBlending} 
+              side={THREE.DoubleSide} 
+              uniforms={{ 
+                uTime: { value: 0 }, 
+                uColorInner: { value: new THREE.Color('#ffffff') }, 
+                uColorOuter: { value: new THREE.Color('#00E5FF') }, 
+                uGlobalOpacity: { value: 1.2 } 
+              }} 
+              vertexShader={`
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+                void main() {
+                  vUv = uv;
+                  vNormal = normalize(normalMatrix * normal);
+                  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                  vViewPosition = -mvPosition.xyz;
+                  gl_Position = projectionMatrix * mvPosition;
+                }
+              `} 
+              fragmentShader={`
+                precision mediump float;
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vViewPosition;
+                uniform float uTime;
+                uniform vec3 uColorInner;
+                uniform vec3 uColorOuter;
+                uniform float uGlobalOpacity;
+                
+                void main() {
+                  vec3 normal = normalize(vNormal);
+                  vec3 viewDir = normalize(vViewPosition);
+                  float viewDot = abs(dot(normal, viewDir));
+                  float coreGlow = pow(viewDot, 1.8); 
+                  float hotCore = pow(viewDot, 2.0); 
+                  float verticalFade = pow(1.0 - vUv.y, 3.0); 
+                  float bottomFade = smoothstep(0.0, 0.02, vUv.y);
+                  float intensity = (coreGlow * 0.1 + hotCore * 0.9) * verticalFade * bottomFade * uGlobalOpacity;
+                  float pulse = sin(uTime * 2.0 - vUv.y * 10.0) * 0.05 + 0.95;
+                  intensity *= pulse;
+                  vec3 finalColor = mix(uColorOuter, uColorInner, hotCore * 0.8);
+                  gl_FragColor = vec4(finalColor * intensity * 2.0, intensity);
+                }
+              `} 
+            />
+          </mesh>
+        </>
+      )}
     </group>
   );
 }
 
-function FloatingBlocks({ count = 80 }) {
+export function FloatingBlocks({ count = 30 }) {
   const meshRef = useRef();
   const scroll = useScroll();
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  
   const particles = useMemo(() => {
     const temp = [];
-    for (let i = 0; i < count; i++) temp.push({ factor: 10 + Math.random() * 40, speed: 0.05 + Math.random() * 0.3, x: (Math.random() - 0.5) * 40, z: (Math.random() - 0.5) * 40, yStart: -10 - Math.random() * 10, yEnd: 15 + Math.random() * 15, scale: Math.random() * 0.6 + 0.3, timeOffset: Math.random() * 100 });
+    for (let i = 0; i < count; i++) {
+      temp.push({ 
+        factor: 10 + Math.random() * 40, 
+        speed: 0.05 + Math.random() * 0.3, 
+        x: (Math.random() - 0.5) * 40, 
+        z: (Math.random() - 0.5) * 40, 
+        yStart: -10 - Math.random() * 10, 
+        yEnd: 15 + Math.random() * 15, 
+        scale: Math.random() * 0.6 + 0.3, 
+        timeOffset: Math.random() * 100 
+      });
+    }
     return temp;
   }, [count]);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!meshRef.current) return;
     const r1 = scroll ? scroll.offset : 0;
+    const time = state.clock.getElapsedTime();
+    
     particles.forEach((p, i) => {
-      const time = state.clock.getElapsedTime() + p.timeOffset;
-      let curY = THREE.MathUtils.lerp(p.yStart, p.yEnd, r1 * 1.5);
-      const xOff = Math.sin(time * p.speed) * (p.factor * 0.05) * (1 + r1);
-      const zOff = Math.cos(time * p.speed) * (p.factor * 0.05) * (1 + r1);
-      const yOff = Math.sin(time * p.speed * 1.5) * (p.factor * 0.05);
-      const spread = 1 + r1 * 0.5;
-      dummy.position.set(p.x * spread + xOff, curY + yOff, p.z * spread + zOff);
-      dummy.rotation.set(time * p.speed, time * p.speed * 0.5, time * p.speed * 0.2);
-      dummy.scale.setScalar(p.scale);
+      const pTime = time + p.timeOffset;
+      const curY = p.yStart + (p.yEnd - p.yStart) * r1 * 1.5;
+      
+      if (curY > 35 || curY < -20) {
+         dummy.position.set(0, -999, 0);
+      } else {
+         const xOff = Math.sin(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
+         const zOff = Math.cos(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
+         const yOff = Math.sin(pTime * p.speed * 1.5) * (p.factor * 0.05);
+         const spread = 1 + r1 * 0.5;
+         
+         dummy.position.set(p.x * spread + xOff, curY + yOff, p.z * spread + zOff);
+         dummy.rotation.set(pTime * p.speed, pTime * p.speed * 0.5, pTime * p.speed * 0.2);
+         dummy.scale.setScalar(p.scale);
+      }
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
     });
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  return (<instancedMesh ref={meshRef} args={[null, null, count]}><boxGeometry args={[1, 1, 1]} /><meshPhysicalMaterial color="#ffffff" transmission={0.8} roughness={0.2} metalness={0.1} thickness={2} transparent opacity={0.6} envMapIntensity={2} /></instancedMesh>);
+  return (
+    <instancedMesh ref={meshRef} args={[null, null, count]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="#ffffff" roughness={0.2} metalness={0.1} transparent opacity={0.35} envMapIntensity={1.5} />
+    </instancedMesh>
+  );
 }
 
-function CameraAnimator({ focusedIndex }) {
+export function CameraAnimator({ focusedIndex, isTransitioning }) {
   const { camera, scene } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
@@ -123,25 +231,37 @@ function CameraAnimator({ focusedIndex }) {
   const damping = 2.5;
 
   useFrame((_, delta) => {
+    if (isTransitioning) return;
+    const previousFocused = prevFocused.current;
     const targetSet = focusedIndex !== null;
-    if (targetSet && prevFocused.current === null) {
+    
+    if (targetSet && previousFocused === null) {
       savedPos.current.copy(camera.position);
-      savedLookAt.current.set(0, 0, 0);
-      currentLookAt.current.set(0, 0, 0);
+      savedLookAt.current.copy(currentLookAt.current);
       isAnimatingBack.current = false;
     }
-    if (!targetSet && prevFocused.current !== null) isAnimatingBack.current = true;
+    
+    if (targetSet && previousFocused !== null && focusedIndex !== previousFocused) {
+      isAnimatingBack.current = false;
+    }
+    
+    if (!targetSet && previousFocused !== null) isAnimatingBack.current = true;
     prevFocused.current = focusedIndex;
 
     const lerpFactor = 1 - Math.exp(-damping * delta);
     if (targetSet) {
       const discObj = scene.getObjectByName(`disc-${focusedIndex}`);
       if (!discObj) return;
+      
       discObj.getWorldPosition(worldTarget.current);
       outDir.current.set(worldTarget.current.x, 0, worldTarget.current.z).normalize();
+      
+      if (isNaN(outDir.current.x)) outDir.current.set(0, 0, 1);
+
       const hDist = 5, vDist = hDist * Math.tan(THREE.MathUtils.degToRad(25));
       targetPos.current.set(worldTarget.current.x + outDir.current.x * hDist, worldTarget.current.y + vDist, worldTarget.current.z + outDir.current.z * hDist);
       targetLookAt.current.set(worldTarget.current.x, worldTarget.current.y + 0.4, worldTarget.current.z);
+      
       camera.position.lerp(targetPos.current, lerpFactor);
       currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
       camera.lookAt(currentLookAt.current);
@@ -156,7 +276,7 @@ function CameraAnimator({ focusedIndex }) {
   return null;
 }
 
-function ParallaxRig({ children, enabled }) {
+export function ParallaxRig({ children, enabled }) {
   const groupRef = useRef();
   const { pointer } = useThree();
   useFrame(() => {
@@ -168,25 +288,22 @@ function ParallaxRig({ children, enabled }) {
   return <group ref={groupRef}>{children}</group>;
 }
 
-function FlowingGrid() {
+export function FlowingGrid({ showHologram }) {
   const meshRef = useRef();
   const scroll = useScroll();
-  const count = 40, size = 65 / count;
+  const count = 16, size = 65 / count;
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
+  const baseColor = useMemo(() => new THREE.Color("#050505"), []);
+  const accentColor = useMemo(() => new THREE.Color("#00E5FF"), []);
   const hoveredIdRef = useRef(null);
-  const [showAbout, setShowAbout] = useState(false);
-  const aboutAnim = useRef(0);
+  const prevHoveredIdRef = useRef(null);
+  const prevActivationRef = useRef(0);
+  const staticPoseAppliedRef = useRef(false);
+  const holoAnim = useRef(0);
 
-  useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    const time = _.clock.elapsedTime;
-    const offset = scroll ? scroll.offset : 0;
-    if (showAbout && offset <= 0.15) setShowAbout(false);
-    const activation = THREE.MathUtils.smoothstep(offset, 0.15, 0.5);
-    aboutAnim.current = THREE.MathUtils.lerp(aboutAnim.current, showAbout ? 1 : 0, 1 - Math.exp(-4 * delta));
-
-    let i = 0;
+  const gridData = useMemo(() => {
+    const data = [];
     for (let x = 0; x < count; x++) {
       for (let z = 0; z < count; z++) {
         const h = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453) % 1;
@@ -194,68 +311,973 @@ function FlowingGrid() {
         const posZ = (z - count / 2) * size + size / 2;
         const distFromCenter = Math.sqrt(posX * posX + posZ * posZ);
         const edgeFade = Math.max(0, 1.0 - distFromCenter / 30.0);
-        const hoverIntensity = hoveredIdRef.current === i && !showAbout ? 1.0 : 0.0;
-        const currentActivation = activation * (1 - aboutAnim.current);
-        const heightAnim = Math.sin(time * (1.0 + h * 2.0) + h * 10.0) * 0.5 + 0.5;
-        let blockHeight = 0.03 + (heightAnim * h * 4.0 * currentActivation * edgeFade);
-        let targetX = posX, targetY = blockHeight / 2, targetZ = posZ, scaleX = size * 0.9, scaleY = blockHeight, scaleZ = size * 0.9;
-        const isScreenBlock = (x >= 16 && x <= 23 && z === 23);
-        if (aboutAnim.current > 0.001 && isScreenBlock) {
-          scaleX = THREE.MathUtils.lerp(scaleX, size * 1.01, aboutAnim.current);
-          scaleY = THREE.MathUtils.lerp(scaleY, 4.5, aboutAnim.current);
-          targetY = THREE.MathUtils.lerp(targetY, 4.5 / 2, aboutAnim.current);
-        }
-        dummy.rotation.set(0, 0, 0);
-        dummy.position.set(targetX, targetY, targetZ);
-        dummy.scale.set(scaleX, scaleY, scaleZ);
-        dummy.updateMatrix();
-        meshRef.current.setMatrixAt(i, dummy.matrix);
-        if (isScreenBlock && aboutAnim.current > 0.1) {
-          color.set("#050814").lerp(new THREE.Color("#FF004D"), aboutAnim.current * 0.8);
-        } else if (hoverIntensity > 0) {
-          color.set("#050814").lerp(new THREE.Color("#FF004D"), hoverIntensity + 0.2);
-        } else {
-          color.set("#050814");
-        }
-        meshRef.current.setColorAt(i, color);
-        i++;
+        data.push({ h, posX, posZ, edgeFade });
       }
     }
-    meshRef.current.instanceMatrix.needsUpdate = true;
-    if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+    return data;
+  }, [count, size]);
+
+  useFrame((state, delta) => {
+    if (!meshRef.current) return;
+    const time = state.clock.elapsedTime;
+    const offset = scroll ? scroll.offset : 0;
+    const scrollActivation = THREE.MathUtils.smoothstep(offset, 0.15, 0.5);
+    
+    holoAnim.current = THREE.MathUtils.lerp(holoAnim.current, showHologram ? 1 : 0, 1 - Math.exp(-3 * delta));
+    const activation = scrollActivation * (1 - holoAnim.current);
+    const hoveredChanged = hoveredIdRef.current !== prevHoveredIdRef.current;
+    const activationChanged = Math.abs(activation - prevActivationRef.current) > 0.001;
+    const isStatic = activation < 0.001;
+
+    if (offset > 0.8) return;
+
+    if (isStatic && staticPoseAppliedRef.current && !hoveredChanged) return;
+
+    let matrixChanged = false;
+    let colorChanged = false;
+
+    gridData.forEach((p, i) => {
+      if (!isStatic || !staticPoseAppliedRef.current || activationChanged) {
+        const heightAnim = Math.sin(time * (1.0 + p.h * 2.0) + p.h * 10.0) * 0.5 + 0.5;
+        const blockHeight = 0.03 + (heightAnim * p.h * 20.0 * activation * p.edgeFade);
+        dummy.position.set(p.posX, blockHeight / 2, p.posZ);
+        dummy.scale.set(size * 0.9, blockHeight, size * 0.9);
+        dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, dummy.matrix);
+        matrixChanged = true;
+      }
+
+      if (hoveredChanged || !staticPoseAppliedRef.current) {
+        if (hoveredIdRef.current === i) {
+          color.lerpColors(baseColor, accentColor, 1.2);
+          meshRef.current.setColorAt(i, color);
+        } else {
+          meshRef.current.setColorAt(i, baseColor);
+        }
+        colorChanged = true;
+      }
+    });
+
+    if (matrixChanged) meshRef.current.instanceMatrix.needsUpdate = true;
+    if (colorChanged && meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
+
+    prevHoveredIdRef.current = hoveredIdRef.current;
+    prevActivationRef.current = activation;
+    staticPoseAppliedRef.current = isStatic;
   });
 
   return (
     <group>
-      <instancedMesh ref={meshRef} args={[null, null, count * count]} castShadow receiveShadow position={[0, -0.1, 0]} onPointerMove={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15) hoveredIdRef.current = e.instanceId; }} onPointerOut={() => { hoveredIdRef.current = null; }} onClick={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15) setShowAbout(!showAbout); }}>
+      <mesh position={[0, -0.11, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[65, 65]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.15} />
+      </mesh>
+      <instancedMesh 
+        ref={meshRef} 
+        args={[null, null, count * count]} 
+        position={[0, -0.1, 0]} 
+        onPointerMove={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId; }} 
+        onPointerOut={() => { hoveredIdRef.current = null; }}
+      >
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color="#000000" metalness={0} roughness={1} />
       </instancedMesh>
-      {showAbout && (
-        <Html position={[0, 2.5, 5.4]} transform center opacity={aboutAnim.current} scale={0.7}>
-          <div className="w-[850px] p-10 text-left bg-black/60 backdrop-blur-3xl border border-cyan-500/50 rounded-3xl shadow-[0_0_60px_-15px_rgba(0,229,255,0.4)] relative overflow-hidden" style={{ opacity: aboutAnim.current }}>
-            <div className="absolute top-[-50%] left-[-10%] w-[120%] h-[120%] bg-cyan-500/10 blur-[100px] pointer-events-none" />
-            <div className="relative z-10 flex flex-col gap-6">
-              <div className="inline-block px-4 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase w-max mb-1">Who We Are</div>
-              <h1 className="text-6xl font-black bg-clip-text text-transparent bg-gradient-to-br from-white via-cyan-200 to-blue-600 tracking-tight leading-none drop-shadow-lg">DevlUp Labs.</h1>
-              <p className="text-slate-300 text-xl font-light leading-relaxed max-w-2xl mt-2 drop-shadow-md">We craft immersive digital realities merging engineering with creative vision.</p>
-              <div className="grid grid-cols-3 gap-6 mt-6">{[["50+", "Projects"], ["3D", "Web"], ["100%", "Innovation"]].map((item, i) => (<div key={i} className="p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-inner"><div className="text-cyan-400 text-4xl font-black mb-1 drop-shadow-[0_0_10px_rgba(0,229,255,0.8)]">{item[0]}</div><div className="text-slate-400 text-xs font-bold uppercase tracking-widest">{item[1]}</div></div>))}</div>
-              <div className="flex justify-end mt-4"><button className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold tracking-wider hover:scale-105 hover:shadow-[0_0_30px_rgba(0,229,255,0.6)] transition-all duration-300 flex items-center gap-3 border border-cyan-300/50" onClick={() => setShowAbout(false)}>Return to Grid<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg></button></div>
-            </div>
-          </div>
-        </Html>
-      )}
     </group>
   );
 }
 
-function Scene({ focusedIndex, setFocusedIndex }) {
+const HoloCard = ({ position, rotation, title, opacity, isMain }) => {
+  return (
+    <mesh position={position} rotation={rotation}>
+      <planeGeometry args={[isMain ? 4 : 3, isMain ? 6 : 4.5]} />
+      <meshBasicMaterial color={isMain ? "#00E5FF" : "#0044FF"} transparent opacity={opacity * 0.5} wireframe />
+    </mesh>
+  );
+};
+
+export function HologramCards({ visible, scaleFactor = 1 }) {
+  const groupRef = useRef();
+  const card1Ref = useRef();
+  const card2Ref = useRef();
+  const card3Ref = useRef();
+  const currentScale = useRef(0);
+  const currentOpacity = useRef(0);
+  
+  useFrame((state, delta) => {
+    const targetScale = visible ? 1 : 0;
+    const targetOpacity = visible ? 1 : 0;
+    
+    currentScale.current = THREE.MathUtils.lerp(currentScale.current, targetScale, 1 - Math.exp(-6 * delta));
+    currentOpacity.current = THREE.MathUtils.lerp(currentOpacity.current, targetOpacity, 1 - Math.exp(-5 * delta));
+    
+    if (groupRef.current) {
+      const time = state.clock.elapsedTime;
+      groupRef.current.position.y = Math.sin(time * 1.2) * 0.12 + Math.sin(time * 2.3) * 0.05 + 1.5;
+      groupRef.current.scale.setScalar(currentScale.current);
+      groupRef.current.rotation.y = Math.sin(time * 0.3) * 0.05;
+    }
+    
+    if (card1Ref.current) {
+      card1Ref.current.position.z = THREE.MathUtils.lerp(card1Ref.current.position.z, 0, 1 - Math.exp(-5 * delta));
+      card1Ref.current.rotation.y = THREE.MathUtils.lerp(card1Ref.current.rotation.y, 0.35, 1 - Math.exp(-4 * delta));
+    }
+    
+    if (card2Ref.current) {
+      card2Ref.current.position.z = THREE.MathUtils.lerp(card2Ref.current.position.z, -1, 1 - Math.exp(-5 * delta));
+      card2Ref.current.scale.setScalar(THREE.MathUtils.lerp(card2Ref.current.scale.x, 1, 1 - Math.exp(-3 * delta)));
+    }
+    
+    if (card3Ref.current) {
+      card3Ref.current.position.z = THREE.MathUtils.lerp(card3Ref.current.position.z, 0, 1 - Math.exp(-5 * delta));
+      card3Ref.current.rotation.y = THREE.MathUtils.lerp(card3Ref.current.rotation.y, -0.35, 1 - Math.exp(-4 * delta));
+    }
+  });
+
+  if (!visible && currentScale.current < 0.01) return null;
+
+  return (
+    <group position={[0, 4, 10]}>
+      <group ref={groupRef}>
+          <group ref={card1Ref} position={[-3.5, 0, -3]}>
+            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="SYS_MONITOR" opacity={currentOpacity.current} />
+          </group>
+          <group ref={card2Ref} position={[0, 0, -4]} scale={0.8}>
+            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="CORE_MATRIX" isMain opacity={currentOpacity.current} />
+          </group>
+          <group ref={card3Ref} position={[3.5, 0, -3]}>
+            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="UPLINK_NODE" opacity={currentOpacity.current} />
+          </group>
+      </group>
+    </group>
+  );
+}
+
+export function WormholeTransition({ active }) {
+  const randomRange = useCallback((min, max) => THREE.MathUtils.randFloat(min, max), []);
+  const createRandomCurve = useCallback((startPos) => {
+    const points = [
+      startPos.clone(),
+      new THREE.Vector3(randomRange(-3, 3), randomRange(8, 13), startPos.z - randomRange(8, 14)),
+      new THREE.Vector3(randomRange(-8, 8), randomRange(14, 20), startPos.z - randomRange(24, 34)),
+      new THREE.Vector3(randomRange(-11, 11), randomRange(8, 14), startPos.z - randomRange(45, 60)),
+      new THREE.Vector3(randomRange(-7, 7), randomRange(1, 6), startPos.z - randomRange(72, 92)),
+      new THREE.Vector3(randomRange(-3, 3), randomRange(-1, 2), startPos.z - randomRange(100, 120)),
+    ];
+    return new THREE.CatmullRomCurve3(points, false, "chordal", 0.25);
+  }, [randomRange]);
+
+  const [curve, setCurve] = useState(() => createRandomCurve(new THREE.Vector3(0, 6, 18)));
+
+  const tubeRef = useRef();
+  const matRef = useRef();
+  const progress = useRef(0);
+  const { camera } = useThree();
+  const startLookAt = useRef(new THREE.Vector3(0, 4, 10));
+
+  useEffect(() => {
+    if (!active) return;
+    progress.current = 0;
+    startLookAt.current.set(0, 4, 10);
+    setCurve(createRandomCurve(camera.position.clone()));
+  }, [active, camera, createRandomCurve]);
+
+  useEffect(() => {
+    return () => {
+      const overlay = document.getElementById('whiteout-overlay');
+      if (overlay) overlay.remove();
+    };
+  }, []);
+
+  useFrame((state, delta) => {
+    if (!active || !curve) return;
+    if (matRef.current) matRef.current.uniforms.time.value += delta;
+    
+    progress.current += delta * 0.34;
+    const rawT = Math.min(progress.current, 1);
+    const easedT = Math.pow(rawT, 3.2);
+    const pos = curve.getPointAt(easedT);
+    
+    camera.position.lerp(pos, 0.2); 
+    
+    if (easedT < 0.98) {
+      const nextPos = curve.getPointAt(Math.min(easedT + 0.03, 1));
+      const targetLook = new THREE.Vector3().copy(startLookAt.current).lerp(nextPos, Math.min(rawT * 4, 1));
+      camera.lookAt(targetLook);
+    }
+
+    const rollSpeed = Math.pow(rawT, 2) * 15;
+    camera.rotation.z += delta * rollSpeed;
+    
+    camera.fov = THREE.MathUtils.lerp(55, 155, Math.pow(rawT, 4));
+    camera.updateProjectionMatrix();
+
+    if (rawT > 0.85 && !document.getElementById('whiteout-overlay')) {
+       const div = document.createElement('div');
+       div.id = 'whiteout-overlay';
+       div.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;opacity:0;transition:opacity 0.6s ease-in-out;z-index:99999;pointer-events:none;';
+       div.classList.add('page-transition-overlay');
+       document.body.appendChild(div);
+       requestAnimationFrame(() => div.style.opacity = '1');
+    }
+  });
+
+  if (!active) return null;
+
+  return (
+    <mesh ref={tubeRef}>
+      <tubeGeometry args={[curve, 120, 4, 32, false]} />
+      <shaderMaterial
+        ref={matRef}
+        side={THREE.BackSide}
+        transparent
+        blending={THREE.AdditiveBlending}
+        uniforms={{
+          time: { value: 0 },
+          color1: { value: new THREE.Color('#000000') },
+          color2: { value: new THREE.Color('#00FFFF') },
+          color3: { value: new THREE.Color('#FFFFFF') }
+        }}
+        vertexShader={`
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `}
+        fragmentShader={`
+          uniform float time;
+          uniform vec3 color1;
+          uniform vec3 color2;
+          uniform vec3 color3;
+          varying vec2 vUv;
+          
+          vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+          vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+          vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+          float snoise(vec2 v) {
+            const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+            vec2 i  = floor(v + dot(v, C.yy) );
+            vec2 x0 = v -   i + dot(i, C.xx);
+            vec2 i1; i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+            vec4 x12 = x0.xyxy + C.xxzz;
+            x12.xy -= i1;
+            i = mod289(i);
+            vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+            vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+            m = m*m; m = m*m;
+            vec3 x = 2.0 * fract(p * C.www) - 1.0;
+            vec3 h = abs(x) - 0.5;
+            vec3 ox = floor(x + 0.5);
+            vec3 a0 = x - ox;
+            m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+            vec3 g;
+            g.x  = a0.x  * x0.x  + h.x  * x0.y;
+            g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+            return 130.0 * dot(m, g);
+          }
+
+          void main() {
+            float bgNoise = snoise(vec2(vUv.x * 2.0 - time * 3.0, vUv.y * 6.0)) * 0.5 + 0.5;
+            vec3 bgColor = mix(color1, vec3(0.0, 0.05, 0.2), bgNoise);
+            vec2 uvLayer1 = vec2(vUv.x * 3.0 - time * 25.0, vUv.y * 40.0);
+            float n1 = snoise(uvLayer1);
+            float streak1 = smoothstep(0.85, 0.98, n1); 
+            vec2 uvLayer2 = vec2(vUv.x * 5.0 - time * 40.0, vUv.y * 80.0);
+            float n2 = snoise(uvLayer2);
+            float streak2 = smoothstep(0.92, 0.99, n2); 
+            float combinedStreaks = streak1 + streak2;
+            vec3 finalColor = mix(bgColor, color2, combinedStreaks);
+            finalColor = mix(finalColor, color3, pow(streak1 * streak2, 2.0) * 2.5);
+            float fade = smoothstep(0.0, 0.1, vUv.x) * smoothstep(1.0, 0.8, vUv.x);
+            gl_FragColor = vec4(finalColor, fade * (combinedStreaks + bgNoise * 0.6));
+          }
+        `}
+      />
+    </mesh>
+  );
+}
+
+/* ==================== MODELS COMPONENTS ==================== */
+
+export function HomeModel() {
+  const { scene } = useGLTF("/mod.glb");
+  return <primitive object={scene} scale={0.8} position={[0, 0.50, 0.2]} rotation={[Math.PI / 2, 0, 0]} />;
+}
+
+export function MicModel() {
+  const { scene } = useGLTF("/mic.glb");
+  if (!scene) return null;
+  return (
+    <primitive
+      object={scene}
+      scale={0.001}
+      position={[0.05, 0.2, -0.1]}
+      rotation={[0, -Math.PI / 3, 0]}
+    />
+  );
+}
+
+export function VideoButtonModel() {
+  const { scene } = useGLTF("/MOVIE%20-%20Copy.glb");
+  const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
+
+  useEffect(() => {
+    if (!clone) return;
+    clone.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        n.frustumCulled = false;
+        if (n.material) {
+          n.material.side = THREE.DoubleSide;
+        }
+      }
+    });
+  }, [clone]);
+
+  if (!clone) return null;
+
+  return (
+    <group position={[-0.05, -0.55, -0.85]} rotation={[Math.PI / 2, 0, Math.PI / 3]} scale={0.009}>
+      <primitive object={clone} />
+    </group>
+  );
+}
+
+export function TimelineModel() {
+  const { scene } = useGLTF("/timeline.glb");
+  const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
+
+  useEffect(() => {
+    if (!clone) return;
+    clone.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        n.frustumCulled = false;
+        if (n.material) n.material.side = THREE.DoubleSide;
+      }
+    });
+  }, [clone]);
+
+  if (!clone) return null;
+
+  return (
+    <group position={[0, 0.2, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1}>
+      <primitive object={clone} />
+    </group>
+  );
+}
+
+export function DocumentModel() {
+  const { scene } = useGLTF("/3d_document_object_and_document_board.glb");
+  const clones = useMemo(() => {
+    if (!scene) return [];
+    return Array.from({ length: 3 }, () => scene.clone());
+  }, [scene]);
+
+  if (!clones.length) return null;
+
+  return (
+    <group>
+      <primitive object={clones[0]} scale={2.1} position={[-0.3, 0.2, -0.2]} rotation={[0, -Math.PI / 1.5, 0]} />
+      <primitive object={clones[1]} scale={2.1} position={[-0.2, 0.2, -0.1]} rotation={[0, -Math.PI / 1.5, 0]} />
+      <primitive object={clones[2]} scale={2.1} position={[-0.1, 0.2, -0]} rotation={[0, -Math.PI / 1.5, 0]} />
+    </group>
+  );
+}
+
+export function StickmanModel() {
+  const { scene } = useGLTF("/stickman2f.glb");
+  const groupRef = useRef();
+  const NUM_CLONES = 10;
+  const RADIUS = -0.01;
+  const HEIGHT = 0.12;
+  const CENTER_X = 0.001;
+  const CENTER_Z = 0.02;
+  const clones = useMemo(() => {
+    if (!scene) return [];
+    return Array.from({ length: NUM_CLONES }, () => scene.clone());
+  }, [scene]);
+
+  const positionsAndRotations = useMemo(() => {
+    const data = [];
+    for (let i = 0; i < NUM_CLONES; i++) {
+      const angle = (i / NUM_CLONES) * Math.PI * 2;
+      const x = CENTER_X + Math.cos(angle) * RADIUS;
+      const z = CENTER_Z + Math.sin(angle) * RADIUS;
+      const rotation = angle;
+      data.push({ pos: [x, HEIGHT, z], rot: rotation });
+    }
+    return data;
+  }, []);
+
+  return (
+    <group ref={groupRef}>
+      {positionsAndRotations.map((data, idx) => (
+        <group key={idx} position={data.pos} rotation={[0, data.rot, 0]}>
+          <primitive object={clones[idx]} scale={0.12} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+export const BLOCK_CONFIGS = [
+  { render: () => <HomeModel /> },
+  { render: () => <TimelineModel /> },
+  { render: () => <VideoButtonModel /> },
+  { render: () => <MicModel /> },
+  { render: () => <DocumentModel /> },
+  { render: () => <StickmanModel /> },
+];
+
+useGLTF.preload("/mod.glb");
+useGLTF.preload("/stickman2f.glb");
+useGLTF.preload("/mic.glb");
+useGLTF.preload("/MOVIE%20-%20Copy.glb");
+useGLTF.preload("/timeline.glb");
+useGLTF.preload("/3d_document_object_and_document_board.glb");
+
+/* ==================== LOADER COMPONENTS ==================== */
+
+function LoaderModel() {
+  const { scene } = useGLTF('/logocolour1.glb');
+  const coloredScene = useMemo(() => {
+    const dotColor = new THREE.Color('#5CB8D6');
+    const slashColor = new THREE.Color('#E85D5D');
+    const clonedScene = scene.clone(true);
+    const meshEntries = [];
+
+    clonedScene.traverse((obj) => {
+      if (!obj.isMesh || !obj.material) return;
+
+      const meshBox = new THREE.Box3().setFromObject(obj);
+      const meshCenter = new THREE.Vector3();
+      meshBox.getCenter(meshCenter);
+      meshEntries.push({ mesh: obj, centerX: meshCenter.x });
+    });
+
+    // Assign left-most mesh as dot and right-side mesh(es) as slash.
+    const orderedEntries = [...meshEntries].sort((a, b) => a.centerX - b.centerX);
+    const meshColorMap = new Map();
+    orderedEntries.forEach((entry, idx) => {
+      meshColorMap.set(entry.mesh, idx === 0 ? dotColor : slashColor);
+    });
+
+    clonedScene.traverse((obj) => {
+      if (!obj.isMesh || !obj.material) return;
+      const partColor = meshColorMap.get(obj) || slashColor;
+
+      const paintMaterial = (material) => {
+        const nextMaterial = material.clone();
+
+        if (nextMaterial.color) nextMaterial.color.copy(partColor);
+        if ('emissive' in nextMaterial) {
+          nextMaterial.emissive.set('#000000');
+          nextMaterial.emissiveIntensity = 0;
+        }
+        if ('metalness' in nextMaterial) nextMaterial.metalness = 0.28;
+        if ('roughness' in nextMaterial) nextMaterial.roughness = 0.62;
+
+        return nextMaterial;
+      };
+
+      if (Array.isArray(obj.material)) {
+        obj.material = obj.material.map((material) => paintMaterial(material));
+      } else {
+        obj.material = paintMaterial(obj.material);
+      }
+
+      const edgeColor = partColor.clone();
+      const edgeGeometry = new THREE.EdgesGeometry(obj.geometry, 15);
+
+      const edgeCore = new THREE.LineSegments(
+        edgeGeometry,
+        new THREE.LineBasicMaterial({ color: edgeColor, transparent: true, opacity: 0.95, toneMapped: false })
+      );
+      edgeCore.renderOrder = 10;
+
+      const edgeGlow = new THREE.LineSegments(
+        edgeGeometry.clone(),
+        new THREE.LineBasicMaterial({ color: edgeColor, transparent: true, opacity: 0.34, toneMapped: false })
+      );
+      edgeGlow.scale.setScalar(1.012);
+      edgeGlow.renderOrder = 9;
+
+      obj.add(edgeGlow);
+      obj.add(edgeCore);
+    });
+
+    // Center the logo so text and model share the same visual anchor.
+    const box = new THREE.Box3().setFromObject(clonedScene);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    clonedScene.position.sub(center);
+
+    return clonedScene;
+  }, [scene]);
+
+  return (
+    <group position={[0, 0, 0]}>
+      <primitive object={coloredScene} scale={1.05} position={[0, -0.8, 0]} rotation={[Math.PI / 2, 0, 0]} />
+    </group>
+  );
+}
+
+function LoaderScene() {
+  return (
+    <>
+      <directionalLight position={[3, 4, 3]} intensity={1.25} color="#ffffff" />
+      <pointLight position={[-2, 1.5, 3]} intensity={0.7} color="#82ddff" />
+      <pointLight position={[2, 1.5, 3]} intensity={0.75} color="#ff7d85" />
+      <LoaderModel />
+      <mesh position={[0, -1.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[2.4, 64]} />
+        <meshBasicMaterial color="#f4f7ff" transparent opacity={0.14} />
+      </mesh>
+    </>
+  );
+}
+
+useGLTF.preload('/logocolour1.glb');
+
+export const Loader = ({ onComplete }) => {
+  const [text, setText] = useState('');
+  const [showCursor, setShowCursor] = useState(true);
+  const [cursorFading, setCursorFading] = useState(false);
+  const [fading, setFading] = useState(false);
+  const [showModel, setShowModel] = useState(false);
+  const [morphPath, setMorphPath] = useState(false);
+
+  useEffect(() => {
+    const pathPrefix = './';
+    let typedIndex = 0;
+    let typingTimer;
+    let modelPauseTimer;
+
+    const blinkCycleMs = 650;
+    const blinkCycles = 3;
+    const blinkDuration = blinkCycleMs * blinkCycles;
+    const cursorFadeMs = 200;
+    const pathPauseAfterSlash = 1000;
+    const typeCharDelayMs = 320;
+    const morphDurationMs = 1200;
+    const modelShowDuration = 2600;
+
+    // Keep cursor visible while CSS handles 3 smooth blink cycles.
+    setText('');
+    setShowModel(false);
+    setMorphPath(false);
+    setFading(false);
+    setShowCursor(true);
+
+    const startCursorFadeTimer = setTimeout(() => {
+      setCursorFading(true);
+    }, blinkDuration);
+
+    const hideCursorAndTypeTimer = setTimeout(() => {
+      setShowCursor(false);
+
+      // Start typing "./" after cursor has faded out.
+      const typeNext = () => {
+        typedIndex += 1;
+        setText(pathPrefix.slice(0, typedIndex));
+
+        if (typedIndex < pathPrefix.length) {
+          // Keep a deliberate pace so '.' appears first, then '/'.
+          typingTimer = setTimeout(typeNext, typeCharDelayMs);
+        } else {
+          // Morph path into model: path scales/fades out while model fades/scales in.
+          typingTimer = setTimeout(() => {
+            setMorphPath(true);
+            setShowModel(true);
+            modelPauseTimer = setTimeout(() => {
+              setFading(true);
+            }, morphDurationMs + modelShowDuration);
+          }, pathPauseAfterSlash);
+        }
+      };
+
+      typeNext();
+    }, blinkDuration + cursorFadeMs);
+
+    // Fire onComplete after the fade-out animation fully finishes
+    const fadeOutMs = 1500;
+    const completeTimer = setTimeout(() => {
+      if (onComplete) onComplete();
+    }, 7600 + fadeOutMs + 200);
+
+    return () => {
+      clearTimeout(startCursorFadeTimer);
+      clearTimeout(hideCursorAndTypeTimer);
+      clearTimeout(typingTimer);
+      clearTimeout(modelPauseTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onComplete]);
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red ${
+        fading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+      }`}
+      style={{
+        transition: 'opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      }}
+    >
+      <div className="relative w-[600px] h-[480px] sm:w-[860px] sm:h-[580px]">
+        <div className={`absolute inset-0 ${showModel ? 'loader-model-enter loader-model-rotate' : 'opacity-0 scale-75'}`} style={{ perspective: '1000px' }}>
+          <Canvas camera={{ position: [0, 0, 4], fov: 25 }}>
+            <LoaderScene />
+          </Canvas>
+        </div>
+
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className={`text-blacktext-[9rem] sm:text-[19rem] flex items-center loader-path-base ${morphPath ? 'loader-path-morph' : ''}`}>
+            <span className="loader-brand-text loader-path-symbols">
+              {text.includes('.') && (
+                <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>·</span>
+              )}
+              {text.includes('/') && <span className={`loader-path-slash ${morphPath && text === './' ? 'loader-slash-orbit' : ''}`}>/</span>}
+            </span>
+            {showCursor && (
+              <span className={`loader-text-cursor ml-1 ${cursorFading ? 'loader-cursor-fade' : 'loader-cursor-blink'}`}>
+                |
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ==================== SCIFI HUD COMPONENTS ==================== */
+
+const HUDStyles = () => (
+  <>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+  <style>{`
+    .whiteout-fade {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      z-index: 99999;
+      pointer-events: none;
+      animation: clear-whiteout 1.5s ease-out forwards;
+    }
+
+    @keyframes clear-whiteout {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .holo-card-shell {
+      width: min(92vw, 1500px);
+      height: min(88vh, 720px);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(182, 213, 255, 0.48);
+      border-radius: 34px;
+      background:
+        radial-gradient(120% 120% at 80% 20%, rgba(110, 158, 255, 0.32) 0%, rgba(98, 123, 255, 0.05) 42%, rgba(7, 14, 36, 0.14) 100%),
+        linear-gradient(165deg, rgba(164, 202, 255, 0.15) 0%, rgba(82, 105, 217, 0.09) 38%, rgba(17, 26, 56, 0.15) 100%);
+      backdrop-filter: blur(10px);
+      box-shadow:
+        0 0 40px rgba(157, 194, 255, 0.22),
+        0 18px 50px rgba(3, 9, 26, 0.45),
+        inset 0 0 0 1px rgba(208, 227, 255, 0.22);
+      color: #eef3ff;
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+    }
+    .holo-border-glow {
+      position: absolute;
+      inset: 2px;
+      border-radius: 36px;
+      border: 2px solid rgba(223, 240, 255, 0.35);
+      box-shadow: inset 0 0 24px rgba(147, 194, 255, 0.28);
+      pointer-events: none;
+    }
+    .holo-corner {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      border: 3px solid rgba(224, 237, 255, 0.75);
+      border-bottom: none;
+      border-right: none;
+      border-radius: 10px 0 0 0;
+      opacity: 0.9;
+    }
+    .holo-avatar-ring {
+      position: absolute;
+      left: 50%;
+      top: 4.2%;
+      width: 44%;
+      aspect-ratio: 1;
+      border-radius: 999px;
+      opacity: 0.2;
+      transform: translateX(-50%);
+      border: 3px solid rgba(219, 239, 255, 0.9);
+      box-shadow: 0 0 28px rgba(155, 198, 255, 0.6), inset 0 0 30px rgba(127, 176, 255, 0.25);
+    }
+    
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+    
+    @keyframes blink-caret {
+      from, to { border-right-color: transparent }
+      50% { border-right-color: rgba(223, 240, 255, 0.75); }
+    }
+
+    @keyframes fade-in-text {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .typewriter-title-container {
+      position: absolute;
+      top: 6%;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .typewriter-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: rgba(223, 240, 255, 0.95);
+      text-shadow: 0 0 24px rgba(147, 194, 255, 0.7);
+      overflow: hidden;
+      border-right: .15em solid transparent;
+      white-space: nowrap;
+      display: inline-block;
+      text-align: center;
+      animation: 
+        typing 3s steps(40) forwards,
+        blink-caret .5s step-end 1;
+    }
+
+    .devlup-labs-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: min(4vw, 4rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 16px;
+      opacity: 0.2;
+      white-space: nowrap;
+      color: rgba(219, 239, 255, 1);
+      text-shadow: 0 0 40px rgba(155, 198, 255, 0.8);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .about-us-content {
+      position: absolute;
+      top: 22%;
+      left: 8%;
+      right: 8%;
+      bottom: 8%;
+      color: rgba(238, 243, 255, 0.8);
+      font-size: 1.15rem;
+      line-height: 1.9;
+      text-shadow: 0 0 12px rgba(157, 194, 255, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      z-index: 5;
+      opacity: 0;
+      animation: fade-in-text 1.2s ease-out 2.6s forwards;
+    }
+
+    .about-us-content p {
+      margin: 0;
+      text-align: justify-center;
+    }
+
+    .hud-back-button {
+      position: fixed;
+      top: 22px;
+      left: 22px;
+      z-index: 100000;
+      border: 1px solid rgba(198, 223, 255, 0.55);
+      border-radius: 999px;
+      background: linear-gradient(160deg, rgba(14, 24, 49, 0.78), rgba(33, 60, 118, 0.42));
+      color: rgba(233, 244, 255, 0.95);
+      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 0 18px rgba(133, 184, 255, 0.32), inset 0 0 0 1px rgba(220, 237, 255, 0.15);
+      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    }
+
+    .hud-back-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(214, 233, 255, 0.78);
+      box-shadow: 0 0 22px rgba(139, 189, 255, 0.45), inset 0 0 0 1px rgba(230, 242, 255, 0.25);
+    }
+
+    .hud-back-button:active {
+      transform: translateY(0);
+    }
+    
+  `}</style>
+  </>
+);
+
+const ProfileCard = () => {
+  return (
+    <group>
+      <Html transform distanceFactor={9} position={[0, 0, 0]} zIndexRange={[100, 0]}>
+        <div className="holo-card-shell">
+          <div className="holo-border-glow" />
+          <div className="holo-corner tl" />
+          <div className="holo-corner tr" />
+          <div className="holo-corner bl" />
+          <div className="holo-corner br" />
+
+          <div className="typewriter-title-container">
+            <h2 className="typewriter-title">About Us</h2>
+          </div>
+
+          <div className="holo-avatar-ring">
+            <div className="devlup-labs-watermark">DevlUp Labs</div>
+          </div>
+          <div className="holo-avatar" />
+
+          <div className="about-us-content">
+            <p>
+              We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
+            </p>
+            <p>
+              Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities-one that reacts, illuminates, and adapts to the contours of virtual environments.
+            </p>
+            <p>
+              Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
+            </p>
+          </div>
+
+          <div className="holo-chip" />
+          <div className="holo-noise" />
+        </div>
+      </Html>
+    </group>
+  );
+};
+
+export function SciFiHUD() {
+  const [showWhiteout, setShowWhiteout] = useState(true);
+
+  useEffect(() => {
+    // Remove the old transition overlay left behind by the previous page
+    const oldOverlay = document.querySelector('.page-transition-overlay');
+    if (oldOverlay) {
+      oldOverlay.remove();
+    }
+  }, []);
+
+  return (
+    <div className="w-screen h-screen bg-[#02050A]">
+      {showWhiteout && <div className="whiteout-fade" onAnimationEnd={() => setShowWhiteout(false)} />}
+      <HUDStyles />
+      <button className="hud-back-button" onClick={() => window.history.back()}>
+        Back
+      </button>
+      <Canvas
+        dpr={[1, 1.2]}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
+        performance={{ min: 0.35 }}
+      >
+        <PerspectiveCamera makeDefault position={[0, 0, 24]} fov={40} />
+        <color attach="background" args={["#02050A"]} />
+        
+        <ambientLight intensity={1.5} />
+        <spotLight position={[5, 10, 5]} angle={0.3} penumbra={1} intensity={10} color="#00E5FF" />
+        <spotLight position={[-5, 5, -5]} angle={0.5} penumbra={1} intensity={8} color="#FF00A0" />
+        <Environment preset="city" frames={1} />
+
+        <fog attach="fog" args={['#02050A', 18, 80]} />
+
+        <ProfileCard />
+      </Canvas>
+    </div>
+  );
+}
+
+/* ==================== LANDING PAGE / HOME COMPONENTS ==================== */
+
+const SECTIONS = [
+  { name: "Home", icon: "🏠", tagline: "Welcome to DevlUp Labs", description: "Your command center for everything we build." },
+  { name: "Timeline", icon: "📅", tagline: "Chronicle Your Journey", description: "Visualize your milestones and progress." },
+  { name: "Videos", icon: "🎬", tagline: "Cinematic Storytelling", description: "Immersive video content crafted for maximum impact." },
+  { name: "Podcast", icon: "🎙️", tagline: "Voices That Resonate", description: "Deep conversations and thought-provoking discussions." },
+  { name: "Blogs", icon: "✍️", tagline: "Words That Inspire", description: "In-depth articles and thought leadership." },
+  { name: "Team", icon: "👥", tagline: "The Minds Behind the Vision", description: "Passionate creators building the future." },
+];
+
+const BLOCK_COLORS = ["#00E5FF", "#00A1FF", "#0044FF", "#00D2FF", "#0077FF", "#00BAFF"];
+const X_RADIUS = 6.5, Z_RADIUS = 6.5;
+
+const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
+  const angle = (i * Math.PI * 2) / 6;
+  return {
+    position: [Math.sin(angle) * X_RADIUS, 1.2, Math.cos(angle) * Z_RADIUS],
+    color: BLOCK_COLORS[i], 
+    speed: [0.8, 1.1, 0.6, 0.9, 1.3, 0.7][i],
+    rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i], 
+    scale: [1.15, 1.1, 0.9, 0.9, 1.1, 1.0][i],
+  };
+});
+
+function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, isTransitioning, discClickedRef }) {
   const ringGroupRef = useRef();
   const { gl } = useThree();
+  const [hoveredModelIndex, setHoveredModelIndex] = useState(null);
   const isDragging = useRef(false);
   const previousX = useRef(0);
   const targetRotationY = useRef(0);
   const scroll = useScroll();
+  const lastOffset = useRef(0);
+
+  useFrame((_, delta) => {
+    const offset = scroll ? scroll.offset : 0;
+    
+    if (offset < 0.8 && showHologram) {
+      setShowHologram(false);
+    }
+    
+    if (ringGroupRef.current) {
+      ringGroupRef.current.rotation.y = THREE.MathUtils.lerp(ringGroupRef.current.rotation.y, targetRotationY.current, 1 - Math.exp(-8 * delta));
+      const riseHeight = offset * 30; 
+      const ringVisibility = 1 - THREE.MathUtils.smoothstep(offset, 0, 0.4);
+      ringGroupRef.current.scale.setScalar(ringVisibility);
+      ringGroupRef.current.position.set(0, riseHeight, -(offset * 10));
+    }
+
+    if (focusedIndex === null && !isTransitioning) {
+      const targetZ = showHologram ? 18 : 15;
+      const targetY = showHologram ? 6 : 5;
+      _.camera.position.lerp(new THREE.Vector3(0, targetY, targetZ), 1 - Math.exp(-3 * delta));
+      if (showHologram) _.camera.lookAt(0, 4, 10);
+    }
+  });
+
+  const cardOffsetFactor = scroll ? THREE.MathUtils.smoothstep(scroll.offset, 1, 0) : 0;
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -263,7 +1285,11 @@ function Scene({ focusedIndex, setFocusedIndex }) {
     const onPointerMove = (e) => { if (isDragging.current && focusedIndex === null) { const deltaX = e.clientX - previousX.current; targetRotationY.current += deltaX * 0.005; previousX.current = e.clientX; } };
     const onPointerUp = (e) => { if (e.button === 2) isDragging.current = false; };
     const onContextMenu = (e) => { e.preventDefault(); };
-    const onWheel = (e) => { if (focusedIndex === null && Math.abs(e.deltaX) > 0) targetRotationY.current += e.deltaX * 0.01; };
+    const onWheel = (e) => {
+      if (focusedIndex !== null || Math.abs(e.deltaX) <= 0) return;
+      const direction = e.deltaX < 0 ? 1 : -1;
+      targetRotationY.current += direction * Math.abs(e.deltaX) * 0.01;
+    };
     canvas.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
@@ -278,43 +1304,44 @@ function Scene({ focusedIndex, setFocusedIndex }) {
     };
   }, [gl, focusedIndex]);
 
-  useFrame((_, delta) => {
-    if (ringGroupRef.current) {
-      ringGroupRef.current.rotation.y = THREE.MathUtils.lerp(ringGroupRef.current.rotation.y, targetRotationY.current, 1 - Math.exp(-8 * delta));
-      const offset = scroll ? scroll.offset : 0;
-      const vanishScale = Math.max(0, 1 - offset * 3);
-      const sinkDepth = -(offset * 12);
-      ringGroupRef.current.scale.setScalar(vanishScale);
-      ringGroupRef.current.position.y = sinkDepth;
-    }
-  });
-
   return (
     <>
       <color attach="background" args={['#050814']} />
       <fog attach="fog" args={['#050814', 8, 30]} />
-      <ambientLight intensity={1} />
-      <directionalLight position={[5, 10, 5]} intensity={0} />
-      <spotLight position={[0, 15, 0]} angle={0.6} penumbra={1} intensity={2} />
-      <spotLight position={[5, 12, 5]} angle={0.4} penumbra={0.8} intensity={4.0} color="#FF004D" />
-      <spotLight position={[-5, 12, -5]} angle={0.4} penumbra={0.8} intensity={4.0} color="#3A0CA3" />
-      <pointLight position={[0, 3, 0]} intensity={2.0} distance={15} />
-      <Environment preset="city" background={false} />
-      <CameraAnimator focusedIndex={focusedIndex} />
-      <FloatingBlocks />
-      <FlowingGrid />
-      <group ref={ringGroupRef}>
+      <ambientLight intensity={0.8} />
+      <spotLight position={[0, 15, 0]} angle={0.6} penumbra={1} intensity={1.5} castShadow={false} />
+      <spotLight position={[5, 12, 5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#00E5FF" castShadow={false} />
+      <spotLight position={[-5, 12, -5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#0044FF" castShadow={false} />
+      <pointLight position={[0, 3, 0]} intensity={1.5} distance={15} castShadow={false} />
+      <Environment preset="city" background={false} frames={1} />
+      
+      <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} />
+      <WormholeTransition active={isTransitioning} />
+      <HologramCards visible={showHologram} scaleFactor={cardOffsetFactor} />
+      <FlowingGrid showHologram={showHologram} />
+
+      <group ref={ringGroupRef} visible={!isTransitioning}>
         <ParallaxRig enabled={focusedIndex === null}>
-          <group rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.8, 0]} scale={[X_RADIUS, Z_RADIUS, 1]}>
-            <mesh><torusGeometry args={[1, 0.18, 16, 100]} /><meshStandardMaterial color="#001829" roughness={0.8} metalness={0.3} /></mesh>
-            <mesh><torusGeometry args={[1, 0.2, 16, 100]} /><meshBasicMaterial color="#FF004D" transparent opacity={0.35} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
-            <mesh><torusGeometry args={[1, 0.08, 12, 100]} /><meshBasicMaterial color="#3A0CA3" transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} /></mesh>
+          <group position={[0, 0.55, 0]}>
+            <UniformDisc />
           </group>
           {DISC_DATA.map((disc, i) => (
             <group key={i}>
-              <FloatingDisc {...disc} isFocused={focusedIndex === i} onClick={(e) => { e.stopPropagation(); setFocusedIndex(i); }} />
-              <group position={disc.position} name={`disc-${i}`}>
-                <AnimatedBlock visible={focusedIndex === null || focusedIndex === i}>
+              <FloatingDisc
+                {...disc}
+                isFocused={focusedIndex === i}
+                isLightOn={true}
+                allowHoverScale={focusedIndex === null}
+                onClick={(e) => { e.stopPropagation(); if (discClickedRef) discClickedRef.current = true; setFocusedIndex(i); }}
+              />
+              <group
+                position={disc.position}
+                name={`disc-${i}`}
+                onPointerOver={() => { setHoveredModelIndex(i); document.body.style.cursor = "pointer"; }}
+                onPointerOut={() => { setHoveredModelIndex(null); document.body.style.cursor = "default"; }}
+                onClick={(e) => { e.stopPropagation(); if (discClickedRef) discClickedRef.current = true; setFocusedIndex(i); }}
+              >
+                <AnimatedBlock visible={true} popped={hoveredModelIndex === i}>
                   {BLOCK_CONFIGS[i].render()}
                 </AnimatedBlock>
               </group>
@@ -322,34 +1349,65 @@ function Scene({ focusedIndex, setFocusedIndex }) {
           ))}
         </ParallaxRig>
       </group>
-      <group position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      
+      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isTransitioning}>
         <planeGeometry args={[60, 60]} />
-        <meshPhysicalMaterial color="#ff7575ff" metalness={0.25} roughness={0.35} emissive="#dfe3ecff" emissiveIntensity={0.85} />
-      </group>
-      <mesh position={[0, 30, -30]} receiveShadow><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d4d7e4ff" roughness={0.8} metalness={1} /></mesh>
-      <mesh position={[-30, 30, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d6dae8ff" roughness={0.8} metalness={0} /></mesh>
-      <mesh position={[30, 30, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#050814" roughness={0.8} metalness={0} /></mesh>
+        <shaderMaterial
+          transparent
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          uniforms={{ color: { value: new THREE.Color("#ffffff") } }}
+          vertexShader={`
+            varying vec3 vWorldPos;
+            void main() {
+              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+              vWorldPos = worldPosition.xyz;
+              gl_Position = projectionMatrix * viewMatrix * worldPosition;
+            }
+          `}
+          fragmentShader={`
+            varying vec3 vWorldPos;
+            uniform vec3 color;
+
+            void main() {
+              vec2 grid = fract(vWorldPos.xz);
+              float lineDistX = min(grid.x, 1.0 - grid.x);
+              float lineDistZ = min(grid.y, 1.0 - grid.y);
+              float coreX = smoothstep(0.8, 0.0, lineDistX);
+              float coreZ = smoothstep(0.8, 0.0, lineDistZ);
+              float core = max(coreX, coreZ);
+              float glowX = 0.015 / max(lineDistX, 0.005) - 0.03;
+              float glowZ = 0.015 / max(lineDistZ, 0.005) - 0.03;
+              float glow = max(glowX, glowZ);
+              float alpha = max(core, glow);
+              float dist = length(vWorldPos.xz);
+              float fade = smoothstep(30.0, 5.0, dist);
+              vec3 colorDeepBlue = vec3(0.0, 0.08, 0.32);
+              vec3 colorBrightBlue = vec3(0.0, 0.52, 0.82);
+              float gradFactor = smoothstep(-15.0, 15.0, vWorldPos.z);
+              vec3 gridColor = mix(colorDeepBlue, colorBrightBlue, gradFactor);
+              gl_FragColor = vec4(gridColor * (1.0 + core * 1.5), clamp(alpha * fade, 0.0, 1.0));
+            }
+          `}
+        />
+      </mesh>
+      <mesh position={[0, 30, -30]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d4d7e4ff" roughness={0.8} metalness={1} /></mesh>
+      <mesh position={[-30, 30, 0]} rotation={[0, Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d6dae8ff" roughness={0.8} metalness={0} /></mesh>
+      <mesh position={[30, 30, 0]} rotation={[0, -Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#050814" roughness={0.8} metalness={0} /></mesh>
     </>
   );
 }
 
-function DiscSidebar({ focusedIndex, setFocusedIndex }) {
+function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
   return (
     <AnimatePresence>
       {focusedIndex !== null && (
-        <motion.div initial={{ x: "100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: "100%", opacity: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="absolute right-0 top-0 h-screen w-full sm:w-[500px] bg-black/60 backdrop-blur-2xl border-l border-[#FF0080]/30 shadow-[-30px_0_80px_-20px_rgba(255,0,128,0.3)] z-50 flex flex-col pointer-events-auto">
-          <button onClick={() => setFocusedIndex(null)} className="absolute top-8 right-8 p-3 rounded-full bg-white/5 hover:bg-white/10 transition-colors text-white border border-white/10">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
+        <motion.div ref={sidebarRef} initial={{ x: "100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: "100%", opacity: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="absolute right-0 top-0 h-screen w-full sm:w-[400px] bg-black/60 backdrop-blur-2xl border-l border-[#00E5FF]/30 shadow-[-30px_0_80px_-20px_rgba(0,229,255,0.3)] z-50 flex flex-col pointer-events-none">
           <div className="flex-1 p-12 flex flex-col pt-28 overflow-y-auto">
-            <div className="text-7xl mb-8 drop-shadow-[0_0_20px_rgba(255,0,128,0.6)]">{SECTIONS[focusedIndex].icon}</div>
-            <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#FF0080] mb-3 tracking-tight">{SECTIONS[focusedIndex].name}</h2>
-            <h3 className="text-2xl font-bold text-indigo-300 uppercase tracking-widest mb-10">{SECTIONS[focusedIndex].tagline}</h3>
-            <div className="w-16 h-1.5 bg-gradient-to-r from-[#FF0080] to-indigo-500 rounded-full mb-10" />
+            <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#00E5FF] mb-3 tracking-tight">{SECTIONS[focusedIndex].name}</h2>
+            <h3 className="text-2xl font-bold text-cyan-300 uppercase tracking-widest mb-10">{SECTIONS[focusedIndex].tagline}</h3>
+            <div className="w-16 h-1.5 bg-gradient-to-r from-[#00E5FF] to-blue-500 rounded-full mb-10" />
             <p className="text-slate-300 text-xl leading-relaxed font-light">{SECTIONS[focusedIndex].description}</p>
-            <div className="mt-auto pt-16">
-              <button onClick={() => setFocusedIndex(null)} className="w-full py-5 rounded-2xl bg-gradient-to-r from-indigo-600 to-[#FF0080] text-white text-lg font-bold tracking-widest uppercase hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,0,128,0.5)] transition-all duration-300 border border-white/20">Return to View</button>
-            </div>
           </div>
         </motion.div>
       )}
@@ -357,20 +1415,130 @@ function DiscSidebar({ focusedIndex, setFocusedIndex }) {
   );
 }
 
-export default function App() {
+export default function Home() {
+  const rootRef = useRef(null);
+  const sidebarRef = useRef(null);
+  const aboutUsRef = useRef(null);
   const [focusedIndex, setFocusedIndex] = useState(null);
+  const [showHologram, setShowHologram] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const discClickedRef = useRef(false);
+  const [showLoader, setShowLoader] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !(sessionStorage.getItem('loader_shown_this_session') === 'true');
+  });
+
+  const handleLoaderComplete = () => {
+    sessionStorage.setItem('loader_shown_this_session', 'true');
+    setShowLoader(false);
+  };
+
+  useEffect(() => {
+    if (focusedIndex === null) return;
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+
+    const onPointerDown = (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (sidebarRef.current && sidebarRef.current.contains(target)) return;
+
+      const canvasEl = rootEl.querySelector("canvas");
+      if (canvasEl && canvasEl.contains(target)) return;
+
+      setFocusedIndex(null);
+    };
+
+    rootEl.addEventListener("pointerdown", onPointerDown);
+    return () => rootEl.removeEventListener("pointerdown", onPointerDown);
+  }, [focusedIndex]);
+
   return (
-    <div className="relative w-screen h-screen overflow-hidden">
-      <div className="absolute inset-0 z-[1]">
-        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 5, 15], fov: 55 }} gl={{ antialias: true, alpha: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}>
-          <ScrollControls pages={2} damping={0.2} distance={1.5}>
-            <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} />
+    <>
+      {showLoader && <Loader onComplete={handleLoaderComplete} />}
+      <div
+        ref={rootRef}
+        className="relative w-screen h-screen overflow-hidden"
+        style={{
+          opacity: showLoader ? 0 : 1,
+          transform: showLoader ? 'scale(1.03)' : 'scale(1)',
+          transition: 'opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        }}
+      >
+        <div className="absolute inset-0 z-[1]">
+        <Canvas 
+          dpr={[1, 1.1]} 
+          camera={{ position: [0, 5, 15], fov: 55 }} 
+          onPointerMissed={() => {
+            if (discClickedRef.current) {
+              discClickedRef.current = false;
+              return;
+            }
+            setFocusedIndex(null);
+          }}
+          gl={{ 
+            antialias: false, 
+            alpha: false, 
+            powerPreference: "high-performance",
+            toneMapping: THREE.ACESFilmicToneMapping, 
+            toneMappingExposure: 1.2 
+          }}
+          performance={{ min: 0.35 }}
+        >
+          <ScrollControls pages={2} damping={0.25} distance={1.5}>
+            <Suspense fallback={null}>
+              <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} />
+            </Suspense>
+            <Scroll html style={{ width: '100vw' }}>
+              <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
+                <div className="w-full h-full flex flex-col items-center justify-center p-20 text-center bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="inline-block px-5 py-2 rounded-full border border-cyan-400/40 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">Phase II</div>
+                  <h2 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF] max-w-5xl drop-shadow-[0_0_30px_rgba(0,229,255,0.4)] mb-8">
+                    DevlUp Labs
+                  </h2>
+                  <p className="text-2xl text-slate-300 max-w-3xl font-light leading-relaxed drop-shadow-md">
+                    You've reached the second chapter. This is the perfect space to introduce new case studies, interactive articles, or showcase immersive 3D content.
+                  </p>
+                  <button onClick={() => {
+                    setIsTransitioning(true);
+                    setTimeout(() => {
+                      if (aboutUsRef.current) {
+                        aboutUsRef.current.scrollIntoView({ behavior: 'smooth' });
+                      }
+                      setIsTransitioning(false);
+                    }, 3200);
+                  }} className="mt-14 px-12 py-5 rounded-full bg-white/10 text-white font-bold tracking-[0.2em] uppercase hover:bg-white/20 transition-all border border-white/30 hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(0,229,255,0.3)] backdrop-blur-md">
+                    Explore Further
+                  </button>
+                </div>
+              </div>
+              <div ref={aboutUsRef} className="w-screen min-h-screen flex flex-col items-center justify-center p-20 text-center bg-gradient-to-b from-black/80 to-black" style={{ position: 'absolute', top: '200vh' }}>
+                <div className="w-full h-full flex flex-col items-center justify-center gap-8">
+                  <div className="inline-block px-5 py-2 rounded-full border border-cyan-400/40 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">About Us</div>
+                  <h2 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF] max-w-5xl drop-shadow-[0_0_30px_rgba(0,229,255,0.4)] mb-8">
+                    DevlUp Labs
+                  </h2>
+                  <div className="max-w-3xl space-y-6">
+                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
+                      We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
+                    </p>
+                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
+                      Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities—one that reacts, illuminates, and adapts to the contours of virtual environments.
+                    </p>
+                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
+                      Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Scroll>
           </ScrollControls>
         </Canvas>
+        </div>
+        <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
+          <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
+        </div>
       </div>
-      <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
-        <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} />
-      </div>
-    </div>
+    </>
   );
 }

@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 
 const videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiXIRuZj0","314S3-0_I2I","hlhy1QsZ4Bw","U-isVE5n4TY","WvQCFqRkaec","ZdTQ-bCDU0w"];
 
-const CARD_WIDTH = 200;
-const CARD_HEIGHT = 100;
+// Base dimensions for the background cards
+const CARD_WIDTH = 220;
+const CARD_HEIGHT = 124; 
 const SIZE = CARD_WIDTH;
-const MIN_DIST = 120;
+const MIN_DIST = 140; 
 const MAX_ATTEMPTS = 60;
 
 const R1 = 75; const R2 = 150; const R3 = 220; const R4 = 300;
@@ -25,26 +26,26 @@ export default function Cards() {
 
   const cards = useMemo(() => {
     const TOPBAR_HEIGHT = 56;
-    const w = window.innerWidth - (CARD_WIDTH*1.5) - SIDE_OFFSET * 2;
-    const h = window.innerHeight - TOPBAR_HEIGHT - (CARD_HEIGHT*1.5) - BOTTOM_OFFSET;
+    const w = window.innerWidth - (CARD_WIDTH * 1.5) - SIDE_OFFSET * 2;
+    const h = window.innerHeight - TOPBAR_HEIGHT - (CARD_HEIGHT * 1.5) - BOTTOM_OFFSET;
 
     const result = [];
     let id = 0;
-    const count = Math.floor((w * h) / (SIZE * SIZE * 0.5));
+    const count = Math.floor((w * h) / (SIZE * SIZE * 0.45));
 
     while (result.length < count) {
       let attempts = 0;
       let placed = false;
       while (!placed && attempts < MAX_ATTEMPTS) {
         const x = SIDE_OFFSET + (CARD_WIDTH / 2) + Math.random() * Math.max(0, w);
-      const y = START_OFFSET_Y + (CARD_HEIGHT / 2) + Math.random() * Math.max(0, h - START_OFFSET_Y);
+        const y = START_OFFSET_Y + (CARD_HEIGHT / 2) + Math.random() * Math.max(0, h - START_OFFSET_Y);
 
         if (result.every(c => Math.hypot(c.x - x, c.y - y) > MIN_DIST)) {
           const vId = videoIds[id % videoIds.length];
           result.push({
             id,
             videoId: vId,
-            thumbnail: `https://img.youtube.com/vi/${vId}/mqdefault.jpg`,
+            thumbnail: `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
             x,
             y,
             baseScale: 0.75 + Math.random() * 0.5,
@@ -64,7 +65,7 @@ export default function Cards() {
   return (
     <div className="relative w-full h-screen overflow-hidden [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]" style={{ perspective: "1200px" }}>
       {selectedId !== null && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-[15000]" onClick={() => setSelectedId(null)} />
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[15000] transition-all duration-500" onClick={() => setSelectedId(null)} />
       )}
 
       {cards.map(card => {
@@ -74,7 +75,6 @@ export default function Cards() {
         const isSelected = card.id === selectedId;
 
         if (isSelected) {
-          scale = 5;
           zIndex = 20000;
           opacity = 1;
         } else if (active) {
@@ -91,34 +91,70 @@ export default function Cards() {
             key={card.id}
             onMouseEnter={() => setActiveId(card.id)}
             onMouseLeave={() => setActiveId(null)}
-            onClick={() => {
-              if (isSelected) {
-                window.open(`https://www.youtube.com/watch?v=${card.videoId}`, "_blank");
-              } else {
-                setSelectedId(card.id);
-              }
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isSelected) setSelectedId(card.id);
             }}
-            // Change this:
-
-
-// To this (forces it to the exact center of the screen):
-style={{
-  left: isSelected ? "50%" : card.x,
-  top: isSelected ? "50%" : card.y,
-  position: isSelected ? "fixed" : "absolute", // Use fixed to ignore parent boundaries
-  transform: isSelected 
-    ? "translate(-50%, -50%) scale(4)" // Lower the scale if they are huge
-    : `scale(${scale})`,
-  zIndex: isSelected ? 99999 : zIndex,
-}}
-            className="absolute p-[1.5px] rounded-[18px] bg-gradient-to-br from-pink-500 via-purple-500 to-cyan-400 transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+            style={{
+              left: isSelected ? "50%" : card.x,
+              top: isSelected ? "50%" : card.y,
+              position: isSelected ? "fixed" : "absolute",
+              // THE "BIG RECTANGLE" LOGIC:
+              // Uses scale(1) when selected because we manually set a huge width/height below
+              transform: isSelected
+                ? "translate(-50%, -50%) scale(1)"
+                : `scale(${scale})`,
+              width: isSelected ? "min(90vw, 1200px)" : `${CARD_WIDTH}px`,
+              height: isSelected ? "min(50.6vw, 675px)" : `${CARD_HEIGHT}px`,
+              zIndex: isSelected ? 99999 : zIndex,
+              opacity: isSelected ? 1 : (selectedId !== null ? 0.3 : opacity),
+            }}
+            className="transition-all duration-[700ms] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group"
           >
-            <div className="w-[200px] h-[100px] rounded-2xl overflow-hidden flex items-center justify-center bg-black shadow-lg">
-              <img
-                src={card.thumbnail}
-                alt="youtube thumbnail"
-                className="w-full h-full object-cover pointer-events-none"
-              />
+            <div className="relative w-full h-full rounded-[24px] overflow-hidden bg-black shadow-2xl border border-white/10 group-hover:border-white/30">
+
+              {isSelected ? (
+                <div className="w-full h-full relative">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${card.videoId}?autoplay=1&modestbranding=1&rel=0`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                  
+                  {/* Premium Spaced Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(`https://www.youtube.com/watch?v=${card.videoId}`, "_blank");
+                    }}
+                    className="absolute bottom-6 right-6 flex items-center gap-3 bg-black/60 hover:bg-red-600 backdrop-blur-xl text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all border border-white/20 shadow-2xl z-50 uppercase tracking-widest"
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    Watch on YouTube
+                  </button>
+                </div>
+              ) : (
+                <div className="relative w-full h-full">
+                  <img
+                    src={card.thumbnail}
+                    alt="thumbnail"
+                    className="w-full h-full object-cover pointer-events-none transition-transform duration-700 group-hover:scale-110"
+                  />
+                  
+                  {/* Central Play Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
+                    <div className="bg-red-600 w-12 h-8 rounded-lg flex items-center justify-center shadow-2xl">
+                      <div className="w-0 h-0 border-y-[6px] border-y-transparent border-l-[10px] border-l-white ml-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         );

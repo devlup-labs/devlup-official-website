@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "9",
+    "blog_title": "Start Journey",
+    "blog_subtitle": "Explore the world",
+    "blog_tags": ["travel", "world"],
+    "blog_thumbnail": "https://picsum.photos/800/300?1",
+    "blog_author": "Karan Singh",
+    "blog_date": "18 FEB, 2024",
+    "blog_url": "https://example.com/blog-9"
+  }
+}

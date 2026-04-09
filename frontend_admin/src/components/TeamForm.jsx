@@ -23,17 +23,38 @@ const TeamForm = ({ token, initialData, onSuccess, onCancel }) => {
 
   const isEdit = !!initialData;
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        ...initialData.member,
-        ...initialData.hidden,
-        member_hidden_comments: initialData.hidden?.member_hidden_comments?.join(', ') || '',
-        member_hidden_contributions: initialData.hidden?.member_hidden_contributions || []
-      });
-    }
-  }, [initialData]);
 
+useEffect(() => {
+  if (!initialData) return;
+
+  console.log("INITIAL DATA:", initialData);
+
+  // ✅ DIRECT OBJECT (your real case)
+  const member = initialData;
+  const hidden = initialData.hidden || {};
+
+  setFormData({
+    member_id: member.member_id || '',
+    member_name: member.member_name || '',
+    member_image: member.member_image || '',
+    member_roll_number: member.member_roll_number || '',
+    member_designation: member.member_designation || '',
+    member_tag: member.member_tag || '',
+    member_about: member.member_about || '',
+    member_github_id: member.member_github_id || '',
+    member_linkedin: member.member_linkedin || '',
+    member_email: member.member_email || '',
+
+    member_hidden_code: hidden.member_hidden_code || '',
+    member_hidden_avatar: hidden.member_hidden_avatar || '',
+    member_hidden_quote: hidden.member_hidden_quote || '',
+    member_hidden_comments: hidden.member_hidden_comments
+      ? hidden.member_hidden_comments.join(', ')
+      : '',
+    member_hidden_contributions: hidden.member_hidden_contributions || []
+  });
+
+}, [initialData]);
   // 🔹 Add Contribution
   const addContribution = () => {
     setFormData({
@@ -56,49 +77,58 @@ const TeamForm = ({ token, initialData, onSuccess, onCancel }) => {
     setFormData({ ...formData, member_hidden_contributions: updated });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const payload = {
-      member: {
-        member_id: formData.member_id,
-        member_name: formData.member_name,
-        member_image: formData.member_image,
-        member_roll_number: formData.member_roll_number,
-        member_designation: formData.member_designation,
-        member_tag: formData.member_tag,
-        member_about: formData.member_about,
-        member_github_id: formData.member_github_id,
-        member_linkedin: formData.member_linkedin,
-        member_email: formData.member_email
-      },
-      hidden: formData.member_hidden_code ? {
-        member_hidden_code: formData.member_hidden_code,
-        member_hidden_avatar: formData.member_hidden_avatar,
-        member_hidden_quote: formData.member_hidden_quote,
-        member_hidden_comments: formData.member_hidden_comments
-          .split(',')
-          .map(c => c.trim())
-          .filter(c => c !== ''),
-        member_hidden_contributions: formData.member_hidden_contributions
-      } : null
-    };
-
-    try {
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
-      if (isEdit) {
-        await axios.put(`/api/team/${formData.member_id}`, payload, config);
-      } else {
-        await axios.post('/api/team', payload, config);
-      }
-
-      onSuccess();
-    } catch (err) {
-      console.error(err);
-      alert("Error saving member");
-    }
+  const payload = {
+    member: {
+      member_id: formData.member_id,
+      member_name: formData.member_name,
+      member_image: formData.member_image,
+      member_roll_number: formData.member_roll_number,
+      member_designation: formData.member_designation,
+      member_tag: formData.member_tag,
+      member_about: formData.member_about,
+      member_github_id: formData.member_github_id,
+      member_linkedin: formData.member_linkedin,
+      member_email: formData.member_email
+    },
+    hidden: formData.member_hidden_code ? {
+      member_hidden_code: formData.member_hidden_code,
+      member_hidden_avatar: formData.member_hidden_avatar,
+      member_hidden_quote: formData.member_hidden_quote,
+      member_hidden_comments: formData.member_hidden_comments
+        .split(',')
+        .map(c => c.trim())
+        .filter(c => c !== ''),
+      member_hidden_contributions: formData.member_hidden_contributions
+    } : null
   };
+
+  try {
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
+  if (isEdit) {
+  const memberId = initialData?.member_id;
+
+  if (!memberId) {
+    alert("Member ID missing!");
+    return;
+  }
+
+  await axios.put(
+    `/api/team/${memberId}`,  //  correct backend + ID
+    payload.member,   // send ONLY member (see note below)
+    config
+  );
+}
+
+    onSuccess(); // correctly inside try
+  } catch (err) {
+    console.error(err);
+    alert("Error saving member");
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto">
@@ -106,27 +136,27 @@ const TeamForm = ({ token, initialData, onSuccess, onCancel }) => {
       {/* -------- PUBLIC DATA -------- */}
       <h3 className="font-bold text-lg">Public Info</h3>
 
-      <input disabled={isEdit} placeholder="Member ID"
+      <input required disabled={isEdit} placeholder="Member ID"
         value={formData.member_id}
         onChange={(e)=>setFormData({...formData, member_id:e.target.value})}
         className="input" />
 
-      <input placeholder="Name"
+      <input required placeholder="Name"
         value={formData.member_name}
         onChange={(e)=>setFormData({...formData, member_name:e.target.value})}
         className="input" />
 
-      <input placeholder="Image URL"
+      <input  placeholder="Image URL"
         value={formData.member_image}
         onChange={(e)=>setFormData({...formData, member_image:e.target.value})}
         className="input" />
 
-      <input placeholder="Roll Number"
+      <input required placeholder="Roll Number"
         value={formData.member_roll_number}
         onChange={(e)=>setFormData({...formData, member_roll_number:e.target.value})}
         className="input" />
 
-      <input placeholder="Designation"
+      <input required placeholder="Designation"
         value={formData.member_designation}
         onChange={(e)=>setFormData({...formData, member_designation:e.target.value})}
         className="input" />

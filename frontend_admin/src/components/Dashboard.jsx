@@ -73,7 +73,7 @@ const Dashboard = ({ token, setToken }) => {
 
   // --- API LOGIC ---
   const fetchData = useCallback(async () => {
-    // ✅ IMPORTANT FIX: skip home (no API)
+    //  IMPORTANT FIX: skip home (no API)
     if (activeTab === 'dashboard' || activeTab === 'home') return;
 
     try {
@@ -83,12 +83,13 @@ const Dashboard = ({ token, setToken }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // ✅ timeline fix
-      if (activeTab === 'timeline') {
-        setItems(response.data.events || []);
-      } else {
-        setItems(response.data.data || []);
-      }
+      //  timeline fix
+      // if (activeTab === 'timeline') {
+      //   setItems(response.data.data || []);
+      // }
+        // ✅ FIX: handle all tabs
+    setItems(response.data.data || response.data || []);
+
 
     } catch (err) {
       console.error("Fetch error:", err);
@@ -120,7 +121,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       podcast: results[1].data.data?.length || 0,
       video: results[2].data.data?.length || 0,
       blog: results[3].data.data?.length || 0,
-      timeline: results[4].data.events?.length || 0
+      timeline: results[4].data.data?.length || 0
     };
 
     setCounts(newCounts);
@@ -156,6 +157,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
   };
 
   const handleEdit = (item) => {
+  
     setEditingItem(item);
     setShowModal(true);
   };
@@ -334,6 +336,8 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
                       <th className="p-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
+
+                  
 
                   <tbody className="divide-y divide-slate-100">
                     {filteredItems.map((item) => (

@@ -36,7 +36,7 @@ const Login = ({ setToken }) => {
           onChange={(e) => setPassword(e.target.value)} 
         />
         <button className="w-full bg-blue-600 p-3 rounded-lg font-bold hover:bg-blue-500 transition-all">
-          Secure Login
+           Login
         </button>
       </form>
     </div>

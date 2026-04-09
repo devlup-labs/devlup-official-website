@@ -34,7 +34,7 @@ const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
     });
   };
 
-  // ✏️ Update photo
+  //  Update photo
   const updatePhoto = (index, value) => {
     const updated = [...formData.event_photos];
     updated[index] = value;
@@ -53,9 +53,9 @@ const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       if (isEdit) {
-        await axios.put(`/api/timelines/${formData.event_id}`, payload, config);
+        await axios.put(`/api/timeline/${formData.event_id}`, payload, config);
       } else {
-        await axios.post('/api/timelines', payload, config);
+        await axios.post('/api/timeline', payload, config);
       }
 
       onSuccess();
@@ -104,8 +104,10 @@ const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
         </button>
       </div>
 
-      <button className="btn-primary">{isEdit ? "Update" : "Add"} Event</button>
-      <button type="button" onClick={onCancel}>Cancel</button>
+      <button className="bg-blue-600 text-white px-4 py-2 rounded mr-2">{isEdit ? "Update" : "Add"} Event</button>
+      <button type="button" onClick={onCancel} className="bg-slate-300 text-slate-700 px-4 py-2 rounded ml-2">
+        Cancel
+      </button>
     </form>
   );
 };

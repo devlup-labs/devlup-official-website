@@ -7,6 +7,7 @@ from routes.devlup import podcasts
 from routes.devlup import team
 from routes.devlup import timeline
 from routes.devlup import auth, admin
+from routes.devlup import comments
 from fastapi.middleware.cors import CORSMiddleware
 
 #  Force load .env from correct path
@@ -38,3 +39,4 @@ app.include_router(videos.router)
 app.include_router(podcasts.router)
 app.include_router(team.router)
 app.include_router(timeline.router)
+app.include_router(comments.router) 

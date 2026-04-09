@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "3",
+    "blog_title": "Ship Products",
+    "blog_subtitle": "From idea to production",
+    "blog_tags": ["startup", "build"],
+    "blog_thumbnail": "https://picsum.photos/800/300?4",
+    "blog_author": "John",
+    "blog_date": "28 FEB, 2024",
+    "blog_url": "https://example.com/blog-3"
+  }
+}

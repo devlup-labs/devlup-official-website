@@ -1,0 +1,12 @@
+{
+  "blog": {
+    "blog_id": "6",
+    "blog_title": "Deploy Fast",
+    "blog_subtitle": "CI/CD workflows",
+    "blog_tags": ["cloud", "deploy"],
+    "blog_thumbnail": "https://picsum.photos/800/300?8",
+    "blog_author": "Harry",
+    "blog_date": "8 MAR, 2024",
+    "blog_url": "https://example.com/blog-6"
+  }
+}

@@ -5,16 +5,26 @@ from models.devlup.team_models import Member, MemberHidden
 router = APIRouter(prefix="/team", tags=["Team"])
 
 
+
 # CREATE member
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_member(member: Member):
+
+    #  Validate FIRST
+    if not member.member_id:
+        raise HTTPException(status_code=400, detail="Member ID required")
+
+    # Then insert
     db.team.insert_one(member.model_dump())
+    # OR auto-generate:-
+    # member.member_id = str(uuid.uuid4())
+
 
     return {
         "success": True,
         "message": "Member created"
     }
-
 
 # GET all members (public only)
 @router.get("/")
@@ -43,7 +53,7 @@ def get_member(member_id: str):
     }
 
 
-# 🔥 GET member WITH hidden data (special route)
+#  GET member WITH hidden data (special route)
 @router.get("/{member_id}/{code}")
 def get_member_with_hidden(member_id: str, code: str):
     member = db.team.find_one({"member_id": member_id}, {"_id": 0})
@@ -56,19 +66,16 @@ def get_member_with_hidden(member_id: str, code: str):
     if not hidden or hidden.get("member_hidden_code") != code:
         return {
             "success": True,
-            "data": {
                 "member": member,
                 "hidden": None
-            },
+            ,
             "message": "Invalid code, hidden data not accessible"
         }
 
     return {
         "success": True,
-        "data": {
             "member": member,
-            "hidden": hidden
-        },
+            "hidden": hidden,
         "message": "Member full data fetched"
     }
 
@@ -90,6 +97,19 @@ def update_member(member_id: str, member: Member):
     }
 
 
+@router.delete("/cleanup-empty")
+def cleanup_empty():
+    result = db.team.delete_many({
+        "$or": [
+            {"member_id": ""},
+            {"member_id": {"$exists": False}}
+        ]
+    })
+
+    return {
+        "deleted": result.deleted_count
+    }
+
 # DELETE member
 @router.delete("/{member_id}")
 def delete_member(member_id: str):
@@ -105,7 +125,8 @@ def delete_member(member_id: str):
     }
 
 
-# 🔥 CREATE / UPDATE hidden data
+
+#  CREATE / UPDATE hidden data
 @router.post("/hidden/{member_id}")
 def create_hidden(member_id: str, hidden: MemberHidden):
     db.team_hidden.update_one(

@@ -3,17 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
+import { getTeam } from "../api/services"; 
 
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
   const showProfileUI = isActive && focusProgress > 0.8;
- const handleViewProfile = (e) => {
-    e.stopPropagation();
-   const nameSlug = tile.name.trim().split(' ')[0].toLowerCase();
-    navigate(`/${nameSlug}`);
-  };
+const handleViewProfile = (e) => {
+  e.stopPropagation();
+  navigate(`/portfolio/${tile.memberId}`); // use member_id
+};
 
   return (
     <div
@@ -33,7 +33,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
       >
         {/* THE SMOOTH BAND IMAGE (Always fast) */}
         <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-        <img src={tile.profileImage} alt="" className="w-full h-full object-cover opacity-60" />
+        <img src={tile.profileImage} alt="" className="w-full h-full object-cover" />
            
         </div>
 
@@ -68,7 +68,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
                   <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.tag}</span>
                   <p className="text-[11px] leading-tight mt-1 line-clamp-3 px-4">{tile.bio}</p>
                 </div>
-                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-blue-500 text-white text-[10px] font-bold rounded-full hover:bg-blue-600 transition-all">
+                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-[var(--bg-muted)] text-white text-[10px] font-bold rounded-full hover:bg-[var(--bg-muted)] transition-all">
                   VIEW PROFILE
                 </button>
   
@@ -93,13 +93,28 @@ function Team() {
   const frameRef = useRef(null); // Fixed the missing ReferenceError
   const touchStartRef = useRef(0);
 
-  useEffect(() => {
-    fetch("/data/priyanshu.json")
-      .then(res => res.json())
-      .then(data => setMembers(Array.isArray(data) ? data : [data]))
-      .catch(err => console.error("Error loading JSON:", err));
-  }, []);
+useEffect(() => {
+  getTeam()
+    .then(res => {
+      const teamData = res.data.data; // ✅ correct path
 
+    const formatted = res.data.data.map(item => ({
+  memberId: item.member_id,
+  name: item.member_name,
+  profileImage: item.member_image,
+  rollNumber: item.member_roll_number,
+  designation: item.member_designation,
+  tag: item.member_tag,
+  bio: item.member_about,
+  github: item.member_github_id, // already full URL ✅
+  linkedin: item.member_linkedin,
+  email: item.member_email
+}));;
+
+      setMembers(formatted);
+    })
+    .catch(err => console.error("API error:", err));
+}, []);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const ROWS = 5;
   const TILE_SIZE = isMobile ? 95 : 110; 
@@ -280,11 +295,12 @@ function Team() {
   }, [rotation, activeTile, focusProgress, isMobile, tilesData]);
 
   return (
-    <section className="relative h-screen [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
+    <section className="relative h-screen bg-[url('/bgweb3.jpeg')] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
       <div 
         className="w-full h-full relative" 
         onClick={() => activeTile && closeCurrent()} 
         style={{ perspective: "1200px" }}
+        
       >
         {tilesData.map((tile) => (
           <Tile

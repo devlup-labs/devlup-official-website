@@ -67,7 +67,7 @@ const VideoForm = ({ token, initialData, onSuccess, onCancel }) => {
 
       <input value={formData.video_tags}
         onChange={(e)=>setFormData({...formData, video_tags:e.target.value})}
-        placeholder="Tags (comma separated)" className="input" />
+        placeholder="Tags" className="input" />
 
       <input value={formData.video_thumbnail}
         onChange={(e)=>setFormData({...formData, video_thumbnail:e.target.value})}

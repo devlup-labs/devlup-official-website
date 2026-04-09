@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from database import db
 from models.devlup.blog_models import Blog, BlogPreview
+import uuid
 
 router = APIRouter(prefix="/blogs", tags=["Blogs"])
 
@@ -8,7 +9,9 @@ router = APIRouter(prefix="/blogs", tags=["Blogs"])
 # CREATE blog
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_blog(blog: Blog):
-    db.blogs.insert_one(blog.model_dump())
+    blog_data = blog.model_dump()
+    blog_data["blog_id"] = str(uuid.uuid4())
+    db.blogs.insert_one(blog_data)
 
     return {
         "success": True,

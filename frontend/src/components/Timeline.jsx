@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CircuitTree from "./Timeline/circuitTree";
 import RoadmapCard from "./Timeline/roadmapCard";
 import CameraRig from "./Timeline/cameraRig";
 import { branches } from "./Timeline/data";
-
+import { getTimeline } from "../api/services"; 
 
 export default function Timeline() {
   const [activeCard, setActiveCard] = useState(null);
@@ -17,6 +17,18 @@ export default function Timeline() {
       [id]: flipped,
     }));
   };
+
+const [timeline, setTimeline] = useState([]);
+
+  useEffect(() => { // backend connection test
+     getTimeline()
+      .then(res => {
+        console.log(res.data);
+        setTimeline(res.data);
+      })
+      .catch(err => console.error(err));
+  }, []);
+
 
   return (
     <div className="relative min-h-[300vh] overflow-hidden pt-64 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]">

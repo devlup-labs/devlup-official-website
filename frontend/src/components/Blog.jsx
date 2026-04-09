@@ -1,107 +1,93 @@
 import { useEffect, useRef, useMemo, useState } from "react";
-import { getBlogs } from "../api/services";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGithub, faLinkedin, faInstagram } from "@fortawesome/free-brands-svg-icons";
+import { useNavigate } from "react-router-dom";
+import { getBlogs } from "../api/services.js";
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
-function Home() {
+function Blog() {
   const [activeCard, setActiveCard] = useState(null);
-const sectionRef = useRef(null);
-const cardRefs = useRef([]);
-const smoothProgress = useRef(0);
-  const CARD_TEXTS = [
-    "Dev","Build","Ship","Scale","Design",
-    "Animate","Deploy","Optimize","Grow","Evolve",
-  ];
+  const sectionRef = useRef(null);
+  const cardRefs = useRef([]);
+  const smoothProgress = useRef(0);
+  const tickingRef = useRef(false);
+  const [blogs, setBlogs] = useState([]);
 
   const layers = useMemo(() => {
-    return Array.from({ length: 10 }).map((_, i) => {
+    return blogs.map((card, i) => {
       const angle = i * GOLDEN_ANGLE;
       const radius = 20 + Math.random() * 30;
 
+      // Ensure tags is always an array
+      let tags = card.blog_tags || [];
+      if (typeof tags === 'string') {
+        tags = tags.split(',').map(t => t.trim()).filter(t => t);
+      }
+
       return {
         id: i,
-        Text: CARD_TEXTS[i],
+        blog_id: card.blog_id,
+        title: card.blog_title,
+        image: card.blog_thumbnail,
+        author: card.blog_author,
+        date: card.blog_date,
+        tags: tags,
+        instagram: "#",
+        github: "#",
+        linkedin: "#",
         rx: Math.cos(angle) * radius,
         ry: Math.sin(angle) * radius,
         baseScale: 0.2,
       };
     });
-  }, []);
+  }, [blogs]);
 
-  const [blogs, setBlogs] = useState([]);
-
-useEffect(() => { // backend connection test
-  getBlogs()
-    .then(res => {
-      console.log(res.data);
-      setBlogs(res.data);
-    })
-    .catch(err => console.error(err));
-}, []);
-
-  /* ================= SMOOTH SCROLL ANIMATION ================= */
+  const navigate = useNavigate();
+  /* ================= OPTIMIZED ANIMATION ================= */
 
   useEffect(() => {
-    let ticking = false;
-
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(updateCards);
-        ticking = true;
-      }
-    };
+    const viewportHeight = window.innerHeight;
 
     const updateCards = () => {
-     const section = sectionRef.current;
-if (!section) return;
+      const section = sectionRef.current;
+      if (!section) return;
 
       const rect = section.getBoundingClientRect();
-if (rect.bottom < 0 || rect.top > window.innerHeight)
-  return;
-      const progress = Math.min(
-        Math.max(-rect.top / rect.height, 0),
-        1
-      );
-     const diff = progress - smoothProgress.current;
+      if (rect.bottom < 0 || rect.top > viewportHeight) return;
 
-smoothProgress.current += diff * (
-  Math.abs(diff) > 0.2 ? 0.35 : 0.18
-);
-if (progress < 0.001)
-  smoothProgress.current = 0;
+      const progress = Math.min(Math.max(-rect.top / rect.height, 0), 1);
 
-     layers.forEach((layer, i) => {
+      const diff = progress - smoothProgress.current;
+      const easing = Math.abs(diff) > 0.2 ? 0.22 : 0.12;
+      smoothProgress.current += diff * easing;
 
-  const card = cardRefs.current[i];
-  if (!card) return;
+      const hasActive = activeCard !== null;
 
-  // ✅ hide other cards when one is opened
-  if (activeCard !== null) {
-    if (i === activeCard) {
-      card.style.opacity = "1";
-      card.style.pointerEvents = "auto";
-    } else {
-      card.style.opacity = "0";
-      card.style.pointerEvents = "none";
-    }
-    return;
-  }
+      for (let i = 0; i < layers.length; i++) {
+        const layer = layers[i];
+        const card = cardRefs.current[i];
+        if (!card) continue;
 
-  // restore cards when closed
-  card.style.opacity = "1";
-        if (activeCard === i) return;
+        if (hasActive) {
+          if (i === activeCard) {
+            card.style.opacity = "1";
+            card.style.pointerEvents = "auto";
+          } else {
+            card.style.opacity = "0";
+            card.style.pointerEvents = "none";
+          }
+          continue;
+        }
 
-        
+        card.style.opacity = "1";
 
         const depth = i / layers.length;
         const windowSize = 0.18;
-        const localProgress =
-  (smoothProgress.current - depth) / windowSize;
+        const localProgress = (smoothProgress.current - depth) / windowSize;
         const clamped = Math.min(localProgress, 1);
 
-        const scale =
-          layer.baseScale + clamped * 1.8;
+        const scale = layer.baseScale + clamped * 1.8;
 
         let x = layer.rx * clamped;
         let y = layer.ry * clamped;
@@ -112,90 +98,150 @@ if (progress < 0.001)
           y += layer.ry * exit * 3;
         }
 
-        /* -------- BLUR -------- */
-       let blur = 0;
+        let blur = 0;
+        if (localProgress < 0.25) {
+          blur = Math.min(Math.round((0.25 - localProgress) * 6), 4);
+        }
 
-if (localProgress < 0.25) {
-  blur = Math.round((0.25 - localProgress) * 6);
-}
-
-        /* -------- CLICK ENABLE THRESHOLD -------- */
         const clickable = blur < 1.5;
 
         const zIndex =
-          (layers.length - i) * 1000 -
-          Math.floor(localProgress * 10);
+          (layers.length - i) * 1000 - Math.floor(localProgress * 10);
 
-     const transformValue =
-`translate(-50%, -50%)
- translate3d(${x}vw, ${y}vh, 0)
- scale(${scale})`;
+        const transformValue = `translate(-50%, -50%) translate3d(${x}vw, ${y}vh, 0) scale(${scale})`;
 
-if (card.dataset.t !== transformValue) {
-  card.style.transform = transformValue;
-  card.dataset.t = transformValue;
-}
+        if (card._t !== transformValue) {
+          card.style.transform = transformValue;
+          card._t = transformValue;
+        }
 
-const prevBlur = card.dataset.blur;
+        if (card._b !== blur) {
+          card.style.filter = `blur(${blur}px)`;
+          card._b = blur;
+        }
 
-if (prevBlur != blur) {
-  card.style.filter = `blur(${blur}px)`;
-  card.dataset.blur = blur;
-}
-card.style.zIndex = zIndex;
-card.style.pointerEvents =
-  clickable ? "auto" : "none";
+        card.style.zIndex = zIndex;
+        card.style.pointerEvents = clickable ? "auto" : "none";
+      }
 
-        // disable clicking when far
-
-      });
-
-      ticking = false;
+      tickingRef.current = false;
     };
 
-    window.addEventListener("scroll", onScroll,{
-      passive: true,
-    });
+    const onScroll = () => {
+      if (!tickingRef.current) {
+        requestAnimationFrame(updateCards);
+        tickingRef.current = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
     requestAnimationFrame(updateCards);
 
     return () => window.removeEventListener("scroll", onScroll);
   }, [layers, activeCard]);
 
-  /* ================= ESC CLOSE ================= */
-
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") setActiveCard(null);
     };
-
     window.addEventListener("keydown", handleEsc);
-    return () =>
-      window.removeEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, []);
+  useEffect(() => {
+    console.log("🚀 Starting to fetch blogs from admin panel...");
+    console.log("API baseURL check:", window.location.href);
+
+    getBlogs()
+      .then((res) => {
+        console.log("📨 Full response object:", res);
+        console.log("Response status:", res.status);
+        console.log("Response headers:", res.headers);
+        console.log("Response data:", res.data);
+        console.log("Response data.data:", res.data?.data);
+
+        // Get blog data from API - try multiple paths
+        let blogData = res.data?.data;
+
+        if (!blogData) {
+          console.warn("⚠️ data.data not found, trying data");
+          blogData = res.data;
+        }
+
+        if (!Array.isArray(blogData)) {
+          console.error("❌ blogData is not an array:", typeof blogData, blogData);
+          blogData = [];
+        }
+
+        console.log("Final blogData to set:", blogData);
+        console.log("Number of blogs:", blogData.length);
+
+        if (blogData.length > 0) {
+          console.log("✅ Successfully loaded", blogData.length, "blogs from admin panel");
+          setBlogs(blogData);
+        } else {
+          console.warn("⚠️ No blogs in admin panel (empty array)");
+          setBlogs([]);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ ERROR FETCHING BLOGS:", err);
+        console.error("Error type:", err.constructor.name);
+        console.error("Error message:", err.message);
+        console.error("Error request config:", err.config);
+        console.error("Error response status:", err.response?.status);
+        console.error("Error response statusText:", err.response?.statusText);
+        console.error("Error response data:", err.response?.data);
+        console.error("Error code:", err.code);
+        setBlogs([]);
+      });
   }, []);
 
-  /* ================= JSX ================= */
+  // Log whenever blogs state changes
+  useEffect(() => {
+    console.log("Blogs state updated:", blogs);
+    console.log("Number of blogs:", blogs.length);
+    console.log("Layers will have:", blogs.length, "items");
+  }, [blogs]);
+
+  // Log whenever layers is updated
+  useEffect(() => {
+    console.log("Layers computed:", layers);
+    console.log("Number of layers:", layers.length);
+  }, [layers]);
+  /* ================= UI ================= */
+
+  // Calculate dynamic height based on number of layers
+  const sectionHeight = layers.length === 0 ? "100vh" : `${Math.max(400, layers.length * 200)}vh`;
 
   return (
     <section
-      id="tunnel-section"
-       ref={sectionRef}
-      className="relative h-[2000vh] [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)] text-[var(--text-primary)]"
+      ref={sectionRef}
+      style={{ height: sectionHeight }}
+      className="relative bg-[var(--bg-main-gradient)] font-body"
     >
       <div className="sticky top-0 h-screen overflow-hidden">
 
-        <div className="absolute inset-0 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]" />
+        {/* Debug info - shows if no cards are rendering */}
+        {layers.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
+            <div className="text-white text-center">
+              <p className="text-2xl font-bold mb-4">Loading blogs...</p>
+              <p className="text-sm opacity-75">Blogs: {blogs.length} | Layers: {layers.length}</p>
+            </div>
+          </div>
+        )}
 
         {activeCard !== null && (
           <div
             onClick={() => setActiveCard(null)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm z-[9000]"
+            className="absolute inset-0 bg-black/50 backdrop-blur-md z-[9000]"
           />
         )}
 
         {layers.map((layer, i) => (
           <div
             key={i}
-           ref={(el) => (cardRefs.current[i] = el)}
+            ref={(el) => (cardRefs.current[i] = el)}
             onClick={(e) => {
               e.stopPropagation();
               setActiveCard(i);
@@ -203,28 +249,123 @@ card.style.pointerEvents =
             style={
               activeCard === i
                 ? {
-                    transform:
-                      "translate(-50%, -50%) scale(2)",
-                    zIndex: 9999,
-                    filter: "blur(0px)",
-                  }
+                  transform: "translate(-50%, -50%) scale(2)",
+                  zIndex: 9999,
+                  filter: "blur(0px)",
+                  transition:
+                    "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
+                }
                 : {}
             }
-          className="
-absolute left-1/2 top-1/2
-w-56 h-72
-rounded-2xl
-bg-[var(--bg-surface)]
-backdrop-blur-sm
-border border-[var(--border-subtle)]
-flex items-center justify-center
-text-[var(--text-primary)]
-text-xl font-semibold
-cursor-pointer
-will-change-transform
-"
+            className="absolute left-1/2 top-1/2 w-56 h-72 rounded-2xl overflow-hidden bg-[var(--bg-blog_card)] text-white border border-white/10 shadow-xl cursor-pointer will-change-transform"
           >
-            {layer.Text}
+
+            {activeCard !== i ? (
+              <div className="w-full h-full flex flex-col">
+
+                {/* 🔷 TOP IMAGE (SMALLER) */}
+                <div className="h-[25%] overflow-hidden">
+                  <img src={layer.image} className="w-full h-full object-cover" alt={layer.title} />
+                </div>
+
+                {/* 🔻 TEXT AREA (BIGGER) */}
+                <div className="h-[50%] flex flex-col items-center justify-center bg-[var(--bg-blog_card)] border-y border-white/10 px-3">
+
+                  <p className="font-heading text-base font-bold text-center line-clamp-2 mb-2">
+                    {layer.title}
+                  </p>
+
+                  <p className="text-xs opacity-70 text-center">
+                    {layer.author}
+                  </p>
+
+                </div>
+
+                {/* 🔷 BOTTOM IMAGE (SMALLER) */}
+                <div className="h-[25%] overflow-hidden">
+                  <img
+                    src={layer.image}
+                    className="w-full h-full object-cover"
+                    style={{ transform: "scaleY(-1)" }}
+                    alt={layer.title}
+                  />
+                </div>
+
+              </div>
+            ) : (
+              <div className="w-full h-full flex flex-col">
+
+                <div className="relative h-20">
+                  <img src={layer.image} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40" />
+                  <div className="absolute right-2 top-2 text-[10px] font-bold uppercase">
+                    {layer.location}
+                  </div>
+                </div>
+
+                <div className="p-3 flex flex-col h-full">
+
+                  {/* CONTENT */}
+                  <div className="flex flex-col gap-2">
+
+                    <h2 className="text-sm font-extrabold font-heading leading-tight">
+                      {layer.title}
+                    </h2>
+
+                    {/* BLOG ID
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] rounded-full">
+                      #{i + 1}
+                    </span>
+                  </div> */}
+
+                    <div className="flex gap-2 text-[10px] opacity-80">
+                      {layer.tags.map((t, idx) => (
+                        <span key={idx}>{t}</span>
+                      ))}
+                    </div>
+
+                    <p className="text-[10px] opacity-60">{layer.date}</p>
+
+                    <div>
+                      <p className="text-[10px] opacity-50 uppercase">
+                        Published by:
+                      </p>
+                      <p className="text-xs font-semibold">{layer.author}</p>
+                    </div>
+
+                    <div className="flex gap-4 mt-2 text-sm opacity-80">
+                      <a href={layer.instagram} target="_blank" rel="noreferrer">
+                        <FontAwesomeIcon icon={faInstagram} />
+                      </a>
+                      <a href={layer.github} target="_blank" rel="noreferrer">
+                        <FontAwesomeIcon icon={faGithub} />
+                      </a>
+                      <a href={layer.linkedin} target="_blank" rel="noreferrer">
+                        <FontAwesomeIcon icon={faLinkedin} />
+                      </a>
+                    </div>
+
+                  </div>
+
+                  {/* 🔥 VIEW BUTTON (NEW) */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // 🔥 prevents animation break
+                      navigate(`/blogs/${layer.blog_id}`);
+                    }}
+                    className="mt-auto w-full py-1.5 text-[11px] rounded-full border border-white/20 
+             hover:bg-white/10 transition-all duration-300"
+                  >
+                    View
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
           </div>
         ))}
       </div>
@@ -232,4 +373,4 @@ will-change-transform
   );
 }
 
-export default Home;
+export default Blog;

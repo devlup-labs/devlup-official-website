@@ -19,6 +19,20 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
 
   useEffect(() => {
     if (initialData) {
+      // Ensure blog_tags is properly converted to string
+      let tagsString = '';
+      if (initialData.blog_tags) {
+        if (Array.isArray(initialData.blog_tags)) {
+          // Convert array to comma-separated string, handling both strings and objects
+          tagsString = initialData.blog_tags
+            .map(tag => typeof tag === 'string' ? tag : '')
+            .filter(tag => tag !== '')
+            .join(', ');
+        } else if (typeof initialData.blog_tags === 'string') {
+          tagsString = initialData.blog_tags;
+        }
+      }
+
       setFormData({
         blog_id: initialData.blog_id || '',
         blog_title: initialData.blog_title || '',
@@ -28,9 +42,8 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
         blog_date: initialData.blog_date || new Date().toISOString().split('T')[0],
         blog_content: initialData.blog_content || '',
         blog_url: initialData.blog_url || '',
-        blog_tags: Array.isArray(initialData.blog_tags)
-          ? initialData.blog_tags.join(', ')
-          : (initialData.blog_tags || '')
+        blog_tags: tagsString,
+        blog_type: initialData.blog_type || 'internal'
       });
     }
   }, [initialData]);
@@ -52,15 +65,18 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       };
 
       if (isEdit) {
-        await axios.put(`/api/blogs/${formData.blog_id}`, payload, config);
+        await axios.put(`/api/blogs/${formData.blog_id}/`, payload, config);
       } else {
-        await axios.post('/api/blogs', payload, config);
+        await axios.post('/api/blogs/', payload, config);
       }
 
       onSuccess();
     } catch (err) {
-      console.error("Backend Error:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Error saving blog.");
+      console.error("Full error:", err);
+      console.error("Response data:", err.response?.data);
+      console.error("Status:", err.response?.status);
+      console.error("Message:", err.message);
+      alert(`Error: ${err.response?.data?.detail || err.response?.data?.message || err.message || "Error saving blog."}`);
     }
   };
 
@@ -131,14 +147,28 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
         </div>
 
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tags</label>
-          <input
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type</label>
+          <select
             className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
-            value={formData.blog_tags}
-            onChange={(e) => setFormData({ ...formData, blog_tags: e.target.value })}
-            placeholder="AI, Tech"
-          />
+            value={formData.blog_type}
+            onChange={(e) => setFormData({ ...formData, blog_type: e.target.value })}
+            required
+          >
+            <option value="internal">Internal</option>
+            <option value="external">External</option>
+          </select>
         </div>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tags</label>
+        <input
+          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+          value={formData.blog_tags}
+          onChange={(e) => setFormData({ ...formData, blog_tags: e.target.value })}
+          placeholder="AI, Tech, etc."
+        />
       </div>
 
       {/* Thumbnail */}

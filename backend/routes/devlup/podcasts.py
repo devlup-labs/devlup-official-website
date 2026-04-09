@@ -18,7 +18,8 @@ def create_podcast(podcast: Podcast):
 @router.get("/")
 def get_podcasts():
     # Convert cursor to list and exclude internal MongoDB _id
-    podcasts = list(db.podcasts.find({}, {"_id": 0, "podcast_url": 0}))
+  #  REMOVE podcast_url from exclusion
+    podcasts = list(db.podcasts.find({}, {"_id": 0}))
     return {
         "success": True,
         "data": podcasts,

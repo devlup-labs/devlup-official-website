@@ -1,8 +1,11 @@
 import React, { useRef, useMemo, useState, useCallback, useEffect, Suspense } from "react";
+import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, ScrollControls, Scroll, useScroll, OrbitControls, Html, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
+import Header from "./Header.jsx";
+import Footer from "./Footer.jsx";
 
 /* ==================== DISC COMPONENTS ==================== */
 
@@ -1180,41 +1183,52 @@ const ProfileCard = () => {
   );
 };
 
-export function SciFiHUD() {
-  const [showWhiteout, setShowWhiteout] = useState(true);
-
-  useEffect(() => {
-    // Remove the old transition overlay left behind by the previous page
-    const oldOverlay = document.querySelector('.page-transition-overlay');
-    if (oldOverlay) {
-      oldOverlay.remove();
-    }
-  }, []);
-
+export function SciFiHUD({ onClose }) {
   return (
-    <div className="w-screen h-screen bg-[#02050A]">
-      {showWhiteout && <div className="whiteout-fade" onAnimationEnd={() => setShowWhiteout(false)} />}
-      <HUDStyles />
-      <button className="hud-back-button" onClick={() => window.history.back()}>
-        Back
-      </button>
-      <Canvas
-        dpr={[1, 1.2]}
-        gl={{ antialias: false, powerPreference: "high-performance" }}
-        performance={{ min: 0.35 }}
-      >
-        <PerspectiveCamera makeDefault position={[0, 0, 24]} fov={40} />
-        <color attach="background" args={["#02050A"]} />
+    <div className="flex flex-col w-screen min-h-screen bg-[#02050A]">
+      <Header />
+      
+      <div className="flex-1 flex items-center justify-center overflow-auto p-8 bg-[#02050A]">
+        <HUDStyles />
         
-        <ambientLight intensity={1.5} />
-        <spotLight position={[5, 10, 5]} angle={0.3} penumbra={1} intensity={10} color="#00E5FF" />
-        <spotLight position={[-5, 5, -5]} angle={0.5} penumbra={1} intensity={8} color="#FF00A0" />
-        <Environment preset="city" frames={1} />
+        <button className="hud-back-button" onClick={onClose || (() => window.history.back())}>
+          Back
+        </button>
+        
+        <div className="holo-card-shell">
+          <div className="holo-border-glow" />
+          <div className="holo-corner tl" style={{ top: 0, left: 0 }} />
+          <div className="holo-corner tr" style={{ top: 0, right: 0, borderRight: '3px solid rgba(224, 237, 255, 0.75)', borderBottom: 'none', borderLeft: 'none', borderRadius: '0 10px 0 0' }} />
+          <div className="holo-corner bl" style={{ bottom: 0, left: 0, borderBottom: '3px solid rgba(224, 237, 255, 0.75)', borderRight: 'none', borderTop: 'none', borderRadius: '0 0 0 10px' }} />
+          <div className="holo-corner br" style={{ bottom: 0, right: 0, borderBottom: '3px solid rgba(224, 237, 255, 0.75)', borderLeft: '3px solid rgba(224, 237, 255, 0.75)', borderTop: 'none', borderRadius: '0 0 10px 0' }} />
 
-        <fog attach="fog" args={['#02050A', 18, 80]} />
+          <div className="typewriter-title-container">
+            <h2 className="typewriter-title">About Us</h2>
+          </div>
 
-        <ProfileCard />
-      </Canvas>
+          <div className="holo-avatar-ring">
+            <div className="devlup-labs-watermark">DevlUp Labs</div>
+          </div>
+          <div className="holo-avatar" />
+
+          <div className="about-us-content">
+            <p>
+              We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
+            </p>
+            <p>
+              Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities—one that reacts, illuminates, and adapts to the contours of virtual environments.
+            </p>
+            <p>
+              Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
+            </p>
+          </div>
+
+          <div className="holo-chip" />
+          <div className="holo-noise" />
+        </div>
+      </div>
+      
+      <Footer />
     </div>
   );
 }
@@ -1332,14 +1346,38 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 isFocused={focusedIndex === i}
                 isLightOn={true}
                 allowHoverScale={focusedIndex === null}
-                onClick={(e) => { e.stopPropagation(); if (discClickedRef) discClickedRef.current = true; setFocusedIndex(i); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (discClickedRef) discClickedRef.current = true; 
+                  if (focusedIndex === i && i !== 0) {
+                    // Second click - navigate
+                    const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
+                    navigate(routeMap[i]);
+                    setFocusedIndex(null);
+                  } else {
+                    // First click - open panel
+                    setFocusedIndex(i);
+                  }
+                }}
               />
               <group
                 position={disc.position}
                 name={`disc-${i}`}
                 onPointerOver={() => { setHoveredModelIndex(i); document.body.style.cursor = "pointer"; }}
                 onPointerOut={() => { setHoveredModelIndex(null); document.body.style.cursor = "default"; }}
-                onClick={(e) => { e.stopPropagation(); if (discClickedRef) discClickedRef.current = true; setFocusedIndex(i); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  if (discClickedRef) discClickedRef.current = true; 
+                  if (focusedIndex === i && i !== 0) {
+                    // Second click - navigate
+                    const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
+                    navigate(routeMap[i]);
+                    setFocusedIndex(null);
+                  } else {
+                    // First click - open panel
+                    setFocusedIndex(i);
+                  }
+                }}
               >
                 <AnimatedBlock visible={true} popped={hoveredModelIndex === i}>
                   {BLOCK_CONFIGS[i].render()}
@@ -1391,23 +1429,48 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
           `}
         />
       </mesh>
-      <mesh position={[0, 30, -30]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d4d7e4ff" roughness={0.8} metalness={1} /></mesh>
-      <mesh position={[-30, 30, 0]} rotation={[0, Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d6dae8ff" roughness={0.8} metalness={0} /></mesh>
+      <mesh position={[0, 30, -30]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d4d7e4" roughness={0.8} metalness={1} /></mesh>
+      <mesh position={[-30, 30, 0]} rotation={[0, Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d6dae8" roughness={0.8} metalness={0} /></mesh>
       <mesh position={[30, 30, 0]} rotation={[0, -Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#050814" roughness={0.8} metalness={0} /></mesh>
     </>
   );
 }
 
 function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
+  const navigate = useNavigate();
+  
+  // Map section index to routes
+  const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
+  
+  const handleNavigate = () => {
+    if (focusedIndex !== null && focusedIndex !== 0) {
+      navigate(routeMap[focusedIndex]);
+      setFocusedIndex(null);
+    }
+  };
+
   return (
     <AnimatePresence>
       {focusedIndex !== null && (
-        <motion.div ref={sidebarRef} initial={{ x: "100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: "100%", opacity: 0 }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} className="absolute right-0 top-0 h-screen w-full sm:w-[400px] bg-black/60 backdrop-blur-2xl border-l border-[#00E5FF]/30 shadow-[-30px_0_80px_-20px_rgba(0,229,255,0.3)] z-50 flex flex-col pointer-events-none">
+        <motion.div 
+          ref={sidebarRef} 
+          initial={{ x: "100%", opacity: 0 }} 
+          animate={{ x: 0, opacity: 1 }} 
+          exit={{ x: "100%", opacity: 0 }} 
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
+          onClick={handleNavigate}
+          className="absolute right-0 top-0 h-screen w-full sm:w-[400px] bg-black/60 backdrop-blur-2xl border-l border-[#00E5FF]/30 shadow-[-30px_0_80px_-20px_rgba(0,229,255,0.3)] z-50 flex flex-col pointer-events-auto cursor-pointer hover:bg-black/70 transition-all"
+        >
           <div className="flex-1 p-12 flex flex-col pt-28 overflow-y-auto">
             <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#00E5FF] mb-3 tracking-tight">{SECTIONS[focusedIndex].name}</h2>
             <h3 className="text-2xl font-bold text-cyan-300 uppercase tracking-widest mb-10">{SECTIONS[focusedIndex].tagline}</h3>
             <div className="w-16 h-1.5 bg-gradient-to-r from-[#00E5FF] to-blue-500 rounded-full mb-10" />
             <p className="text-slate-300 text-xl leading-relaxed font-light">{SECTIONS[focusedIndex].description}</p>
+            {focusedIndex !== 0 && (
+              <button className="mt-auto px-6 py-2 bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300 rounded-lg transition-all">
+                Go to {SECTIONS[focusedIndex].name}
+              </button>
+            )}
           </div>
         </motion.div>
       )}
@@ -1422,6 +1485,7 @@ export default function Home() {
   const [focusedIndex, setFocusedIndex] = useState(null);
   const [showHologram, setShowHologram] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showSciFiHUD, setShowSciFiHUD] = useState(false);
   const discClickedRef = useRef(false);
   const [showLoader, setShowLoader] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -1455,16 +1519,20 @@ export default function Home() {
 
   return (
     <>
-      {showLoader && <Loader onComplete={handleLoaderComplete} />}
-      <div
-        ref={rootRef}
-        className="relative w-screen h-screen overflow-hidden"
-        style={{
-          opacity: showLoader ? 0 : 1,
-          transform: showLoader ? 'scale(1.03)' : 'scale(1)',
-          transition: 'opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        }}
-      >
+      {showSciFiHUD ? (
+        <SciFiHUD onClose={() => setShowSciFiHUD(false)} />
+      ) : (
+        <>
+          {showLoader && <Loader onComplete={handleLoaderComplete} />}
+          <div
+            ref={rootRef}
+            className="relative w-screen h-screen overflow-hidden"
+            style={{
+              opacity: showLoader ? 0 : 1,
+              transform: showLoader ? 'scale(1.03)' : 'scale(1)',
+              transition: 'opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            }}
+          >
         <div className="absolute inset-0 z-[1]">
         <Canvas 
           dpr={[1, 1.1]} 
@@ -1502,9 +1570,7 @@ export default function Home() {
                   <button onClick={() => {
                     setIsTransitioning(true);
                     setTimeout(() => {
-                      if (aboutUsRef.current) {
-                        aboutUsRef.current.scrollIntoView({ behavior: 'smooth' });
-                      }
+                      setShowSciFiHUD(true);
                       setIsTransitioning(false);
                     }, 3200);
                   }} className="mt-14 px-12 py-5 rounded-full bg-white/10 text-white font-bold tracking-[0.2em] uppercase hover:bg-white/20 transition-all border border-white/30 hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(0,229,255,0.3)] backdrop-blur-md">
@@ -1539,6 +1605,8 @@ export default function Home() {
           <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
         </div>
       </div>
+        </>
+      )}
     </>
   );
 }

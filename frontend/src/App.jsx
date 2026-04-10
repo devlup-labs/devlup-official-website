@@ -61,10 +61,12 @@ function App() {
 
           <Routes>
 
+            {/* Home without Header/Footer */}
+            <Route path="/" element={<Home />} />
+
             {/* ✅ WITH HEADER + FOOTER */}
             <Route element={<><Header /><Outlet /><Footer /></>}>
 
-              <Route path="/" element={<Home />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/team" element={<Team />} />
               <Route path="/timeline" element={<Timeline />} />
@@ -77,7 +79,7 @@ function App() {
             </Route>
 
             {/* ❌ WITHOUT HEADER/FOOTER */}
-          <Route path="/portfolio/:username" element={<Portfolio />} />
+            <Route path="/portfolio/:username" element={<Portfolio />} />
 
           </Routes>
 

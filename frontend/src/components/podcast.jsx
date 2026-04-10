@@ -5,6 +5,7 @@ import { getPodcasts } from "../api/services.js";
 export default function Podcast() {
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState({});
 
   // Declare all states first
   const [activeIndex, setActiveIndex] = useState(0);
@@ -313,7 +314,17 @@ export default function Podcast() {
                   }}
                   className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-xl cursor-pointer"
                 >
-                  <img src={item.img} className="w-full h-full object-cover" />
+                  {!imageLoaded[item.id] && (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    </div>
+                  )}
+                  <img 
+                    src={item.img} 
+                    className="w-full h-full object-cover"
+                    onLoad={() => setImageLoaded(prev => ({...prev, [item.id]: true}))}
+                    onError={() => setImageLoaded(prev => ({...prev, [item.id]: true}))}
+                  />
                 </div>
               ))}
             </div>

@@ -188,25 +188,27 @@ const loadPortfolio = (inputCode) => {
             </div>
 
             {/* COMMENTS */}
-            <div
-              ref={(el) => (cardsRef.current[2] = el)}
-              className="bg-[#121821] rounded-2xl p-5 border border-white/10 overflow-hidden"
-            >
-              <div className="content-wrapper">
+            {reveal && (
+              <div
+                ref={(el) => (cardsRef.current[2] = el)}
+                className="bg-[#121821] rounded-2xl p-5 border border-white/10 overflow-hidden"
+              >
+                <div className="content-wrapper">
 
-                <div className="reveal-slot min-h-[60px]">
-                  <div className="new-content opacity-0 text-sm text-white">
-                    @{info?.name} <br />
-                    {info?.secretData?.hiddencomments}
+                  <div className="reveal-slot min-h-[60px]">
+                    <div className="new-content opacity-0 text-sm text-white">
+                      @{info?.name} <br />
+                      {info?.secretData?.hiddencomments}
+                    </div>
                   </div>
-                </div>
 
-                <div className="old-content text-gray-400 text-sm">
-                  Comments
-                </div>
+                  <div className="old-content text-gray-400 text-sm">
+                    Comments
+                  </div>
 
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
 

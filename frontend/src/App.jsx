@@ -81,7 +81,7 @@ function App() {
 
             </Route>
 
-            {/* ❌ WITHOUT HEADER/FOOTER */}
+            {/*  WITHOUT HEADER/FOOTER */}
             <Route path="/portfolio/:username" element={<Portfolio />} />
 
             {/* Admin Routes - /admin/* goes to AdminApp */}

@@ -9,6 +9,8 @@ const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const showProfileUI = isActive && focusProgress > 0.8;
 const handleViewProfile = (e) => {
   e.stopPropagation();
@@ -33,8 +35,18 @@ const handleViewProfile = (e) => {
       >
         {/* THE SMOOTH BAND IMAGE (Always fast) */}
         <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-        <img src={tile.profileImage} alt="" className="w-full h-full object-cover" />
-           
+          {!imageLoaded && (
+            <div className="w-full h-full flex items-center justify-center bg-gray-700">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            </div>
+          )}
+          <img 
+            src={tile.profileImage} 
+            alt="" 
+            className="w-full h-full object-cover" 
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
+          />
         </div>
 
         {/* THE PROFILE CARD OVERLAY (Matches Image 1) */}
@@ -52,7 +64,18 @@ const handleViewProfile = (e) => {
             {showProfileUI && ( <div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
                 <div className="flex flex-row items-center gap-4 mb-4">
                   <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg">
-                    <img src={tile.profileImage} alt={tile.name} className="w-full h-full object-cover" />
+                    {!profileImageLoaded && (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      </div>
+                    )}
+                    <img 
+                      src={tile.profileImage} 
+                      alt={tile.name} 
+                      className="w-full h-full object-cover" 
+                      onLoad={() => setProfileImageLoaded(true)}
+                      onError={() => setProfileImageLoaded(true)}
+                    />
                   </div>
                   <div className="flex flex-col">
                     <h2 className="text-xl md:text-2xl font-black uppercase leading-tight">{tile.name}</h2>

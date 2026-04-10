@@ -103,6 +103,12 @@
   body {
     overscroll-behavior: none;
   }
+
+  .admin-panel input,
+  .admin-panel textarea,
+  .admin-panel select {
+    caret-color: black;
+  }
 }
 
 @layer utilities {

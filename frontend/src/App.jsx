@@ -14,6 +14,9 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import Portfolio from "./components/Portfolio.jsx";
 
+// Admin imports
+import AdminApp from "./admin/AdminApp.jsx";
+
 export const ThemeContext = createContext();
 
 function App() {
@@ -80,6 +83,9 @@ function App() {
 
             {/* ❌ WITHOUT HEADER/FOOTER */}
             <Route path="/portfolio/:username" element={<Portfolio />} />
+
+            {/* Admin Routes - /admin/* goes to AdminApp */}
+            <Route path="/admin/*" element={<AdminApp />} />
 
           </Routes>
 

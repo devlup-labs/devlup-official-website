@@ -83,10 +83,6 @@ const Dashboard = ({ token, setToken }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      //  timeline fix
-      // if (activeTab === 'timeline') {
-      //   setItems(response.data.data || []);
-      // }
         // ✅ FIX: handle all tabs
     setItems(response.data.data || response.data || []);
 
@@ -134,7 +130,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
 
   useEffect(() => {
   fetchCounts();
-}, [fetchCounts]); // NEW: Fetch counts on load
+}, [fetchCounts]); 
 
   useEffect(() => {
     fetchData();
@@ -150,14 +146,13 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       });
 
       fetchData();
-      fetchCounts(); // Refresh the counts after deletion
+      fetchCounts(); 
     } catch (err) {
       alert("Failed to delete item.");
     }
   };
 
   const handleEdit = (item) => {
-  
     setEditingItem(item);
     setShowModal(true);
   };
@@ -182,7 +177,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
     { id: 'blog', label: 'Blog', icon: <FileText size={20} /> },
     { id: 'timeline', label: 'Timeline', icon: <Clock size={20} /> }
   ];
-//  TAG LIST
+
   const allTags =
     activeTab === 'video' || activeTab === 'blog' || activeTab === 'podcast'
       ? ["all", ...new Set(items.flatMap(item => getTags(item).filter(Boolean)))]
@@ -230,7 +225,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       {/* Sidebar */}
       <div className={`bg-[#0f172a] text-white h-screen sticky top-0 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col border-r border-slate-800`}>
         <div className="p-6 flex items-center justify-between">
-          {isSidebarOpen && <h1 className="font-bold text-xl tracking-tight text-blue-400">DEVLUP</h1>}
+          {isSidebarOpen && <h1 className="font-bold text-xl tracking-tight text-blue-400">DEVLUP ADMIN</h1>}
           <button onClick={() => setSidebarOpen(!isSidebarOpen)} className="hover:bg-slate-800 p-1 rounded text-slate-400">
             <X size={20} className={isSidebarOpen ? "" : "rotate-45"} />
           </button>
@@ -267,7 +262,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
           </h2>
          <div className="flex items-center gap-4">
              <div className="hidden sm:flex bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-sm font-medium items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />WELCOME BACK , ADMIN !
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />WELCOME BACK, ADMIN!
              </div>
              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold ring-4 ring-blue-50">AD</div>
           </div>
@@ -276,13 +271,13 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
         <div className="p-8 max-w-7xl mx-auto">
           {activeTab === 'dashboard' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             <StatCard title="Home Section" count={counts.home} icon={<Home size={24} color="#1d4ed8" />} color="bg-blue-500 text-blue-500" tabId="home" />
-<StatCard title="Team Members" count={counts.team} icon={<Users size={24} color="#16a34a" />} color="bg-green-500 text-green-500" tabId="team" />
-<StatCard title="Podcasts" count={counts.podcast} icon={<Mic2 size={24} color="#7c3aed" />} color="bg-purple-500 text-purple-500" tabId="podcast" />
-<StatCard title="Videos" count={counts.video} icon={<Video size={24} color="#ea580c" />} color="bg-orange-500 text-orange-500" tabId="video" />
-<StatCard title="Blog Posts" count={counts.blog} icon={<FileText size={24} color="#db2777" />} color="bg-pink-500 text-pink-500" tabId="blog" />
-<StatCard title="Timeline Events" count={counts.timeline} icon={<Clock size={24} color="#14b8a6" />} color="bg-teal-500 text-teal-500" tabId="timeline" />
-            </div>
+                     <StatCard title="Home Section" count={counts.home} icon={<Home size={24} color="#1d4ed8" />} color="bg-blue-100 text-blue-500" tabId="home" />
+        <StatCard title="Team Members" count={counts.team} icon={<Users size={24} color="#16a34a" />} color="bg-green-100 text-green-500" tabId="team" />
+        <StatCard title="Podcasts" count={counts.podcast} icon={<Mic2 size={24} color="#7c3aed" />} color="bg-purple-100 text-purple-500" tabId="podcast" />
+        <StatCard title="Videos" count={counts.video} icon={<Video size={24} color="#ea580c" />} color="bg-orange-100 text-orange-500" tabId="video" />
+        <StatCard title="Blog Posts" count={counts.blog} icon={<FileText size={24} color="#db2777" />} color="bg-pink-100 text-pink-500" tabId="blog" />
+        <StatCard title="Timeline Events" count={counts.timeline} icon={<Clock size={24} color="#14b8a6" />} color="bg-teal-100 text-teal-500" tabId="timeline" />
+                    </div>
           ) : (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center">
@@ -336,8 +331,6 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
                       <th className="p-4 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
-
-                  
 
                   <tbody className="divide-y divide-slate-100">
                     {filteredItems.map((item) => (

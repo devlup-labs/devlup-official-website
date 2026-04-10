@@ -29,7 +29,6 @@ useEffect(() => {
 
   console.log("INITIAL DATA:", initialData);
 
-  // ✅ DIRECT OBJECT (your real case)
   const member = initialData;
   const hidden = initialData.hidden || {};
 
@@ -55,7 +54,7 @@ useEffect(() => {
   });
 
 }, [initialData]);
-  // 🔹 Add Contribution
+
   const addContribution = () => {
     setFormData({
       ...formData,
@@ -70,7 +69,6 @@ useEffect(() => {
     });
   };
 
-  // 🔹 Handle Contribution Change
   const handleContributionChange = (index, field, value) => {
     const updated = [...formData.member_hidden_contributions];
     updated[index][field] = value;
@@ -140,52 +138,52 @@ useEffect(() => {
       <input required disabled={isEdit} placeholder="Member ID"
         value={formData.member_id}
         onChange={(e)=>setFormData({...formData, member_id:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input required placeholder="Name"
         value={formData.member_name}
         onChange={(e)=>setFormData({...formData, member_name:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input  placeholder="Image URL"
         value={formData.member_image}
         onChange={(e)=>setFormData({...formData, member_image:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input required placeholder="Roll Number"
         value={formData.member_roll_number}
         onChange={(e)=>setFormData({...formData, member_roll_number:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input required placeholder="Designation"
         value={formData.member_designation}
         onChange={(e)=>setFormData({...formData, member_designation:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="Tag"
         value={formData.member_tag}
         onChange={(e)=>setFormData({...formData, member_tag:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <textarea placeholder="About"
         value={formData.member_about}
         onChange={(e)=>setFormData({...formData, member_about:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="GitHub"
         value={formData.member_github_id}
         onChange={(e)=>setFormData({...formData, member_github_id:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="LinkedIn"
         value={formData.member_linkedin}
         onChange={(e)=>setFormData({...formData, member_linkedin:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="Email"
         value={formData.member_email}
         onChange={(e)=>setFormData({...formData, member_email:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       {/* -------- HIDDEN DATA -------- */}
       <h3 className="font-bold text-lg mt-6">Hidden Info</h3>
@@ -193,22 +191,22 @@ useEffect(() => {
       <input placeholder="Hidden Code"
         value={formData.member_hidden_code}
         onChange={(e)=>setFormData({...formData, member_hidden_code:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="Hidden Avatar"
         value={formData.member_hidden_avatar}
         onChange={(e)=>setFormData({...formData, member_hidden_avatar:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="Hidden Quote"
         value={formData.member_hidden_quote}
         onChange={(e)=>setFormData({...formData, member_hidden_quote:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       <input placeholder="Hidden Comments (comma separated)"
         value={formData.member_hidden_comments}
         onChange={(e)=>setFormData({...formData, member_hidden_comments:e.target.value})}
-        className="input" />
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
       {/* -------- CONTRIBUTIONS -------- */}
       <div>
@@ -219,32 +217,32 @@ useEffect(() => {
             <input placeholder="Contribution ID"
               value={c.contribution_id}
               onChange={(e)=>handleContributionChange(i, 'contribution_id', e.target.value)}
-              className="input" />
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
             <input placeholder="Title"
               value={c.contribution_title}
               onChange={(e)=>handleContributionChange(i, 'contribution_title', e.target.value)}
-              className="input" />
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
             <textarea placeholder="Description"
               value={c.contribution_description}
               onChange={(e)=>handleContributionChange(i, 'contribution_description', e.target.value)}
-              className="input" />
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
           </div>
         ))}
 
-        <button type="button" onClick={addContribution} className="mt-2 text-blue-600">
+        <button type="button" onClick={addContribution} className="mt-2 text-blue-600 font-semibold">
           + Add Contribution
         </button>
       </div>
 
       {/* -------- BUTTONS -------- */}
-      <div className="flex gap-3">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">
+      <div className="flex gap-3 mt-6">
+        <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-2xl font-bold">
           {isEdit ? "Update" : "Add"} Member
         </button>
 
-        <button type="button" onClick={onCancel}>
+        <button type="button" onClick={onCancel} className="px-8 bg-slate-100 hover:bg-slate-200 py-3.5 rounded-2xl font-bold text-slate-600">
           Cancel
         </button>
       </div>

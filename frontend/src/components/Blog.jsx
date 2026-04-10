@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faLinkedin, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { getBlogs } from "../api/services.js";
+import { CiSearch } from "react-icons/ci";
+import { FaTags } from "react-icons/fa";
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
@@ -13,9 +15,29 @@ function Blog() {
   const smoothProgress = useRef(0);
   const tickingRef = useRef(false);
   const [blogs, setBlogs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const layers = useMemo(() => {
-    return blogs.map((card, i) => {
+    // Filter blogs based on search and selected tag
+    let filteredBlogs = blogs.filter((card) => {
+      const titleMatch = card.blog_title?.toLowerCase().includes(searchTerm.toLowerCase());
+      const authorMatch = card.blog_author?.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchMatch = titleMatch || authorMatch;
+
+      let tags = card.blog_tags || [];
+      if (typeof tags === 'string') {
+        tags = tags.split(',').map(t => t.trim()).filter(t => t);
+      }
+
+      const tagMatch = selectedTag === "All" || tags.includes(selectedTag);
+
+      return searchMatch && tagMatch;
+    });
+
+    return filteredBlogs.map((card, i) => {
       const angle = i * GOLDEN_ANGLE;
       const radius = 20 + Math.random() * 30;
 
@@ -41,7 +63,29 @@ function Blog() {
         baseScale: 0.2,
       };
     });
+  }, [blogs, searchTerm, selectedTag]);
+
+  // Extract all unique tags from blogs
+  const allTags = useMemo(() => {
+    const tagSet = new Set(["All"]);
+    blogs.forEach((blog) => {
+      let tags = blog.blog_tags || [];
+      if (typeof tags === 'string') {
+        tags = tags.split(',').map(t => t.trim()).filter(t => t);
+      }
+      tags.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet);
   }, [blogs]);
+
+  const searchInputRef = useRef(null);
+
+  // Auto-focus search input when opened
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
 
   const navigate = useNavigate();
   /* ================= OPTIMIZED ANIMATION ================= */
@@ -214,12 +258,127 @@ function Blog() {
   const sectionHeight = layers.length === 0 ? "100vh" : `${Math.max(400, layers.length * 200)}vh`;
 
   return (
-    <section
-      ref={sectionRef}
-      style={{ height: sectionHeight }}
-      className="relative bg-[var(--bg-main-gradient)] font-body"
-    >
-      <div className="sticky top-0 h-screen overflow-hidden">
+    <>
+      {/* SEARCH AND FILTER CONTROLS - Fixed below header */}
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full bg-[var(--bg-main-gradient)] pointer-events-auto" style={{ top: "50px" }}>
+        {/* SEARCH BAR */}
+        <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className={`
+              flex items-center
+              bg-[var(--bg-muted)]
+              border border-[var(--border-subtle)]
+              rounded-full
+              transition-all duration-500 ease-out
+              pointer-events-auto
+              ${searchOpen
+                ? "w-[300px] h-10 px-4 justify-start"
+                : "w-10 h-10 justify-center"
+              }
+            `}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <CiSearch
+              className="text-white cursor-pointer shrink-0 pointer-events-auto"
+              size={18}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSearchOpen(!searchOpen);
+              }}
+            />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search blogs..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onMouseDown={(e) => e.stopPropagation()}
+              className={`
+                bg-transparent border-none outline-none
+                text-white text-sm
+                transition-all duration-300
+                pointer-events-auto
+                ${searchOpen
+                  ? "w-full ml-3 opacity-100"
+                  : "w-0 opacity-0"
+                }
+              `}
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        {/* FILTER BUTTON */}
+        <div className="pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className={`
+              flex items-center overflow-visible
+              bg-[var(--bg-muted)] backdrop-blur-md border border-white/10
+              transition-all duration-500 ease-in-out
+              pointer-events-auto
+              ${filterOpen ? "pr-3" : ""}
+              rounded-full
+            `}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setFilterOpen(!filterOpen);
+              }}
+              className={`
+                flex items-center justify-center text-white
+                w-10 h-10 md:w-auto md:px-4
+                transition-all duration-300 cursor-pointer
+                pointer-events-auto
+              `}
+            >
+              <FaTags size={16} />
+              <span className={`ml-2 text-xs text-white font-medium hidden md:block transition-opacity duration-300 ${filterOpen ? "opacity-100" : "opacity-100"}`}>
+                Filters
+              </span>
+            </button>
+
+            {/* TAGS */}
+            <div
+              className={`
+                flex items-center gap-2
+                transition-all duration-500 ease-in-out
+                pointer-events-auto
+                ${filterOpen ? "max-w-[800px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
+                overflow-hidden
+              `}
+            >
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTag(tag);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-all pointer-events-auto ${
+                    selectedTag === tag
+                      ? "bg-white/30 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* MAIN SECTION - scrollable content area */}
+      <section
+        ref={sectionRef}
+        style={{ height: sectionHeight }}
+        className="relative bg-[var(--bg-main-gradient)] font-body"
+      >
+
+      <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen overflow-hidden pointer-events-none z-0">
 
         {/* Debug info - shows if no cards are rendering */}
         {layers.length === 0 && (
@@ -234,7 +393,7 @@ function Blog() {
         {activeCard !== null && (
           <div
             onClick={() => setActiveCard(null)}
-            className="absolute inset-0 bg-black/50 backdrop-blur-md z-[9000]"
+            className="absolute inset-0 bg-black/50 backdrop-blur-md z-[9000] pointer-events-auto"
           />
         )}
 
@@ -257,7 +416,7 @@ function Blog() {
                 }
                 : {}
             }
-            className="absolute left-1/2 top-1/2 w-56 h-72 rounded-2xl overflow-hidden bg-[var(--bg-blog_card)] text-white border border-white/10 shadow-xl cursor-pointer will-change-transform"
+            className="absolute left-1/2 top-1/2 w-56 h-72 rounded-2xl overflow-hidden bg-[var(--bg-blog_card)] text-white border border-white/10 shadow-xl cursor-pointer will-change-transform pointer-events-auto"
           >
 
             {activeCard !== i ? (
@@ -369,7 +528,8 @@ function Blog() {
           </div>
         ))}
       </div>
-    </section>
+      </section>
+    </>
   );
 }
 

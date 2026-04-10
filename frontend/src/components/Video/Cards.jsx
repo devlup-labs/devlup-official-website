@@ -63,7 +63,7 @@ export default function Cards() {
   const active = cards.find(c => c.id === activeId);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]" style={{ perspective: "1200px" }}>
+    <div className="relative w-full h-screen overflow-hidden" style={{ perspective: "1200px" }}>
       {selectedId !== null && (
         <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[15000] transition-all duration-500" onClick={() => setSelectedId(null)} />
       )}

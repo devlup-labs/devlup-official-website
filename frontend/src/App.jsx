@@ -26,12 +26,38 @@ function App() {
       "data-theme",
       isDarkMode ? "dark" : "light"
     );
+
+    // Apply background to html and body elements
+    if (isDarkMode) {
+      document.documentElement.style.backgroundImage = "url('/bgweb4.jpeg')";
+      document.documentElement.style.backgroundSize = "cover";
+      document.documentElement.style.backgroundAttachment = "fixed";
+      document.documentElement.style.backgroundPosition = "center";
+      document.body.style.backgroundImage = "url('/bgweb4.jpeg')";
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.backgroundPosition = "center";
+    } else {
+      document.documentElement.style.backgroundImage = "url('/bgweb3.jpeg')";
+      document.documentElement.style.backgroundSize = "cover";
+      document.documentElement.style.backgroundAttachment = "fixed";
+      document.documentElement.style.backgroundPosition = "center";
+      document.body.style.backgroundImage = "url('/bgweb3.jpeg')";
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundAttachment = "fixed";
+      document.body.style.backgroundPosition = "center";
+    }
   }, [isDarkMode]);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
       <BrowserRouter>
-        <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] transition-colors duration-500">
+        <div 
+          className="w-full min-h-screen text-[var(--text-primary)] transition-all duration-500"
+          style={{
+            backgroundColor: "transparent"
+          }}
+        >
 
           <Routes>
 

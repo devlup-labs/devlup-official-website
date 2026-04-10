@@ -142,14 +142,14 @@ export default function CircularTimeline() {
   }, [activeIndex, loading]);
 
   /* ================= RENDER GUARDS ================= */
-  if (loading) return <div className="min-h-screen bg-[#090f1f] flex items-center justify-center text-white">Loading...</div>;
-  if (events.length === 0) return <div className="min-h-screen bg-[#090f1f] flex items-center justify-center text-white">No data found.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-[var(--text-primary)]">Loading...</div>;
+  if (events.length === 0) return <div className="min-h-screen flex items-center justify-center text-[var(--text-primary)]">No data found.</div>;
 
   // Safe access to the active event
   const activeEvent = events[activeIndex] || {};
 
   return (
-    <div className="w-full min-h-screen bg-[var(--bg-fallback)] flex flex-col items-center">
+    <div className="w-full min-h-screen flex flex-col items-center">
       {/* HEADING */}
       <div className="text-center mt-24 mb-4">
         <h1 className="text-5xl font-bold uppercase">Our Timeline</h1>

@@ -295,7 +295,7 @@ useEffect(() => {
   }, [rotation, activeTile, focusProgress, isMobile, tilesData]);
 
   return (
-    <section className="relative h-screen bg-[url('/bgweb3.jpeg')] bg-[var(--bg-fallback)] text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
+    <section className="relative h-screen text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
       <div 
         className="w-full h-full relative" 
         onClick={() => activeTile && closeCurrent()} 

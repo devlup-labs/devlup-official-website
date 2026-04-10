@@ -263,7 +263,7 @@ export default function Podcast() {
   };
 
   return (
-    <div className="bg-[url('/bgweb3.jpeg')] text-black">
+    <div className="text-[var(--text-primary)]">
       {loading ? (
         <div className="h-screen flex items-center justify-center">
           <div className="text-center">

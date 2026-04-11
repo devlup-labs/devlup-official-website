@@ -19,10 +19,10 @@ gsap.registerPlugin(ScrollTrigger);
 const Footer = () => {
 
   const [formData, setFormData] = useState({
-  name: "",
-  email: "",
-  query: "",
-});
+    name: "",
+    email: "",
+    query: "",
+  });
 
   const refFooter = useRef(null);
   const refContent = useRef(null);
@@ -96,28 +96,28 @@ const Footer = () => {
   }, { scope: refFooter });
 
   const handleChange = (e) => {
-  setFormData({
-    ...formData,
-    [e.target.name]: e.target.value,
-  });
-};
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await postContact(formData);
+    try {
+      const res = await postContact(formData);
 
-    alert(res.data.message);
+      alert(res.data.message);
 
-    setFormData({ name: "", email: "", query: "" });
+      setFormData({ name: "", email: "", query: "" });
 
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong");
-  }
-};
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <footer
@@ -145,11 +145,11 @@ const handleSubmit = async (e) => {
         {/* LEFT */}
         <div className="space-y-5">
           <div>
-            <h2 className="text-4xl mt-1 md:text-5xl font-black text-[var(--text-primary)]">
+            <h2 className="text-4xl mt-1 md:text-5xl font-black text-white">
               DevlUp Labs
             </h2>
 
-            <p className="mt-9 text-[var(--text-primary)] max-w-md text-sm leading-relaxed">
+            <p className="mt-9 text-white max-w-md text-sm leading-relaxed">
               Building developers, shipping ideas, and creating an ecosystem
               where learning meets real-world impact. We empower individuals to
               turn concepts into scalable solutions and cultivate a community
@@ -158,7 +158,7 @@ const handleSubmit = async (e) => {
             </p>
           </div>
 
-          <div className="flex  space-x-4 text-[var(--text-secondary)] text-sm">
+          <div className="flex  space-x-4 text-white text-sm">
             <p>devlup.labs.official</p>
             <p>devluplabs@iitj.ac.in</p>
           </div>
@@ -179,79 +179,57 @@ const handleSubmit = async (e) => {
         </div>
 
         {/* 🔥 MIDDLE COLUMN */}
-        <div className="space-y-4 text-[var(--text-primary)] px-3 mt-6 md:mt-0">
-          <h3 className="text-3xl mt-3 px-24 font-semibold">Useful Links</h3>
+        <div className="space-y-4 text-white px-3 mt-6 md:mt-0">
+          <h3 className="text-3xl mt-3 font-semibold text-center">
+            Useful Links
+          </h3>
 
-         <div className="flex gap-3 mt-9 text-sm ">
+          {/* LINKS + SOCIALS SIDE BY SIDE */}
+          <div className="flex justify-center gap-10 mt-8">
 
-  <Link to="/blog" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
-    Blog
-  </Link>
+            {/* LINKS */}
+            <div className="flex flex-col gap-3 px-5 text-lg">
+              <Link to="/blog" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Blog</Link>
+              <Link to="/podcast" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Podcast</Link>
+              <Link to="/team" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Team</Link>
+              <Link to="/video" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Videos</Link>
+              <Link to="/timeline" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Timeline</Link>
+            </div>
 
-  <Link to="/podcast" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
-    Podcast
-  </Link>
+            {/* SOCIALS (VERTICAL, ALIGNED) */}
+            <div className="flex flex-col gap-3 mt-7 px-10 text-2xl items-center justify-start pt-[2px]">
+              <a href="https://github.com/devlup-labs" target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faGithub} className="hover:scale-110 transition" />
+              </a>
 
-  <Link to="/team" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
-    Team
-  </Link>
+              <a href="https://www.linkedin.com/company/devlup-labs/" target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faLinkedin} className="hover:scale-110 transition" />
+              </a>
 
-  <Link to="/video" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
-    Videos
-  </Link>
+              <a href="https://www.instagram.com/devluplabs" target="_blank" rel="noopener noreferrer">
+                <FontAwesomeIcon icon={faInstagram} className="hover:scale-110 transition" />
+              </a>
+            </div>
 
-  <Link to="/timeline" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
-    Timeline
-  </Link>
-
-</div>
-          {/* SOCIALS*/}
-          <div className="flex px-30 gap-4 mt-6 text-2xl">
-            <a
-              href="https://github.com/devlup-labs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:scale-110 transition"
-            >
-              <FontAwesomeIcon icon={faGithub} />
-            </a>
-
-            <a
-              href="https://www.linkedin.com/company/devlup-labs/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:scale-110 transition"
-            >
-              <FontAwesomeIcon icon={faLinkedin} />
-            </a>
-
-            <a
-              href="https://www.instagram.com/devluplabs?igsh=ZjFmMmxtNG56cDF0"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:scale-110 transition"
-            >
-              <FontAwesomeIcon icon={faInstagram} />
-            </a>
           </div>
         </div>
 
         {/* RIGHT (UNCHANGED) */}
         <div className="space-y-6">
-          <h3 className="text-3xl px-22 mt-3 font-semibold text-[var(--text-primary)]">
+          <h3 className="text-3xl px-22 mt-3 font-semibold text-white">
             Get in Touch!
           </h3>
 
-         <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-         <input
-  type="text"
-  name="name"
-  value={formData.name}
-  onChange={handleChange}
-  placeholder="Name"
-  className="w-full bg-transparent border-b border-[var(--border-subtle)] py-1.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition"
-/>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Name"
+                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+              />
 
               <input
                 type="email"
@@ -259,22 +237,22 @@ const handleSubmit = async (e) => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full bg-transparent border-b border-[var(--border-subtle)] py-1.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition"
+                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
               />
             </div>
 
-         <textarea
-  rows="1"
-  name="query"
-  value={formData.query}
-  onChange={handleChange}
-  placeholder="Your message"
-  className="w-full bg-transparent border-b border-[var(--border-subtle)] py-2 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition resize-none"
-/>
+            <textarea
+              rows="1"
+              name="query"
+              value={formData.query}
+              onChange={handleChange}
+              placeholder="Your message"
+              className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+            />
 
             <button
               type="submit"
-              className="px-15 py-2 rounded-full border border-red-500 text-[var(--text-primary)] font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
+              className="px-15 py-2 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
             >
               Submit
             </button>
@@ -284,7 +262,7 @@ const handleSubmit = async (e) => {
 
       {/* BOTTOM */}
       <div className="mt-6 border-t border-[var(--border-subtle)] pt-3 text-center text-xs text-[var(--text-muted)]">
-        © {new Date().getFullYear()} DevlUp Labs • Built with love by the DevlUp Team
+        © {new Date().getFullYear()} DevlUp Labs • Built by the DevlUp's Team
       </div>
     </footer>
   );

@@ -30,28 +30,28 @@ export default function Podcast() {
   useEffect(() => {
     console.log("🚀 Starting to fetch podcasts from admin panel...");
     setLoading(true);
-    
+
     getPodcasts()
       .then((res) => {
         console.log("📨 Full response object:", res);
         console.log("Response data:", res.data);
-        
+
         // Get podcast data from API - try multiple paths
         let podcastData = res.data?.data;
-        
+
         if (!podcastData) {
           console.warn("⚠️ data.data not found, trying data");
           podcastData = res.data;
         }
-        
+
         if (!Array.isArray(podcastData)) {
           console.error("❌ podcastData is not an array:", typeof podcastData, podcastData);
           podcastData = [];
         }
-        
+
         console.log("Final podcastData to set:", podcastData);
         console.log("Number of podcasts:", podcastData.length);
-        
+
         if (podcastData.length > 0) {
           console.log("✅ Successfully loaded", podcastData.length, "podcasts from admin panel");
           setPodcasts(podcastData);
@@ -296,170 +296,177 @@ export default function Podcast() {
           <div className="h-screen flex items-center justify-center overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">
 
-          {/* LEFT STACK */}
-          <div className="absolute left-[10%] top-1/2 -translate-y-1/2">
-            <div ref={containerRef} className="relative h-[650px] w-[520px] flex items-center justify-center">
-              {items.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => {
-                    if (clickedIndex === index) {
-                      setClickedIndex(null);
-                      setIsPlaying(false);
-                    } else {
-                      setClickedIndex(index);
-                      setActiveIndex(index);
-                      setIsPlaying(true);
-                    }
-                  }}
-                  className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-xl cursor-pointer"
-                >
-                  {!imageLoaded[item.id] && (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                    </div>
-                  )}
-                  <img 
-                    src={item.img} 
-                    className="w-full h-full object-cover"
-                    onLoad={() => setImageLoaded(prev => ({...prev, [item.id]: true}))}
-                    onError={() => setImageLoaded(prev => ({...prev, [item.id]: true}))}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* RIGHT SIDE */}
-          <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
-            <div className="flex flex-col gap-6 h-full">
-
-              {active && (
-                <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm opacity-60">{active.date}</span>
-                    <span className="text-sm opacity-60">{active.author}</span>
-                  </div>
-
-                  <h1 className="text-3xl font-bold uppercase">
-                    {active.title}: {active.subtitle}
-                  </h1>
-
-                  <p className="text-sm opacity-60">{active.description}</p>
-                </>
-              )}
-
-              {/* PLAYER */}
-              <div className="flex-1 flex items-end justify-center">
-
-                {clickedIndex === null ? (
-                  <button
-                    onClick={() => {
-                      setClickedIndex(activeIndex);
-                      setIsPlaying(true);
-                    }}
-                    className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-xl"
-                  >
-                    <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
-                  </button>
-                ) : (
-                  <div className="flex flex-col items-center gap-6">
-
-                    <div className="flex items-center gap-8">
-
-                      {/* EXIT */}
-                      <button
-                        onClick={() => {
+              {/* LEFT STACK */}
+              <div className="absolute left-[10%] top-1/2 -translate-y-1/2">
+                <div ref={containerRef} className="relative h-[650px] w-[520px] flex items-center justify-center">
+                  {items.map((item, index) => (
+                    <div
+                      key={item.id}
+                      onClick={() => {
+                        if (clickedIndex === index) {
                           setClickedIndex(null);
                           setIsPlaying(false);
-                        }}
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center
-  bg-gradient-to-br from-blue-400 to-blue-600
-  shadow-md hover:scale-110 active:scale-95 transition"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          className="w-6 h-6 stroke-white"
-                          fill="none"
-                          strokeWidth="2.5"
-                        >
-                          {/* arrow */}
-                          <path d="M10 17l-5-5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+                        } else {
+                          setClickedIndex(index);
+                          setActiveIndex(index);
+                          setIsPlaying(true);
+                        }
+                      }}
+                      className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-xl cursor-pointer"
+                    >
+                      {!imageLoaded[item.id] && (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        </div>
+                      )}
+                      <img
+                        src={item.img}
+                        className="w-full h-full object-cover"
+                        onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                        onError={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                          {/* door/rectangle */}
-                          <rect x="13" y="5" width="6" height="14" rx="2" />
-                        </svg>
-                      </button>
+              {/* RIGHT SIDE */}
+              <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
+                <div className="flex flex-col gap-6 h-full">
 
-                      {/* BACK */}
-                      <button onClick={() => skipTime(-5)}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                          <polygon points="11,19 2,12 11,5" />
-                          <polygon points="22,19 13,12 22,5" />
-                        </svg>
-                      </button>
+                  {active && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm opacity-60">{active.date}</span>
+                        <span className="text-sm opacity-60">{active.author}</span>
+                      </div>
 
-                      {/* PLAY */}
+                      <h1 className="text-3xl font-bold uppercase">
+                        {active.title}: {active.subtitle}
+                      </h1>
+
+                      <p className="text-sm opacity-60">{active.description}</p>
+                    </>
+                  )}
+
+                  {/* PLAYER */}
+                  <div className="flex-1 flex items-end justify-center">
+
+                    {clickedIndex === null ? (
                       <button
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="w-24 h-24 rounded-full flex items-center justify-center
+                        onClick={() => {
+                          setClickedIndex(activeIndex);
+                          setIsPlaying(true);
+                        }}
+                        className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-xl"
+                      >
+                        <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
+                      </button>
+                    ) : (
+                      <div className="flex flex-col items-center gap-6">
+
+                        <div className="flex items-center gap-8">
+
+                          {/* EXIT */}
+                          <button
+                            onClick={() => {
+                              setClickedIndex(null);
+                              setIsPlaying(false);
+                            }}
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                             bg-gradient-to-br from-blue-400 to-blue-600
+                             shadow-md hover:scale-110 active:scale-95 transition"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              className="w-6 h-6 stroke-white"
+                              fill="none"
+                              strokeWidth="2.5"
+                            >
+                              {/* door */}
+                              <path d="M14 3h5v18h-5" strokeLinecap="round" />
+
+                              {/* arrow entering door */}
+                              <path d="M10 12H3" strokeLinecap="round" />
+                              <path d="M6 9l-3 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
+
+                              {/* bracket feel (like your image) */}
+                              <path d="M10 6v3" strokeLinecap="round" />
+                              <path d="M10 15v3" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                          {/* BACK */}
+                          <button
+                            onClick={() => skipTime(-5)}
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                           bg-gradient-to-br from-blue-400 to-blue-600 shadow-md
+                           text-white font-semibold text-sm hover:scale-110 active:scale-95 transition"
+                          >
+                            -5s
+                          </button>
+
+                          {/* PLAY */}
+                          <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            className="w-24 h-24 rounded-full flex items-center justify-center
                        bg-gradient-to-br from-blue-400 to-blue-600
                        shadow-[0_12px_40px_rgba(0,0,0,0.35)]
                       hover:scale-110 transition"
-                      >
-                        {isPlaying ? (
-                          <div className="flex gap-[6px]">
-                            <div className="w-[6px] h-7 bg-white rounded-sm" />
-                            <div className="w-[6px] h-7 bg-white rounded-sm" />
-                          </div>
-                        ) : (
-                          <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
-                        )}
-                      </button>
-                      {/* FORWARD */}
-                      <button onClick={() => skipTime(5)}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                        <svg viewBox="0 0 24 24" fill="white" className="w-6 h-6">
-                          <polygon points="13,5 22,12 13,19" />
-                          <polygon points="2,5 11,12 2,19" />
-                        </svg>
-                      </button>
+                          >
+                            {isPlaying ? (
+                              <div className="flex gap-[6px]">
+                                <div className="w-[6px] h-7 bg-white rounded-sm" />
+                                <div className="w-[6px] h-7 bg-white rounded-sm" />
+                              </div>
+                            ) : (
+                              <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
+                            )}
+                          </button>
+                          {/* FORWARD */}
+                          <button
+                            onClick={() => skipTime(5)}
+                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                           bg-gradient-to-br from-blue-400 to-blue-600 shadow-md
+                           text-white font-semibold text-sm hover:scale-110 active:scale-95 transition"
+                          >
+                            +5s
+                          </button>
 
-                      {/* SPEED */}
-                      <button onClick={toggleSpeed}
-                        className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                        {speed}x
-                      </button>
 
-                    </div>
+                          {/* SPEED */}
+                          <button onClick={toggleSpeed}
+                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
+                            {speed}x
+                          </button>
 
-                    {/* PROGRESS */}
-                    <div className="w-full flex items-center gap-3">
-                      <span className="text-xs w-10 text-right">{formatTime(progress)}</span>
+                        </div>
 
-                      <input
-                        type="range"
-                        min="0"
-                        max={duration || 0}
-                        value={progress}
-                        onChange={handleSeek}
-                        className="w-full accent-blue-500"
-                      />
+                        {/* PROGRESS */}
+                        <div className="w-full flex items-center gap-3">
+                          <span className="text-xs w-10 text-right">{formatTime(progress)}</span>
 
-                      <span className="text-xs w-10">{formatTime(duration)}</span>
-                    </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max={duration || 0}
+                            value={progress}
+                            onChange={handleSeek}
+                            className="w-full accent-blue-500"
+                          />
+
+                          <span className="text-xs w-10">{formatTime(duration)}</span>
+                        </div>
+
+                      </div>
+                    )}
 
                   </div>
-                )}
 
+                </div>
               </div>
 
             </div>
           </div>
-
-        </div>
-      </div>
         </>
       )}
     </div>

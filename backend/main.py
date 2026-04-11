@@ -9,6 +9,7 @@ from routes.devlup import team
 from routes.devlup import timeline
 from routes.devlup import auth, admin
 from routes.devlup import comments
+from routes.devlup import contact
 
 #  Force load .env from correct path
 load_dotenv(dotenv_path=".env")
@@ -41,3 +42,4 @@ app.include_router(podcasts.router)
 app.include_router(team.router)
 app.include_router(timeline.router)
 app.include_router(comments.router)
+app.include_router(contact.router)

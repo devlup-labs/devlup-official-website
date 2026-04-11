@@ -3,6 +3,9 @@ import api from "./axios";
 //HOME
 export const getHomeData = () => api.get("/home");
 
+// ==================== CONTACT ====================
+export const postContact = (data) => api.post("/contact", data);
+
 // BLOGS
 export const getBlogs = () => api.get("/blogs");
 export const getBlogById = (id) => api.get(`/blogs/${id}`); //OPTIONAL

@@ -1,8 +1,10 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
+import { postContact } from "../api/services"; // adjust path
+
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -13,7 +15,15 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+
 const Footer = () => {
+
+  const [formData, setFormData] = useState({
+  name: "",
+  email: "",
+  query: "",
+});
+
   const refFooter = useRef(null);
   const refContent = useRef(null);
   const refWave = useRef(null);
@@ -84,6 +94,30 @@ const Footer = () => {
         "-=0.3"
       );
   }, { scope: refFooter });
+
+  const handleChange = (e) => {
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value,
+  });
+};
+
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await postContact(formData);
+
+    alert(res.data.message);
+
+    setFormData({ name: "", email: "", query: "" });
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
 
   return (
     <footer
@@ -208,26 +242,35 @@ const Footer = () => {
             Get in Touch!
           </h3>
 
-          <form className="space-y-6">
+         <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input
-                type="text"
-                placeholder="Name"
-                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
-              />
+         <input
+  type="text"
+  name="name"
+  value={formData.name}
+  onChange={handleChange}
+  placeholder="Name"
+  className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+/>
 
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="Email"
                 className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
               />
             </div>
 
-            <textarea
-              rows="1"
-              placeholder="Your message"
-              className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
-            />
+         <textarea
+  rows="1"
+  name="query"
+  value={formData.query}
+  onChange={handleChange}
+  placeholder="Your message"
+  className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+/>
 
             <button
               type="submit"
@@ -241,7 +284,7 @@ const Footer = () => {
 
       {/* BOTTOM */}
       <div className="mt-6 border-t border-[var(--border-subtle)] pt-3 text-center text-xs text-[var(--text-muted)]">
-        © {new Date().getFullYear()} DevlUp Labs • Built with 💻 + ☕
+        © {new Date().getFullYear()} DevlUp Labs • Built with love by the DevlUp Team
       </div>
     </footer>
   );

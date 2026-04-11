@@ -17,6 +17,17 @@ const handleViewProfile = (e) => {
   navigate(`/portfolio/${tile.memberId}`); // use member_id
 };
 
+const getBorderColor = (designation = "") => {
+  const role = designation.toLowerCase();
+
+  if (role.includes("core")) return "#3B82F6";       // blue
+  if (role.includes("coordinator")) return "#4613bc"; // purple
+  if (role.includes("mentor")) return "#10B981";     // green
+  if (role.includes("alumni")) return "#F59E0B";     // orange
+
+  return "#E5E7EB"; // default gray
+};
+
   return (
     <div
       ref={(el) => (tileRefs.current[tile.id] = el)}
@@ -24,13 +35,24 @@ const handleViewProfile = (e) => {
        style={{ willChange: "transform", zIndex: isActive ? 5000 : 1 }}
     >
       <div
-        onClick={(e) => { e.stopPropagation(); openTile(tile.id); }}
+       onClick={(e) => {
+  e.stopPropagation();
+  if (!tile.isEmpty) openTile(tile.id);
+}}
         className={`relative flex flex-col items-center justify-center transition-colors duration-500 ${
           isActive
             ? "rounded-full"
             : "rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-md"
         }`}
-      style={{ width: TILE_SIZE, height: TILE_SIZE, backfaceVisibility: "hidden" }}
+  style={{
+  width: TILE_SIZE,
+  height: TILE_SIZE,
+  backfaceVisibility: "hidden",
+  border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`,
+  boxShadow: tile.isEmpty
+    ? "none"
+    : `0 0 10px ${getBorderColor(tile.designation)}80`
+}}
 
       >
         {/* THE SMOOTH BAND IMAGE (Always fast) */}
@@ -40,17 +62,17 @@ const handleViewProfile = (e) => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
             </div>
           )}
-          <img 
-            src={tile.profileImage} 
-            alt="" 
-            className="w-full h-full object-cover" 
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageLoaded(true)}
-          />
+      <img 
+  src={tile.isEmpty ? "https://static.vecteezy.com/system/resources/previews/036/280/651/non_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg" : tile.profileImage}
+  alt={tile.name || "default"}
+  className="w-full h-full object-cover"
+  onLoad={() => setImageLoaded(true)}
+  onError={() => setImageLoaded(true)}
+/>
         </div>
 
         {/* THE PROFILE CARD OVERLAY (Matches Image 1) */}
-        {isActive && (
+        {isActive && !tile.isEmpty && (
           <div
             className="absolute flex flex-col items-center justify-center rounded-full shadow-2xl border backdrop-blur-xl"
             style={{
@@ -234,24 +256,77 @@ useEffect(() => {
     };
   }, [activeTile, isMobile]);
 
-  const tilesData = useMemo(() => {
-    if (members.length === 0) return [];
-    const out = [];
-    const COLS = 18; 
-    const angleStep = 360 / COLS;
-    for (let row = 0; row < ROWS; row++) {
-      for (let i = 0; i < COLS; i++) {
-        const member = members[i % members.length];
-        out.push({ 
-          id: `${row}-${i}`, 
-          ...member, 
-          baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0), 
-          row 
-        });
+ const tilesData = useMemo(() => {
+  const out = [];
+  const COLS = 18;
+  const angleStep = 360 / COLS;
+
+  // ⭐ Only use front half columns (visible initially)
+  const FRONT_COLS = Math.floor(COLS / 2); // 9
+  const TOTAL_VISIBLE = ROWS * FRONT_COLS;
+
+  // center within visible tiles
+  const startIndex = Math.floor((TOTAL_VISIBLE - members.length) / 2);
+
+  let visibleCounter = 0;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let i = 0; i < COLS; i++) {
+      const isFront = i < FRONT_COLS; // ⭐ front half
+
+      let member = null;
+
+      if (isFront) {
+        if (
+          visibleCounter >= startIndex &&
+          visibleCounter < startIndex + members.length
+        ) {
+          member = members[visibleCounter - startIndex];
+        }
+        visibleCounter++;
       }
+
+      out.push({
+        id: `${row}-${i}`,
+        ...(member || {}),
+        isEmpty: !member,
+        baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0),
+        row
+      });
     }
-    return out;
-  }, [members]);
+  }
+
+  return out;
+}, [members]);
+
+// 4. ⭐ ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
+useEffect(() => {
+  if (members.length === 0) return;
+
+  const COLS = 18;
+  const FRONT_COLS = Math.floor(COLS / 2);
+  const angleStep = 360 / COLS;
+
+  const TOTAL_VISIBLE = ROWS * FRONT_COLS;
+  const startIndex = Math.floor((TOTAL_VISIBLE - members.length) / 2);
+
+  const firstVisibleIndex = startIndex;
+
+  const row = Math.floor(firstVisibleIndex / FRONT_COLS);
+  const colInFront = firstVisibleIndex % FRONT_COLS;
+
+  const actualCol = colInFront;
+
+  const offset = row % 2 ? angleStep / 2 : 0;
+
+  const targetAngle = actualCol * angleStep + offset;
+
+  const newRotation = -targetAngle;
+
+  rotationRef.current = newRotation;
+  setRotation(newRotation);
+
+}, [members]);
 
   useEffect(() => {
     if (tilesData.length === 0) return;
@@ -288,8 +363,8 @@ useEffect(() => {
 
       const isActive = tile.id === activeTile;
 
-      const cx = window.innerWidth / 2;
-      const cy = window.innerHeight / 2;
+      const cx = window.innerWidth / 2 - 50;
+      const cy = window.innerHeight / 2 + 10;
 
       let exX = 0, exY = 0, exZ = 0;
       if (isActive) {

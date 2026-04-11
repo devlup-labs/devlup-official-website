@@ -133,12 +133,9 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
 
 
   useEffect(() => {
-  fetchCounts();
-}, [fetchCounts]); // NEW: Fetch counts on load
-
-  useEffect(() => {
+    fetchCounts();
     fetchData();
-  }, [fetchData]);
+  }, [token, activeTab]);
 
   const deleteItem = async (id) => {
     if (!window.confirm("Are you sure?")) return;

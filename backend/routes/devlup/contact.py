@@ -15,7 +15,7 @@ async def submit_contact(data: ContactCreate):
     try:
         contact_data = data.model_dump()
 
-        # 🔥 Add ID + timestamp
+        #  Add ID + timestamp
         contact_data["contact_id"] = str(uuid.uuid4())
         contact_data["created_at"] = datetime.utcnow().isoformat()
 

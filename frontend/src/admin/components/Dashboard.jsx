@@ -11,7 +11,21 @@ import VideoForm from './VideoForm';
 import TeamForm from './TeamForm';
 import TimelineForm from './TimelineForm';
 
+import { useNavigate } from "react-router-dom";
+
+
 const Dashboard = ({ token, setToken }) => {
+  const navigate = useNavigate();
+  const [notification, setNotification] = useState('');
+  
+const handleLogout = () => {
+  localStorage.removeItem("token");
+  setToken(null);
+  setNotification('Logged out successfully');
+  setTimeout(() => {
+    navigate("/login");
+  }, 1500);
+};
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,23 +39,26 @@ const Dashboard = ({ token, setToken }) => {
   podcast: 0,
   video: 0,
   blog: 0,
-  timeline: 0
+  timeline: 0,
+  contact: 0
 });
 
-  // ✅ FIX: endpoint mapping
-  const getEndpoint = () => {
-    switch (activeTab) {
-      case 'podcast': return 'podcasts';
-      case 'blog': return 'blogs';
-      case 'video': return 'videos';
-      case 'team': return 'team';
-      case 'timeline': return 'timeline';
-      default: return `${activeTab}s`;
-    }
-  };
+  //  FIX: endpoint mapping
+const getEndpoint = () => {
+  switch (activeTab) {
+    case 'podcast': return 'podcasts';
+    case 'blog': return 'blogs';
+    case 'video': return 'videos';
+    case 'team': return 'team';
+    case 'timeline': return 'timeline';
+    case 'contact': return 'contact'; 
+    default: return `${activeTab}s`;
+  }
+};
 
-  // ✅ FIX: dynamic helpers
+  //  FIX: dynamic helpers
   const getItemId = (item) =>
+    item.contact_id ||  
     item.podcast_id ||
     item.blog_id ||
     item.video_id ||
@@ -50,6 +67,7 @@ const Dashboard = ({ token, setToken }) => {
     item.id;
 
   const getItemTitle = (item) =>
+     item.name ||  
     item.podcast_title ||
     item.blog_title ||
     item.video_title ||
@@ -58,6 +76,7 @@ const Dashboard = ({ token, setToken }) => {
     item.name;
 
   const getItemAuthor = (item) =>
+      item.email ||   
     item.podcast_author ||
     item.blog_author ||
     item.member_designation ||
@@ -100,7 +119,8 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       { key: "podcast", url: "podcasts" },
       { key: "video", url: "videos" },
       { key: "blog", url: "blogs" },
-      { key: "timeline", url: "timeline" }
+      { key: "timeline", url: "timeline" },
+      { key: "contact", url: "contact" }
     ];
 
     const results = await Promise.all(
@@ -111,14 +131,13 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       )
     );
 
-    const newCounts = {
-      home: 3, // keep static OR change if API exists
-      team: results[0].data.data?.length || 0,
-      podcast: results[1].data.data?.length || 0,
-      video: results[2].data.data?.length || 0,
-      blog: results[3].data.data?.length || 0,
-      timeline: results[4].data.data?.length || 0
-    };
+   const newCounts = {
+  home: 0, // Home doesn't have an API, so we set it to 0 or you can choose to hide it
+};
+
+endpoints.forEach((e, index) => {
+  newCounts[e.key] = results[index].data.data?.length || 0;
+});
 
     setCounts(newCounts);
 
@@ -151,16 +170,16 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
       alert("Failed to delete item.");
     }
   };
-
-  const handleEdit = (item) => {
-    setEditingItem(item);
-    setShowModal(true);
-  };
-
+const handleEdit = (item) => {
+  if (activeTab === "contact") return; // block
+  setEditingItem(item);
+  setShowModal(true);
+};
   const handleAddNew = () => {
-    setEditingItem(null);
-    setShowModal(true);
-  };
+  if (activeTab === "contact") return; // block
+  setEditingItem(null);
+  setShowModal(true);
+};
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -175,7 +194,8 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
     { id: 'podcast', label: 'Podcast', icon: <Mic2 size={20} /> },
     { id: 'video', label: 'Video', icon: <Video size={20} /> },
     { id: 'blog', label: 'Blog', icon: <FileText size={20} /> },
-    { id: 'timeline', label: 'Timeline', icon: <Clock size={20} /> }
+    { id: 'timeline', label: 'Timeline', icon: <Clock size={20} /> },
+    { id: 'contact', label: 'Contacts', icon: <FileText size={20} /> }
   ];
 
   const allTags =
@@ -247,7 +267,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
         </nav>
 
         <div className="p-4 border-t border-slate-800">
-          <button onClick={logout} className="w-full flex items-center gap-4 p-3 text-red-400 hover:bg-red-500/10 rounded-lg">
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 p-3 text-red-400 hover:bg-red-500/10 rounded-lg">
             <LogOut size={20} />
             {isSidebarOpen && <span>Logout</span>}
           </button>
@@ -277,6 +297,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
         <StatCard title="Videos" count={counts.video} icon={<Video size={24} color="#ea580c" />} color="bg-orange-100 text-orange-500" tabId="video" />
         <StatCard title="Blog Posts" count={counts.blog} icon={<FileText size={24} color="#db2777" />} color="bg-pink-100 text-pink-500" tabId="blog" />
         <StatCard title="Timeline Events" count={counts.timeline} icon={<Clock size={24} color="#14b8a6" />} color="bg-teal-100 text-teal-500" tabId="timeline" />
+        <StatCard title="Contacts" count={counts.contact} icon={<FileText size={24} color="#ef4444" />} color="bg-red-100 text-red-500" tabId="contact" />
                     </div>
           ) : (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -312,39 +333,89 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
   )}
 
   {/*  Add Button */}
+ {activeTab !== "contact" && (
   <button 
     onClick={handleAddNew} 
     className="bg-blue-600 text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold hover:bg-blue-700 transition-all"
   >
     <Plus size={18} /> Add New {activeTab}
   </button>
+)}
 
 </div>
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                    <tr>
-                      <th className="p-4 font-semibold">Title/Name</th>
-                      <th className="p-4 font-semibold">Author/Role</th>
-                      <th className="p-4 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
+       <table className="w-full text-left">
+  <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+    <tr>
+      <th className="p-4 font-semibold">
+        {activeTab === "contact" ? "Name" : "Title/Name"}
+      </th>
 
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredItems.map((item) => (
-                      <tr key={getItemId(item)} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-4 font-medium text-slate-700">{getItemTitle(item)}</td>
-                        <td className="p-4 text-slate-500">{getItemAuthor(item)}</td>
-                        <td className="p-4 text-right flex justify-end gap-2">
-                          <button onClick={() => handleEdit(item)} className="p-2 text-slate-400 hover:text-blue-700 transition-colors"><Edit3 size={18}/></button>
-                          <button onClick={() => deleteItem(getItemId(item))} className="p-2 text-slate-400 hover:text-red-800 transition-colors"><Trash2 size={18}/></button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      <th className="p-4 font-semibold">
+        {activeTab === "contact" ? "Email" : "Author/Role"}
+      </th>
+
+      {activeTab === "contact" && (
+        <th className="p-4 font-semibold">Query</th>
+      )}
+
+      <th className="p-4 font-semibold text-right">Actions</th>
+    </tr>
+  </thead>
+
+  <tbody className="divide-y divide-slate-100">
+    {filteredItems.map((item) => (
+      <tr key={getItemId(item)} className="hover:bg-slate-50/50">
+
+        {/* NAME / TITLE */}
+        <td className="p-4 font-medium text-slate-700">
+          {getItemTitle(item)}
+        </td>
+
+        {/* EMAIL / AUTHOR */}
+        <td className="p-4 text-slate-500">
+          {getItemAuthor(item)}
+        </td>
+
+        {/* QUERY ONLY FOR CONTACT */}
+        {activeTab === "contact" && (
+          <td 
+  className="p-4 max-w-xs cursor-pointer"
+  title={item.query}
+>
+  {item.query.length > 60 
+    ? item.query.slice(0, 60) + "..." 
+    : item.query}
+</td>
+        )}
+
+        {/* ACTIONS */}
+        <td className="p-4 text-right flex justify-end gap-2">
+
+          {/*  NO EDIT FOR CONTACT */}
+          {activeTab !== "contact" && (
+            <button 
+              onClick={() => handleEdit(item)} 
+              className="p-2 text-slate-400 hover:text-blue-700"
+            >
+              <Edit3 size={18}/>
+            </button>
+          )}
+
+          <button 
+            onClick={() => deleteItem(getItemId(item))} 
+            className="p-2 text-slate-400 hover:text-red-800"
+          >
+            <Trash2 size={18}/>
+          </button>
+
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
               </div>
             </div>
           )}
@@ -365,6 +436,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
             {activeTab === 'video' && <VideoForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
             {activeTab === 'team' && <TeamForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
             {activeTab === 'timeline' && <TimelineForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
+        
           </div>
         </div>
       )}

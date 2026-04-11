@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 import BlogView from "./components/BlogView";
 
@@ -14,14 +14,18 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import Portfolio from "./components/Portfolio.jsx";
 
-// Admin imports
-import AdminApp from "./admin/AdminApp.jsx";
+// ✅ Admin components
+import Login from "./admin/components/Login";
+import Dashboard from "./admin/components/Dashboard";
+import ProtectedRoute from "./admin/components/ProtectedRoute";
+import Forbidden from "./admin/components/Forbidden"; // adjust path
 
 export const ThemeContext = createContext();
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem("token")); // ✅ added
+   const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
@@ -33,7 +37,7 @@ function App() {
       isDarkMode ? "dark" : "light"
     );
 
-    // Apply background to html and body elements
+  // Apply background to html and body elements
     if (isDarkMode) {
       document.documentElement.style.backgroundImage = "url('/bgweb4.jpeg')";
       document.documentElement.style.backgroundSize = "cover";
@@ -58,37 +62,41 @@ function App() {
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme, hamburgerOpen, setHamburgerOpen, searchOpen, setSearchOpen, filterOpen, setFilterOpen }}>
       <BrowserRouter>
-        <div 
-          className="w-full min-h-screen text-[var(--text-primary)] transition-all duration-500"
-          style={{
-            backgroundColor: "transparent"
-          }}
-        >
+        <div className="w-full min-h-screen text-[var(--text-primary)] transition-all duration-500">
 
           <Routes>
 
-            {/* Home without Header/Footer */}
+            {/* 🌐 PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
 
-            {/* ✅ WITH HEADER + FOOTER */}
             <Route element={<><Header /><Outlet /><Footer /></>}>
-
               <Route path="/blog" element={<Blog />} />
               <Route path="/team" element={<Team />} />
               <Route path="/timeline" element={<Timeline />} />
               <Route path="/video" element={<Videos />} />
               <Route path="/podcast" element={<Podcast />} />
-
-              {/* ✅ BLOG VIEW NOW INCLUDED */}
               <Route path="/blogs/:id" element={<BlogView />} />
-
             </Route>
 
-            {/*  WITHOUT HEADER/FOOTER */}
             <Route path="/portfolio/:username" element={<Portfolio />} />
 
-            {/* Admin Routes - /admin/* goes to AdminApp */}
-            <Route path="/admin/*" element={<AdminApp />} />
+            {/* 🔐 ADMIN ROUTES (NO /admin) */}
+            <Route path="/login" element={<Login setToken={setToken} />} />
+
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard token={token} setToken={setToken} />
+                </ProtectedRoute>
+              }
+            />
+            
+           
+<Route path="/403" element={<Forbidden />} />
+
+            {/* DEFAULT */}
+            <Route path="*" element={<Navigate to="/" />} />
 
           </Routes>
 

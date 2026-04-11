@@ -9,17 +9,17 @@
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Search only → slight right (unchanged) */
+/* Search only → no shift */
 .glide-search {
-  transform: translateX(40px);
+  transform: translateX(0);
 }
 
-/* 🔥 Filter only → move MORE to left */
+/* 🔥 Filter only → no shift */
 .glide-filter {
-  transform: translateX(-120px);   /* was -40px */
+  transform: translateX(0);
 }
 
-/* Both active → move even more left */
+/* Both active → no shift */
 .glide-both {
-  transform: translateX(-120px);
+  transform: translateX(0);
 }

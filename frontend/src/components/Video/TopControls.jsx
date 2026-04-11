@@ -1,11 +1,28 @@
-import { useState } from "react";
+import { useState, useContext, useEffect } from "react";
 import SearchBar from "./SearchBar";
 import FilterButton from "./FilterButton";
+import { ThemeContext } from "../../App";
 import "./TopControls.css";
 
 export default function TopControls() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
+
+  // Close search and filter when hamburger opens
+  useEffect(() => {
+    if (hamburgerOpen && (searchOpen || filterOpen)) {
+      setSearchOpen(false);
+      setFilterOpen(false);
+    }
+  }, [hamburgerOpen]);
+
+  // Close hamburger when search or filter opens
+  useEffect(() => {
+    if ((searchOpen || filterOpen) && hamburgerOpen) {
+      setHamburgerOpen(false);
+    }
+  }, [searchOpen, filterOpen]);
 
   let glideClass = "";
 
@@ -19,8 +36,8 @@ export default function TopControls() {
 
   return (
     <div className={`topControls ${glideClass}`}>
-      <SearchBar onToggle={setSearchOpen} />
-      <FilterButton onToggle={setFilterOpen} />
+      <SearchBar searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
+      <FilterButton filterOpen={filterOpen} setFilterOpen={setFilterOpen} />
     </div>
   );
 }

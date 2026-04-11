@@ -67,6 +67,8 @@
   --bg-surface: #1f2937;   /* dark grey (NOT transparent) */
 
   --bg-muted: #0f1c3f;
+  --bg-blog_card: #0D1B2A;  /* Dark teal for blog cards */
+  --bg-main1: linear-gradient(to bottom, #0b1f3f 0%, #0d1a2e 100%);  /* Dark gradient for footer */
 
   --text-primary: #e6eeff;
   --text-secondary: #a8b8e6;

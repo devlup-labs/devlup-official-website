@@ -21,6 +21,9 @@ export const ThemeContext = createContext();
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [hamburgerOpen, setHamburgerOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   const toggleTheme = () => setIsDarkMode((prev) => !prev);
 
@@ -53,7 +56,7 @@ function App() {
   }, [isDarkMode]);
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, hamburgerOpen, setHamburgerOpen, searchOpen, setSearchOpen, filterOpen, setFilterOpen }}>
       <BrowserRouter>
         <div 
           className="w-full min-h-screen text-[var(--text-primary)] transition-all duration-500"

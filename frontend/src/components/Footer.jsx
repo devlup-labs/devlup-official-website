@@ -145,11 +145,11 @@ const handleSubmit = async (e) => {
         {/* LEFT */}
         <div className="space-y-5">
           <div>
-            <h2 className="text-4xl mt-1 md:text-5xl font-black text-white">
+            <h2 className="text-4xl mt-1 md:text-5xl font-black text-[var(--text-primary)]">
               DevlUp Labs
             </h2>
 
-            <p className="mt-9 text-white max-w-md text-sm leading-relaxed">
+            <p className="mt-9 text-[var(--text-primary)] max-w-md text-sm leading-relaxed">
               Building developers, shipping ideas, and creating an ecosystem
               where learning meets real-world impact. We empower individuals to
               turn concepts into scalable solutions and cultivate a community
@@ -158,7 +158,7 @@ const handleSubmit = async (e) => {
             </p>
           </div>
 
-          <div className="flex  space-x-4 text-white text-sm">
+          <div className="flex  space-x-4 text-[var(--text-secondary)] text-sm">
             <p>devlup.labs.official</p>
             <p>devluplabs@iitj.ac.in</p>
           </div>
@@ -179,28 +179,28 @@ const handleSubmit = async (e) => {
         </div>
 
         {/* 🔥 MIDDLE COLUMN */}
-        <div className="space-y-4 text-white px-3 mt-6 md:mt-0">
+        <div className="space-y-4 text-[var(--text-primary)] px-3 mt-6 md:mt-0">
           <h3 className="text-3xl mt-3 px-24 font-semibold">Useful Links</h3>
 
          <div className="flex gap-3 mt-9 text-sm ">
 
-  <Link to="/blog" className="px-3 py-1 rounded-full hover:bg-white/10 transition">
+  <Link to="/blog" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
     Blog
   </Link>
 
-  <Link to="/podcast" className="px-3 py-1 rounded-full hover:bg-white/10 transition">
+  <Link to="/podcast" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
     Podcast
   </Link>
 
-  <Link to="/team" className="px-3 py-1 rounded-full hover:bg-white/10 transition">
+  <Link to="/team" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
     Team
   </Link>
 
-  <Link to="/video" className="px-3 py-1 rounded-full hover:bg-white/10 transition">
+  <Link to="/video" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
     Videos
   </Link>
 
-  <Link to="/timeline" className="px-3 py-1 rounded-full hover:bg-white/10 transition">
+  <Link to="/timeline" className="px-3 py-1 rounded-full hover:bg-[var(--border-subtle)] transition">
     Timeline
   </Link>
 
@@ -238,7 +238,7 @@ const handleSubmit = async (e) => {
 
         {/* RIGHT (UNCHANGED) */}
         <div className="space-y-6">
-          <h3 className="text-3xl px-22 mt-3 font-semibold text-white">
+          <h3 className="text-3xl px-22 mt-3 font-semibold text-[var(--text-primary)]">
             Get in Touch!
           </h3>
 
@@ -250,7 +250,7 @@ const handleSubmit = async (e) => {
   value={formData.name}
   onChange={handleChange}
   placeholder="Name"
-  className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+  className="w-full bg-transparent border-b border-[var(--border-subtle)] py-1.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition"
 />
 
               <input
@@ -259,7 +259,7 @@ const handleSubmit = async (e) => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+                className="w-full bg-transparent border-b border-[var(--border-subtle)] py-1.5 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition"
               />
             </div>
 
@@ -269,12 +269,12 @@ const handleSubmit = async (e) => {
   value={formData.query}
   onChange={handleChange}
   placeholder="Your message"
-  className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+  className="w-full bg-transparent border-b border-[var(--border-subtle)] py-2 text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-blue-400 transition resize-none"
 />
 
             <button
               type="submit"
-              className="px-15 py-2 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
+              className="px-15 py-2 rounded-full border border-red-500 text-[var(--text-primary)] font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
             >
               Submit
             </button>

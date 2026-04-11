@@ -1,10 +1,11 @@
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState, useContext } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faLinkedin, faInstagram } from "@fortawesome/free-brands-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { getBlogs } from "../api/services.js";
 import { CiSearch } from "react-icons/ci";
 import { FaTags } from "react-icons/fa";
+import { ThemeContext } from "../App";
 
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 
@@ -19,6 +20,7 @@ function Blog() {
   const [selectedTag, setSelectedTag] = useState("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
 
   const layers = useMemo(() => {
     // Filter blogs based on search and selected tag
@@ -86,6 +88,21 @@ function Blog() {
       searchInputRef.current.focus();
     }
   }, [searchOpen]);
+
+  // Close search and filter when hamburger opens
+  useEffect(() => {
+    if (hamburgerOpen && (searchOpen || filterOpen)) {
+      setSearchOpen(false);
+      setFilterOpen(false);
+    }
+  }, [hamburgerOpen]);
+
+  // Close hamburger when search or filter opens
+  useEffect(() => {
+    if ((searchOpen || filterOpen) && hamburgerOpen) {
+      setHamburgerOpen(false);
+    }
+  }, [searchOpen, filterOpen]);
 
   const navigate = useNavigate();
   /* ================= OPTIMIZED ANIMATION ================= */

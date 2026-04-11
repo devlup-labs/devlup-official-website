@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { ThemeContext } from "../App";
 
 function HeaderComponent() {
-  const [open, setOpen] = useState(false);
-  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const { isDarkMode, toggleTheme, hamburgerOpen, setHamburgerOpen, searchOpen, setSearchOpen, filterOpen, setFilterOpen } = useContext(ThemeContext);
 
   const navItems = [
     { name: "Blog", path: "/blog" },
@@ -24,6 +23,15 @@ function HeaderComponent() {
       document.body.style.overflow = "auto";
     };
   }, []);
+
+  const handleHamburgerClick = () => {
+    const newState = !hamburgerOpen;
+    setHamburgerOpen(newState);
+    if (newState) {
+      if (searchOpen) setSearchOpen(false);
+      if (filterOpen) setFilterOpen(false);
+    }
+  };
 
   return (
     <>
@@ -57,18 +65,18 @@ function HeaderComponent() {
               bg-[var(--bg-surface)]
               border border-[var(--border-subtle)]
               rounded-xl transition-transform duration-200
-              ${!open ? "hover:scale-110" : ""}`}
+              ${!hamburgerOpen ? "hover:scale-110" : ""}`}
             >
               <nav
                 className={`flex items-center gap-6 overflow-hidden
                 transition-all duration-300 ease-out 
-                ${open ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"}`}
+                ${hamburgerOpen ? "max-w-[600px] opacity-100" : "max-w-0 opacity-0"}`}
               >
                 {navItems.map((item) => (
                   <Link
                     key={item.name}
                     to={item.path}
-                    onClick={() => setOpen(false)}
+                    onClick={() => setHamburgerOpen(false)}
                     className="text-[var(--text-primary)] whitespace-nowrap hover:text-blue-500 transition"
                   >
                     {item.name}
@@ -120,23 +128,23 @@ function HeaderComponent() {
 
               {/* DESKTOP HAMBURGER */}
               <button
-                onClick={() => setOpen(!open)}
+                onClick={handleHamburgerClick}
                 className="flex flex-col gap-1.5 px-2 py-1"
               >
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "rotate-45 translate-y-2" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "opacity-0" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "-rotate-45 -translate-y-2" : ""}`} />
+                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
+                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
+                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
               </button>
             </div>
 
             {/* MOBILE HAMBURGER */}
             <button
-              onClick={() => setOpen(!open)}
+              onClick={handleHamburgerClick}
               className="md:hidden flex flex-col gap-1.5 px-2 py-1 z-50"
             >
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "opacity-0" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${open ? "-rotate-45 -translate-y-2" : ""}`} />
+              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
+              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
+              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
             </button>
 
           </div>
@@ -154,7 +162,7 @@ function HeaderComponent() {
           transition-all duration-500
           ease-[cubic-bezier(0.16,1,0.3,1)]
           transform-gpu
-          ${open
+          ${hamburgerOpen
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-4 pointer-events-none"}
         `}
@@ -163,10 +171,10 @@ function HeaderComponent() {
           <Link
             key={item.name}
             to={item.path}
-            onClick={() => setOpen(false)}
+            onClick={() => setHamburgerOpen(false)}
             style={{ transitionDelay: `${index * 70}ms` }}
             className={`transition-all duration-500 transform-gpu
-            ${open ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
+            ${hamburgerOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}
             hover:text-blue-400`}
           >
             {item.name}
@@ -181,7 +189,7 @@ function HeaderComponent() {
   border border-[var(--border-subtle)]
   flex items-center justify-center
   transition-all duration-500 transform-gpu
-  ${open ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+  ${hamburgerOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
 >
   {isDarkMode ? ( <svg
       xmlns="http://www.w3.org/2000/svg"

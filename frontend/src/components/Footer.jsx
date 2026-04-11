@@ -188,12 +188,12 @@ const Footer = () => {
           <div className="flex justify-center gap-10 mt-8">
 
             {/* LINKS */}
-            <div className="flex flex-col gap-3 px-5 text-lg">
-              <Link to="/blog" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Blog</Link>
-              <Link to="/podcast" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Podcast</Link>
-              <Link to="/team" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Team</Link>
-              <Link to="/video" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Videos</Link>
-              <Link to="/timeline" className="flex items-center justify-center px-3 py-1 rounded-full hover:bg-white/10 transition">Timeline</Link>
+            <div className="flex flex-col  gap-3 px-5 text-lg">
+              <Link to="/blog" className="transition duration-200 hover:scale-110 origin-left">Blog</Link>
+              <Link to="/podcast" className="transition duration-200 hover:scale-110 origin-left">Podcast</Link>
+              <Link to="/team" className="transition duration-200 hover:scale-110 origin-left">Team</Link>
+              <Link to="/video" className="transition duration-200 hover:scale-110 origin-left">Videos</Link>
+              <Link to="/timeline" className="transition duration-200 hover:scale-110 origin-left">Timeline</Link>
             </div>
 
             {/* SOCIALS (VERTICAL, ALIGNED) */}
@@ -217,7 +217,7 @@ const Footer = () => {
         {/* RIGHT (UNCHANGED) */}
         <div className="space-y-6">
           <h3 className="text-3xl px-22 mt-3 font-semibold text-white">
-            Get in Touch!
+            Get in Touch
           </h3>
 
           <form className="space-y-6" onSubmit={handleSubmit}>

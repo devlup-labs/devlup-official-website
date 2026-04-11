@@ -15,6 +15,8 @@ export default function Podcast() {
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
 
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+
   // Declare all refs
   const containerRef = useRef(null);
   const audioRef = useRef(null);
@@ -22,7 +24,7 @@ export default function Podcast() {
   const velocity = useRef(0);
   const raf = useRef(null);
 
-  const speeds = [1, 1.25, 1.5, 2];
+  const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
   const friction = 0.92;
   const wheelStrength = 0.0022;
   const snapStrength = 0.12;
@@ -251,10 +253,10 @@ export default function Podcast() {
     setProgress(newTime);
   };
 
-  const toggleSpeed = () => {
-    const i = speeds.indexOf(speed);
-    setSpeed(speeds[(i + 1) % speeds.length]);
-  };
+  // const toggleSpeed = () => {
+  //   const i = speeds.indexOf(speed);
+  //   setSpeed(speeds[(i + 1) % speeds.length]);
+  // };
 
   const formatTime = (sec) => {
     if (!sec) return "0:00";
@@ -434,10 +436,40 @@ export default function Podcast() {
 
 
                           {/* SPEED */}
-                          <button onClick={toggleSpeed}
-                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white">
-                            {speed}x
-                          </button>
+                          <div className="relative">
+
+                            {/* BUTTON */}
+                            <button
+                              onClick={() => setShowSpeedMenu((prev) => !prev)}
+                              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                            >
+                              {speed}x
+                            </button>
+
+                            {/* DROPDOWN */}
+                            {showSpeedMenu && (
+                              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
+                              bg-gradient-to-br from-blue-400 to-blue-600 backdrop-blur-md rounded-xl 
+                              py-2 px-3 flex flex-col gap-1 text-sm text-white z-50 shadow-xl">
+
+                                {speeds.map((s) => (
+                                  <button
+                                    key={s}
+                                    onClick={() => {
+                                      setSpeed(s);
+                                      setShowSpeedMenu(false);
+                                    }}
+                                    className={`px-3 py-1 rounded-md transition 
+            ${speed === s ? "bg-white/20" : "hover:bg-white/10"}`}
+                                  >
+                                    {s}x
+                                  </button>
+                                ))}
+
+                              </div>
+                            )}
+
+                          </div>
 
                         </div>
 

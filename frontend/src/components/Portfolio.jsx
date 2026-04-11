@@ -141,20 +141,17 @@ const loadPortfolio = (inputCode) => {
                 { boxShadow: GLOW_PULSE, duration: 0.4, yoyo: true, repeat: 1 }
               );
 
-              gsap.to(wrapper, {
-                height: wrapper.scrollHeight,
-                duration: 0.7,
-              });
-
               gsap.to(oldC, {
-                marginTop: wrapper.scrollHeight,
+                opacity: 0,
+                y: wrapper.scrollHeight,
                 duration: 0.7,
+                pointerEvents: "none",
               });
 
               gsap.fromTo(
                 newC,
-                { opacity: 0, y: -20 },
-                { opacity: 1, y: 0, duration: 0.6 }
+                { opacity: 0, y: 0 },
+                { opacity: 1, y: -oldC.scrollHeight, duration: 0.7 }
               );
             }
           });
@@ -195,15 +192,15 @@ const loadPortfolio = (inputCode) => {
               >
                 <div className="content-wrapper">
 
+                  <div className="old-content text-gray-400 text-sm">
+                    Comments
+                  </div>
+
                   <div className="reveal-slot min-h-[60px]">
                     <div className="new-content opacity-0 text-sm text-white">
                       @{info?.name} <br />
                       {info?.secretData?.hiddencomments}
                     </div>
-                  </div>
-
-                  <div className="old-content text-gray-400 text-sm">
-                    Comments
                   </div>
 
                 </div>
@@ -222,17 +219,17 @@ const loadPortfolio = (inputCode) => {
             >
               <div className="content-wrapper">
 
-                <div className="reveal-slot min-h-[80px]">
-                  <div className="new-content opacity-0 italic text-gray-300">
-                    "{info?.secretData?.hiddenquote}"
-                  </div>
-                </div>
-
                 <div className="old-content space-y-1">
                   <h1 className="text-xl font-bold">{info?.name}</h1>
                   <p>{info?.rollNumber}</p>
                   <p>{info?.designation}</p>
                   <p>#{info?.tag}</p>
+                </div>
+
+                <div className="reveal-slot min-h-[80px]">
+                  <div className="new-content opacity-0 italic text-gray-300">
+                    "{info?.secretData?.hiddenquote}"
+                  </div>
                 </div>
 
               </div>
@@ -245,6 +242,10 @@ const loadPortfolio = (inputCode) => {
             >
               <div className="content-wrapper">
 
+                <div className="old-content text-gray-300 text-sm">
+                  {info?.bio}
+                </div>
+
                 <div className="reveal-slot min-h-[120px]">
                   <div className="new-content opacity-0 text-sm space-y-2">
                     <p className="font-semibold">
@@ -256,10 +257,6 @@ const loadPortfolio = (inputCode) => {
                   </div>
                 </div>
 
-                <div className="old-content text-gray-300 text-sm">
-                  {info?.bio}
-                </div>
-
               </div>
             </div>
 
@@ -268,7 +265,7 @@ const loadPortfolio = (inputCode) => {
       </div>
 
       {/* CONTROLS */}
-      <div ref={controlsRef} className="mt-10 flex gap-4">
+      <div ref={controlsRef} className="mt-10 flex gap-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
 
         <input
           type="text"

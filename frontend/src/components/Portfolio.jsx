@@ -14,6 +14,7 @@ export default function Portfolio() {
   const [searchKey, setSearchKey] = useState("");
   const [reveal, setReveal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+ 
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
 
   const cardsRef = useRef([]);
@@ -97,6 +98,7 @@ const loadPortfolio = (inputCode) => {
 };
   const handleReset = () => {
     setReveal(false);
+    
     gsap.set(scanRef.current, { opacity: 0, top: "0%" });
 
     cardsRef.current.forEach((card) => {
@@ -141,11 +143,12 @@ const loadPortfolio = (inputCode) => {
 
             if (y >= trigger) {
               card.dataset.done = "true";
+             
 
               const oldC = card.querySelector(".old-content");
               const newC = card.querySelector(".new-content");
               const wrapper = card.querySelector(".content-wrapper");
-
+                gsap.set(card, { opacity: 1 });
               gsap.fromTo(
                 card,
                 { boxShadow: GLOW_OFF },
@@ -389,11 +392,11 @@ const loadPortfolio = (inputCode) => {
             </div>
 
             {/* COMMENTS */}
-            {reveal && (
+            
               <div
-                ref={(el) => (cardsRef.current[2] = el)}
-                className="bg-[var(--bg-surface)] rounded-2xl p-5 border border-[var(--border-subtle)] overflow-hidden"
-              >
+  ref={(el) => (cardsRef.current[2] = el)}
+  className="bg-[var(--bg-surface)] rounded-2xl p-5 border border-[var(--border-subtle)] overflow-hidden opacity-0"
+>
                 <div className="content-wrapper">
 
                   <div className="old-content text-[var(--text-muted)] text-sm">
@@ -409,7 +412,7 @@ const loadPortfolio = (inputCode) => {
 
                 </div>
               </div>
-            )}
+            
 
           </div>
 

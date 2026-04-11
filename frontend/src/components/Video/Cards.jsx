@@ -64,9 +64,7 @@ export default function Cards() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ perspective: "1200px" }}>
-      {selectedId !== null && (
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-md z-[15000] transition-all duration-500" onClick={() => setSelectedId(null)} />
-      )}
+      
 
       {cards.map(card => {
         let scale = card.baseScale;

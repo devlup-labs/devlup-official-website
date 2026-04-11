@@ -480,12 +480,7 @@ const loadPortfolio = (inputCode) => {
           className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)]"
         />
 
-        <button
-          onClick={() => loadPortfolio(searchKey)}
-          className="px-8 py-3 border border-[var(--border-subtle)] rounded-xl text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
-        >
-          EXECUTE SCAN
-        </button>
+        
       </div>
       </div>
     </>

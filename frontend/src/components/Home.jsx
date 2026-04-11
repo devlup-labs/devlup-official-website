@@ -2,6 +2,7 @@ import React, { useRef, useMemo, useState, useCallback, useEffect, Suspense } fr
 import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, ScrollControls, Scroll, useScroll, OrbitControls, Html, PerspectiveCamera, useGLTF } from "@react-three/drei";
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header.jsx";
@@ -940,7 +941,7 @@ export const Loader = ({ onComplete }) => {
           <div className={`text-blacktext-[9rem] sm:text-[19rem] flex items-center loader-path-base ${morphPath ? 'loader-path-morph' : ''}`}>
             <span className="loader-brand-text loader-path-symbols">
               {text.includes('.') && (
-                <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>·</span>
+                <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>Â·</span>
               )}
               {text.includes('/') && <span className={`loader-path-slash ${morphPath && text === './' ? 'loader-slash-orbit' : ''}`}>/</span>}
             </span>
@@ -1183,65 +1184,17 @@ const ProfileCard = () => {
   );
 };
 
-export function SciFiHUD({ onClose }) {
-  return (
-    <div className="flex flex-col w-screen min-h-screen bg-[#02050A]">
-      <Header />
-      
-      <div className="flex-1 flex items-center justify-center overflow-auto p-8 bg-[#02050A]">
-        <HUDStyles />
-        
-        <button className="hud-back-button" onClick={onClose || (() => window.history.back())}>
-          Back
-        </button>
-        
-        <div className="holo-card-shell">
-          <div className="holo-border-glow" />
-          <div className="holo-corner tl" style={{ top: 0, left: 0 }} />
-          <div className="holo-corner tr" style={{ top: 0, right: 0, borderRight: '3px solid rgba(224, 237, 255, 0.75)', borderBottom: 'none', borderLeft: 'none', borderRadius: '0 10px 0 0' }} />
-          <div className="holo-corner bl" style={{ bottom: 0, left: 0, borderBottom: '3px solid rgba(224, 237, 255, 0.75)', borderRight: 'none', borderTop: 'none', borderRadius: '0 0 0 10px' }} />
-          <div className="holo-corner br" style={{ bottom: 0, right: 0, borderBottom: '3px solid rgba(224, 237, 255, 0.75)', borderLeft: '3px solid rgba(224, 237, 255, 0.75)', borderTop: 'none', borderRadius: '0 0 10px 0' }} />
 
-          <div className="typewriter-title-container">
-            <h2 className="typewriter-title">About Us</h2>
-          </div>
-
-          <div className="holo-avatar-ring">
-            <div className="devlup-labs-watermark">DevlUp Labs</div>
-          </div>
-          <div className="holo-avatar" />
-
-          <div className="about-us-content">
-            <p>
-              We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
-            </p>
-            <p>
-              Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities—one that reacts, illuminates, and adapts to the contours of virtual environments.
-            </p>
-            <p>
-              Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
-            </p>
-          </div>
-
-          <div className="holo-chip" />
-          <div className="holo-noise" />
-        </div>
-      </div>
-      
-      <Footer />
-    </div>
-  );
-}
 
 /* ==================== LANDING PAGE / HOME COMPONENTS ==================== */
 
 const SECTIONS = [
-  { name: "Home", icon: "🏠", tagline: "Welcome to DevlUp Labs", description: "Your command center for everything we build." },
-  { name: "Timeline", icon: "📅", tagline: "Chronicle Your Journey", description: "Visualize your milestones and progress." },
-  { name: "Videos", icon: "🎬", tagline: "Cinematic Storytelling", description: "Immersive video content crafted for maximum impact." },
-  { name: "Podcast", icon: "🎙️", tagline: "Voices That Resonate", description: "Deep conversations and thought-provoking discussions." },
-  { name: "Blogs", icon: "✍️", tagline: "Words That Inspire", description: "In-depth articles and thought leadership." },
-  { name: "Team", icon: "👥", tagline: "The Minds Behind the Vision", description: "Passionate creators building the future." },
+  { name: "Home", icon: "ðŸ ", tagline: "Welcome to DevlUp Labs", description: "Your command center for everything we build." },
+  { name: "Timeline", icon: "ðŸ“…", tagline: "Chronicle Your Journey", description: "Visualize your milestones and progress." },
+  { name: "Videos", icon: "ðŸŽ¬", tagline: "Cinematic Storytelling", description: "Immersive video content crafted for maximum impact." },
+  { name: "Podcast", icon: "ðŸŽ™ï¸", tagline: "Voices That Resonate", description: "Deep conversations and thought-provoking discussions." },
+  { name: "Blogs", icon: "âœï¸", tagline: "Words That Inspire", description: "In-depth articles and thought leadership." },
+  { name: "Team", icon: "ðŸ‘¥", tagline: "The Minds Behind the Vision", description: "Passionate creators building the future." },
 ];
 
 const BLOCK_COLORS = ["#00E5FF", "#00A1FF", "#0044FF", "#00D2FF", "#0077FF", "#00BAFF"];
@@ -1578,25 +1531,7 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-              <div ref={aboutUsRef} className="w-screen min-h-screen flex flex-col items-center justify-center p-20 text-center bg-gradient-to-b from-black/80 to-black" style={{ position: 'absolute', top: '200vh' }}>
-                <div className="w-full h-full flex flex-col items-center justify-center gap-8">
-                  <div className="inline-block px-5 py-2 rounded-full border border-cyan-400/40 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">About Us</div>
-                  <h2 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF] max-w-5xl drop-shadow-[0_0_30px_rgba(0,229,255,0.4)] mb-8">
-                    DevlUp Labs
-                  </h2>
-                  <div className="max-w-3xl space-y-6">
-                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
-                      We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
-                    </p>
-                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
-                      Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities—one that reacts, illuminates, and adapts to the contours of virtual environments.
-                    </p>
-                    <p className="text-xl text-slate-300 font-light leading-relaxed drop-shadow-md">
-                      Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
-                    </p>
-                  </div>
-                </div>
-              </div>
+              
             </Scroll>
           </ScrollControls>
         </Canvas>
@@ -1609,4 +1544,807 @@ export default function Home() {
       )}
     </>
   );
+}
+
+
+
+const CSS_STYLES = `
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MUSEUM LANDING PAGE â€” about2.css
+   Scroll-driven cinematic layout Â· Louvre-inspired design
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* â”€â”€â”€ Hide Scrollbar Globally â”€â”€â”€ */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* â”€â”€â”€ Page Container â”€â”€â”€ */
+.museum-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000000;
+}
+
+/* â”€â”€â”€ Canvas â”€â”€â”€ */
+.museum-canvas {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FIXED OVERLAY  (always above canvas + scroll)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.museum-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.museum-overlay a,
+.museum-overlay button {
+  pointer-events: auto;
+}
+
+/* â”€â”€â”€ Faint Grid Lines â”€â”€â”€ */
+.museum-grid-lines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: space-evenly;
+  pointer-events: none;
+}
+
+.museum-grid-line {
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 20%,
+    rgba(255, 255, 255, 0.04) 80%,
+    transparent 100%
+  );
+}
+
+/* â”€â”€â”€ Header â”€â”€â”€ */
+.museum-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 48px;
+  z-index: 110;
+  animation: fadeIn 1.2s ease 0.3s both;
+}
+
+.museum-logo {
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+}
+
+/* â”€â”€â”€ Navigation â”€â”€â”€ */
+.museum-nav {
+  display: flex;
+  gap: 36px;
+  align-items: center;
+}
+
+.museum-nav-link {
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+  padding-bottom: 6px;
+  cursor: pointer;
+}
+
+.museum-nav-link:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.museum-nav-link.active {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.museum-nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  background: #4a7dff;
+  border-radius: 2px;
+}
+
+/* â”€â”€â”€ Menu Button (3Ã—3 dots) â”€â”€â”€ */
+.museum-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.museum-menu-btn:hover {
+  opacity: 0.9;
+}
+
+.museum-dots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3.5px;
+}
+
+.museum-dot {
+  width: 3px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 50%;
+}
+
+/* â”€â”€â”€ Side Pagination â”€â”€â”€ */
+.museum-pagination {
+  position: absolute;
+  left: 48px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  animation: fadeIn 1.5s ease 1.2s both;
+}
+
+.museum-page-active {
+  width: 2px;
+  height: 32px;
+  background: #4a7dff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(74, 125, 255, 0.4);
+}
+
+.museum-page-dot {
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transition: background 0.3s ease;
+}
+
+/* â”€â”€â”€ Bottom Accent Line â”€â”€â”€ */
+.museum-bottom-line {
+  position: absolute;
+  bottom: 24px;
+  left: 48px;
+  right: 48px;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.08) 80%,
+    transparent
+  );
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   SCROLL SECTIONS  (inside <Scroll html>)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+.scroll-section {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* â”€â”€ Section 1 â€” Hero â”€â”€ */
+.hero-section {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 48px 10% 48px;
+}
+
+.hero-text-group {
+  max-width: 600px;
+}
+
+.hero-title {
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  font-weight: 300;
+  font-size: clamp(3rem, 7vw, 6.5rem);
+  line-height: 1.05;
+  margin: 0;
+  background: linear-gradient(135deg, #4488ff 0%, #ff4466 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0px 2px 20px rgba(0,0,0,0.8));
+}
+
+.hero-line {
+  display: block;
+}
+
+.hero-indent {
+  padding-left: 0.6em;
+}
+
+.hero-indent-2 {
+  padding-left: 1.6em;
+}
+
+.hero-description-wrap {
+  max-width: 240px;
+  align-self: flex-end;
+  margin-bottom: 2%;
+}
+
+.hero-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+}
+
+/* â”€â”€ Section 2 â€” Detail Cards â”€â”€ */
+.detail-section {
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 80px;
+}
+
+.detail-content {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.detail-block {
+  padding: 24px 0;
+  will-change: transform, opacity;
+}
+
+.detail-heading {
+  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  font-weight: 300;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  text-shadow: 0 1px 20px rgba(0, 0, 0, 0.4);
+}
+
+.detail-heading-large {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+}
+
+.detail-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 300;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+  max-width: 360px;
+}
+
+.detail-separator {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.12),
+    rgba(255, 255, 255, 0.04) 80%,
+    transparent
+  );
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   KEYFRAME ANIMATIONS
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RESPONSIVE
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+@media (max-width: 768px) {
+  .museum-header {
+    padding: 20px 24px;
+  }
+
+  .museum-nav {
+    display: none;
+  }
+
+  .museum-logo {
+    font-size: 1rem;
+  }
+
+  .hero-section {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 24px 15% 24px;
+    gap: 24px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.2rem, 10vw, 3.5rem);
+  }
+
+  .hero-description-wrap {
+    max-width: 200px;
+    align-self: flex-start;
+  }
+
+  .hero-description {
+    font-size: 0.6rem;
+  }
+
+  .detail-section {
+    padding: 0 0 0 24px;
+  }
+
+  .detail-content {
+    max-width: 260px;
+  }
+
+  .detail-heading {
+    font-size: clamp(1.4rem, 6vw, 2rem);
+  }
+
+  .detail-heading-large {
+    font-size: clamp(1.6rem, 7vw, 2.4rem);
+  }
+
+  .detail-text {
+    font-size: 0.6rem;
+  }
+
+  .museum-pagination {
+    left: 20px;
+  }
+
+  .museum-bottom-line {
+    left: 24px;
+    right: 24px;
+  }
+}
+`
+
+useGLTF.preload('/penguin3l.glb')
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   UTILITY FUNCTIONS
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/** Map a scroll offset range [start, end] â†’ [0, 1] */
+function scrollRange(offset, start, end) {
+  return THREE.MathUtils.clamp((offset - start) / (end - start), 0, 1)
+}
+
+/** Smooth cubic ease-in-out */
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   3D COMPONENTS
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+/* â”€â”€â”€ Glowing Ring (Torus) â”€â”€â”€ */
+function GlowRing({ scrollRef }) {
+  const ringRef = useRef()
+
+  useFrame((state) => {
+    if (!ringRef.current) return
+    const t = state.clock.getElapsedTime()
+    const offset = scrollRef.current
+
+    // Breathing pulse
+    ringRef.current.material.emissiveIntensity = 1.5 + Math.sin(t * 0.8) * 0.3
+
+    // Match text hinge direction (negative Y)
+    const hinge = easeInOutCubic(scrollRange(offset, 0.05, 0.35))
+
+    // Move left
+    // Using the same translation amount as the penguin
+    ringRef.current.position.x = THREE.MathUtils.lerp(-1.25, -1.25 - 2, hinge)
+  })
+
+  return (
+    <mesh ref={ringRef} position={[-1.25, -0.2, -1]} scale={[1,1,1]}>
+      <torusGeometry args={[3.2, 0.06, 32, 128]} />
+      <meshStandardMaterial
+        color="#ffffff"
+        emissive="#ffffff"
+        emissiveIntensity={1.8}
+        toneMapped={false}
+        transparent
+      />
+    </mesh>
+  )
+}
+
+/* â”€â”€â”€ Scene Lighting â”€â”€â”€ */
+function SceneLighting() {
+  return (
+    <>
+      <ambientLight intensity={0.15} color="#b0c4de" />
+      <directionalLight
+        position={[5, 8, 3]}
+        intensity={1.2}
+        color="#ffeedd"
+        castShadow
+      />
+      <directionalLight
+        position={[-4, 3, -5]}
+        intensity={0.8}
+        color="#4488ff"
+      />
+      <directionalLight
+        position={[0, -3, 2]}
+        intensity={0.3}
+        color="#aabbcc"
+      />
+      <spotLight
+        position={[0, 10, 2]}
+        angle={0.35}
+        penumbra={0.8}
+        intensity={1.5}
+        color="#ffffff"
+        castShadow
+      />
+    </>
+  )
+}
+
+/* â”€â”€â”€ Penguin Model â”€â”€â”€ */
+function PenguinModel({ scrollRef }) {
+  const { scene } = useGLTF('/penguin3l.glb')
+  const groupRef = useRef()
+
+  useFrame(() => {
+    if (!groupRef.current) return
+    const offset = scrollRef.current
+
+    const move = easeInOutCubic(scrollRange(offset, 0.05, 0.35))
+
+    groupRef.current.position.x = THREE.MathUtils.lerp(
+      -10.8,
+      -12.8,
+      move
+    )
+
+    const s = 0.2
+    groupRef.current.scale.set(s, s, s)
+  })
+
+  return (
+    <group
+      ref={groupRef}
+      position={[-10.8, 0, -3]}
+      scale={[0.50, 0.5, 0.5]}
+      rotation={[0, -Math.PI / 2, 0]}
+    >
+      <primitive object={scene} />
+    </group>
+  )
+}
+
+/* â”€â”€â”€ Floating Particles â”€â”€â”€ */
+function FloatingParticles() {
+  const particlesRef = useRef()
+  const count = 60
+
+  const positions = useMemo(() => {
+    const pos = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 16
+      pos[i * 3 + 1] = (Math.random() - 0.5) * 10
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 10 - 2
+    }
+    return pos
+  }, [])
+
+  useFrame((state) => {
+    if (particlesRef.current) {
+      particlesRef.current.rotation.y = state.clock.getElapsedTime() * 0.015
+    }
+  })
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={count}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.03}
+        color="#ffffff"
+        transparent
+        opacity={0.4}
+        sizeAttenuation
+      />
+    </points>
+  )
+}
+
+/* â”€â”€â”€ Cinematic Camera Rig â”€â”€â”€ */
+function CameraRig({ scrollRef }) {
+  const { camera } = useThree()
+  const lookTarget = useMemo(() => new THREE.Vector3(-1, 0, 0), [])
+  const targetPos = useMemo(() => new THREE.Vector3(), [])
+
+  useFrame(() => {
+    const offset = scrollRef.current
+    const progress = easeInOutCubic(scrollRange(offset, 0.0, 0.35))
+
+    targetPos.set(
+      THREE.MathUtils.lerp(-0.5, -3.5, progress),
+      THREE.MathUtils.lerp(0.5, 0.8, progress),
+      THREE.MathUtils.lerp(7, 4.5, progress)
+    )
+
+    camera.position.lerp(targetPos, 0.08)
+
+    lookTarget.x += (THREE.MathUtils.lerp(-1, -6.5, progress) - lookTarget.x) * 0.08
+    lookTarget.y = 0
+    lookTarget.z = 0
+    camera.lookAt(lookTarget)
+  })
+
+  return null
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   SCENE ORCHESTRATOR  (lives inside ScrollControls)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function SceneContent() {
+  const scroll = useScroll()
+  const scrollRef = useRef(0)
+
+  useFrame(() => {
+    scrollRef.current = scroll.offset
+  })
+
+  return (
+    <>
+      <CameraRig scrollRef={scrollRef} />
+      <SceneLighting />
+
+      <Suspense fallback={null}>
+        <GlowRing scrollRef={scrollRef} />
+        <PenguinModel scrollRef={scrollRef} />
+        <FloatingParticles />
+      </Suspense>
+
+      <EffectComposer>
+        <Bloom
+          luminanceThreshold={0.2}
+          luminanceSmoothing={0.9}
+          intensity={1.6}
+          mipmapBlur
+        />
+      </EffectComposer>
+    </>
+  )
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   SCROLL-DRIVEN HTML  (inside <Scroll html>)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function ScrollHTML() {
+  const scroll = useScroll()
+
+  const heroRef = useRef()
+  const leftTextRef = useRef()
+  const rightTextRef = useRef()
+  const detailRef = useRef()
+  const block1Ref = useRef()
+  const block2Ref = useRef()
+  const block3Ref = useRef()
+
+  useFrame(() => {
+    const offset = scroll.offset
+
+    if (heroRef.current && leftTextRef.current && rightTextRef.current) {
+      heroRef.current.style.perspective = '1200px'
+
+      const openProgress = easeInOutCubic(scrollRange(offset, 0.02, 0.15))
+      const opacity = 1 - openProgress
+
+      leftTextRef.current.style.opacity = opacity
+      leftTextRef.current.style.transformOrigin = 'left center'
+      leftTextRef.current.style.transform = `translateZ(${-500 * openProgress}px) rotateY(${-45 * openProgress}deg)`
+
+      rightTextRef.current.style.opacity = opacity
+      rightTextRef.current.style.transformOrigin = 'right center'
+      rightTextRef.current.style.transform = `translateZ(${500 * openProgress}px) rotateY(${-45 * openProgress}deg)`
+    }
+
+    if (detailRef.current) {
+      const fadeIn = easeInOutCubic(scrollRange(offset, 0.15, 0.35))
+      detailRef.current.style.opacity = fadeIn
+    }
+
+    if (block1Ref.current) {
+      const o = easeInOutCubic(scrollRange(offset, 0.15, 0.28))
+      block1Ref.current.style.opacity = o
+      block1Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+    }
+    if (block2Ref.current) {
+      const o = easeInOutCubic(scrollRange(offset, 0.20, 0.35))
+      block2Ref.current.style.opacity = o
+      block2Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+    }
+    if (block3Ref.current) {
+      const o = easeInOutCubic(scrollRange(offset, 0.25, 0.40))
+      block3Ref.current.style.opacity = o
+      block3Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+    }
+  })
+
+  return (
+    <Scroll html style={{ width: '100%' }}>
+      <div ref={heroRef} className="scroll-section hero-section">
+        <div ref={leftTextRef} className="hero-text-group">
+          <h1 className="hero-title">
+            <span className="hero-line">DevlUp</span>
+            <span className="hero-line hero-indent">Labs</span>
+          </h1>
+        </div>
+        <div ref={rightTextRef} className="hero-description-wrap">
+          <br />
+          <span className=" text-stone-50 leading-relaxed">
+          DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
+          highest of standards.We aim to build an open source community through proper guidance and by encouraging self learning.
+          We encourage development of technology and Innovation through various sessions, workshops and webinars.
+          </span>
+        </div>
+      </div>
+
+      <div ref={detailRef} className="scroll-section detail-section" style={{ top: 0, opacity: 0 }}>
+        <div className="detail-content">
+          <div ref={block1Ref} className="detail-block" style={{ opacity: 0 }}>
+            <h2 className="detail-heading">Learning Driven Endeavour</h2>
+            <p className="detail-text">
+              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth as the 
+              primary objective. Rather than focusing solely on a final result, it prioritizes the process of 
+              improvement, curiosity, and adaptation. 
+            </p>
+          </div>
+
+          <div className="detail-separator" />
+
+          <div ref={block2Ref} className="detail-block" style={{ opacity: 0 }}>
+            <h2 className="detail-heading detail-heading-large">Projects that matter to the community</h2>
+            <p className="detail-text">
+              We at devlup labs are committed to products and projects that matter,
+               projects that serve a real purpose for the community.
+            </p>
+          </div>
+
+          <div className="detail-separator" />
+
+          <div ref={block3Ref} className="detail-block" style={{ opacity: 0 }}>
+            <h2 className="detail-heading">Self Learning</h2>
+            <p className="detail-text">
+            At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals
+            take initiative to master new technologies. We maximize efficiency by ensuring the optimal 
+            utilization of available resources, enabling members to learn by building real-world projects.
+            </p>
+          </div>
+        </div>
+      </div>
+    </Scroll>
+  )
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FIXED OVERLAY  (Nav, Grid, Pagination â€” always visible)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+function FixedOverlay({ onClose }) {
+  return (
+    <div className="museum-overlay">
+      {/* Back Button */}
+      
+      
+      {/* Faint vertical grid lines */}
+      <div className="museum-grid-lines">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="museum-grid-line" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   MAIN EXPORT
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+export function SciFiHUD({ onClose }) {
+  return (
+    <>
+      <style>{CSS_STYLES}</style>
+      <div className="museum-layout w-screen min-h-screen relative overflow-x-hidden bg-[#050814]">
+        <Header />
+        
+        <div className="museum-page" style={{ height: '100vh', position: 'relative' }}>
+          <Canvas
+
+        className="museum-canvas"
+        camera={{ position: [-0.5, 0.5, 7], fov: 45 }}
+        gl={{
+          antialias: true,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.0,
+        }}
+      >
+        <color attach="background" args={['#000000']} />
+        <fog attach="fog" args={['#000000', 10, 22]} />
+
+        <ScrollControls pages={1.2} damping={1}>
+          <SceneContent />
+          <ScrollHTML />
+        </ScrollControls>
+      </Canvas>
+
+      <FixedOverlay onClose={onClose} />
+        </div>
+        <Footer />
+      </div>
+    </>
+  )
 }

@@ -20,10 +20,10 @@ const handleViewProfile = (e) => {
 const getBorderColor = (designation = "") => {
   const role = designation.toLowerCase();
 
-  if (role.includes("core")) return "#3B82F6";       // blue
-  if (role.includes("coordinator")) return "#4613bc"; // purple
-  if (role.includes("mentor")) return "#10B981";     // green
-  if (role.includes("alumni")) return "#F59E0B";     // orange
+  if (role.includes("core")) return "#3ba8f6";      
+  if (role.includes("coordinator")) return "#bcb613"; 
+  if (role.includes("mentor")) return "#3db910";     
+  if (role.includes("alumni")) return "#f5690b";     
 
   return "#E5E7EB"; // default gray
 };
@@ -80,7 +80,8 @@ const getBorderColor = (designation = "") => {
               height: window.innerWidth < 768 ? '320px' : '420px',
               transform: `scale(${focusProgress})`,
               opacity: focusProgress,
-            
+              border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`,
+ 
             }}
           >
             {showProfileUI && ( <div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">

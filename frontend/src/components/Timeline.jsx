@@ -31,19 +31,20 @@ const [timeline, setTimeline] = useState([]);
 
 
   return (
-    <div className="relative min-h-[300vh] overflow-hidden pt-64 [background-image:var(--bg-main-gradient)] bg-[var(--bg-fallback)]">
+    <div className="relative min-h-[300vh] overflow-hidden pt-64 bg-[var(--bg-surface)]">
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
  
 
      {/* HEADING HERE */}
-    <div className="absolute top-24 w-full text-center z-20 pointer-events-none">
-      <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
-        Our Learning Timeline
-      </h1>
-      <p className="mt-2  text-[var(--text-primary)]">
-        Explore the journey branch by branch
-      </p>
-    </div>
+    <div className="absolute top-35 w-full text-center  z-20 pointer-events-none">
+  <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
+     Chronicle of Progress
+  </h1>
+  <p className="mt-2 text-[var(--text-primary)]">
+    Advancing through structured milestones
+  </p>
+</div>
+
 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
         <CircuitTree activeCard={activeCard} flippedCards={flippedCards} />

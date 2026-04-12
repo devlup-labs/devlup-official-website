@@ -29,22 +29,27 @@ const [timeline, setTimeline] = useState([]);
       .catch(err => console.error(err));
   }, []);
 
+const containerHeight = 400 + branches.length * 240;
 
   return (
-    <div className="relative min-h-[300vh] overflow-hidden pt-64 bg-[var(--bg-surface)]">
+    
+    <div
+     style={{ minHeight: containerHeight }}
+     className="relative  overflow-hidden pt-64 bg-[var(--bg-surface)]">
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
  
 
      {/* HEADING HERE */}
-    <div className="absolute top-35 w-full text-center  z-20 pointer-events-none">
-  <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
-     Chronicle of Progress
-  </h1>
-  <p className="mt-2 text-[var(--text-primary)]">
-    Advancing through structured milestones
-  </p>
+<div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
+  <div className=" bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
+    <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
+      Chronicle of Progress
+    </h1>
+    <p className="mt-2 text-lg text-[var(--text-primary)]">
+      Defining growth through enduring milestones
+    </p>
+  </div>
 </div>
-
 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
         <CircuitTree activeCard={activeCard} flippedCards={flippedCards} />

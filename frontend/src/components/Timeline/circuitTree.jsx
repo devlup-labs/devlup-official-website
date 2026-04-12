@@ -28,7 +28,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
         scrollTrigger: {
           trigger: ".scene",
           start: "top 70%",
-          end: "center center",
+          end: "bottom bottom",
           scrub: true,
         },
       }

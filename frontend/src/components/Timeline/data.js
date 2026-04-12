@@ -1,11 +1,11 @@
-export const branches = [...Array(6)].map((_, i) => ({
+export const branches = [...Array(10)].map((_, i) => ({
   id: i,
 
-  // 📍 position
-  y: 260 + i * 240,
+  //  position
+  y: 200 + i * 240,
   side: i % 2 === 0 ? 1 : -1,
 
-  // 🧾 content
+  //  content
   title: `Phase ${i + 1}`,
 
   subtitle: [

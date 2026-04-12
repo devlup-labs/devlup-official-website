@@ -99,7 +99,7 @@ export default function RoadmapCard({
           <div className="flex-1 flex items-stretch p-1.5 gap-4">
             {/* Image Placeholder (Matches the light blue sky box) */}
             <div className="w-[100px] bg-gradient-to-br from-[#8bbcf1] to-[#e0efff] rounded shadow-inner">
-              <img src="public/logo.jpeg" alt="Logo" className="w-full h-full object-cover" />
+              <img src="logo.jpeg" alt="Logo" className="w-full h-full object-cover" />
             </div>
 
             {/* Text Area */}

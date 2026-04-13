@@ -14,6 +14,8 @@ export default function Podcast() {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
 
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
@@ -71,8 +73,8 @@ export default function Podcast() {
       });
   }, []);
 
-  // Convert podcasts from admin panel to items format for carousel
-  const items = podcasts.map((podcast) => ({
+  // Convert and filter podcasts from admin panel
+  const allItems = podcasts.map((podcast) => ({
     id: podcast.podcast_id,
     title: podcast.podcast_title,
     subtitle: podcast.podcast_subtitle || "",
@@ -83,6 +85,28 @@ export default function Podcast() {
     description: podcast.podcast_description || "No description available.",
     tags: Array.isArray(podcast.podcast_tags) ? podcast.podcast_tags : [],
   }));
+
+  // Filter items by search term and selected tag
+  const items = allItems.filter((item) => {
+    const titleMatch = item.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const authorMatch = item.author?.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchMatch = titleMatch || authorMatch;
+
+    const tagMatch = selectedTag === "All" || item.tags.includes(selectedTag);
+
+    return searchMatch && tagMatch;
+  });
+
+  // Extract all unique tags from podcasts
+  const allTags = ["All"];
+  podcasts.forEach((podcast) => {
+    const tags = Array.isArray(podcast.podcast_tags) ? podcast.podcast_tags : [];
+    tags.forEach(tag => {
+      if (!allTags.includes(tag)) {
+        allTags.push(tag);
+      }
+    });
+  });
 
   console.log("📊 Items array:", items);
   console.log("📊 Items length:", items.length);
@@ -266,7 +290,20 @@ export default function Podcast() {
   };
 
   return (
-    <div className="text-[var(--text-primary)]">
+    <div className="text-white">
+      {/* Fixed TopControls - Always Visible */}
+      <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none">
+        <div className="pointer-events-auto">
+          <TopControls 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedTag={selectedTag}
+            setSelectedTag={setSelectedTag}
+            tags={allTags}
+          />
+        </div>
+      </div>
+
       {loading ? (
         <div className="h-screen flex items-center justify-center">
           <div className="text-center">
@@ -275,7 +312,7 @@ export default function Podcast() {
           </div>
         </div>
       ) : items.length === 0 ? (
-        <div className="h-screen flex items-center justify-center">
+        <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <p className="text-2xl font-bold text-white mb-4">No Podcasts Found</p>
             <p className="text-gray-300">Please add podcasts from the admin panel.</p>
@@ -288,12 +325,6 @@ export default function Podcast() {
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoaded}
           />
-
-          <div className="fixed top-1 left-0 w-full flex justify-center z-[3000] pointer-events-none">
-            <div className="pointer-events-auto">
-              <TopControls />
-            </div>
-          </div>
 
           <div className="h-screen flex items-center justify-center overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">

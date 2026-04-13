@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 
-const videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiXIRuZj0","314S3-0_I2I","hlhy1QsZ4Bw","U-isVE5n4TY","WvQCFqRkaec","ZdTQ-bCDU0w"];
-
+// Base dimensions for the background cards
 const CARD_WIDTH = 220;
 const CARD_HEIGHT = 124; 
 const SIZE = CARD_WIDTH;
@@ -19,7 +18,7 @@ const START_OFFSET_Y = 34;
 const BOTTOM_OFFSET = 44;
 const SIDE_OFFSET = 32;
 
-export default function Cards() {
+export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiXIRuZj0","314S3-0_I2I","hlhy1QsZ4Bw","U-isVE5n4TY","WvQCFqRkaec","ZdTQ-bCDU0w"] }) {
   const [activeId, setActiveId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -30,9 +29,9 @@ export default function Cards() {
 
     const result = [];
     let id = 0;
-    const count = Math.floor((w * h) / (SIZE * SIZE * 0.45));
+    const count = Math.min(Math.floor((w * h) / (SIZE * SIZE * 0.45)), videoIds.length * 3); // cap count so not infinite loop if small array
 
-    while (result.length < count) {
+    while (result.length < count && videoIds.length > 0) {
       let attempts = 0;
       let placed = false;
       while (!placed && attempts < MAX_ATTEMPTS) {
@@ -40,26 +39,26 @@ export default function Cards() {
         const y = START_OFFSET_Y + (CARD_HEIGHT / 2) + Math.random() * Math.max(0, h - START_OFFSET_Y);
 
         if (result.every(c => Math.hypot(c.x - x, c.y - y) > MIN_DIST)) {
-          const vId = videoIds[id % videoIds.length];
-          result.push({
-            id,
-            videoId: vId,
-            thumbnail: `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
-            x,
-            y,
-            baseScale: 0.75 + Math.random() * 0.5,
-          });
-          id++;
-          placed = true;
+            const vId = videoIds[id % videoIds.length];
+            result.push({
+              id,
+              videoId: vId,
+              thumbnail: `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
+              x,
+              y,
+              baseScale: 0.75 + Math.random() * 0.5,
+            });
+            id++;
+            placed = true;
+          }
+          attempts++;
         }
-        attempts++;
+        if (!placed) break;
       }
-      if (!placed) break;
-    }
-    return result;
-  }, []);
-
-  const active = cards.find(c => c.id === activeId);
+      return result;
+    }, [videoIds]);
+  
+    const active = cards.find(c => c.id === activeId);
 
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ perspective: "1200px" }}>

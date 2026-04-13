@@ -1,7 +1,12 @@
 import { FaTags } from "react-icons/fa";
 
-export default function FilterButton({ filterOpen, setFilterOpen }) {
-  const tags = ["All", "3D Web", "Blockchain", "JS", "React", "Cloud"];
+export default function FilterButton({ 
+  filterOpen, 
+  setFilterOpen,
+  selectedTag = "All",
+  setSelectedTag = () => {},
+  tags = ["All", "3D Web", "Blockchain", "JS", "React", "Cloud"]
+}) {
 
   return (
     <div className="z-[2000]" onMouseDown={(e) => e.stopPropagation()}>
@@ -21,8 +26,7 @@ export default function FilterButton({ filterOpen, setFilterOpen }) {
 
         {/* BUTTON */}
         <button
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
+          onMouseDown={(e) => {
             e.stopPropagation();
             setFilterOpen(!filterOpen);
           }}
@@ -53,9 +57,15 @@ export default function FilterButton({ filterOpen, setFilterOpen }) {
           {tags.map((tag) => (
             <button
               key={tag}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-              className="px-3 py-1 rounded-full text-[10px] md:text-xs text-white hover:text-white hover:bg-white/10 transition-colors whitespace-nowrap pointer-events-auto"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setSelectedTag(tag);
+              }}
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto ${
+                selectedTag === tag
+                  ? "bg-white/30 text-white font-semibold"
+                  : "text-white hover:text-white hover:bg-white/10"
+              }`}
             >
               {tag}
             </button>

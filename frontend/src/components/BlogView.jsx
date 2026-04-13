@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { getBlog, getComments, postComment, deleteComment } from "../api/services.js";
 import { MessageCircle, Send, Loader, Trash2 } from "lucide-react";
 
@@ -13,6 +13,16 @@ export default function BlogView() {
   const [submitting, setSubmitting] = useState(false);
 
   /* ================= FETCH ================= */
+  useLayoutEffect(() => {
+    // Disable smooth scroll behavior
+    document.documentElement.style.scrollBehavior = "auto";
+    
+    // Set scroll to top before browser paints
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [id]);
+
   useEffect(() => {
     getBlog(id)
       .then((res) => setBlog(res.data?.data || res.data))

@@ -5,8 +5,6 @@ import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
 import { getTeam } from "../api/services"; 
 
-const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -134,16 +132,18 @@ function Team() {
   const [focusProgress, setFocusProgress] = useState(0);
 
   const tileRefs = useRef({});
+  const sectionRef = useRef(null);
   const rotationRef = useRef(0);
-  const scrollVelocity = useRef(0);
-  const frameRef = useRef(null); // Fixed the missing ReferenceError
+  const initialRotationRef = useRef(0);
+  const scrollBaseRotationRef = useRef(0);
+  const horizontalOffsetRef = useRef(0);
   const touchStartRef = useRef(0);
+  const isTouchingRef = useRef(false);
+  const TWO_TURNS_DEG = 720;
 
 useEffect(() => {
   getTeam()
     .then(res => {
-      const teamData = res.data.data; // ✅ correct path
-
     const formatted = res.data.data.map(item => ({
   memberId: item.member_id,
   name: item.member_name,
@@ -162,6 +162,8 @@ useEffect(() => {
     .catch(err => console.error("API error:", err));
 }, []);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const HORIZONTAL_WHEEL_FACTOR = isMobile ? 0.25 : 0.35;
+  const HORIZONTAL_TOUCH_FACTOR = isMobile ? 0.8 : 1;
   const ROWS = 5;
   const TILE_SIZE = isMobile ? 95 : 110; 
   const TILE_GAP = isMobile ? 15 : 20;  
@@ -194,7 +196,6 @@ useEffect(() => {
   };
 
   const triggerOpen = (id) => {
-    scrollVelocity.current = 0;
     setActiveTile(id);
     animateToCenter(id);
   };
@@ -221,41 +222,84 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    const handleWheel = (e) => {
-      if (activeTile) return;
-      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      scrollVelocity.current = clamp(scrollVelocity.current + (delta * (isMobile ? 0.02 : 0.01)), -10, 10);
-    };
-
-    const handleTouchMove = (e) => {
-      if (activeTile) return;
-      const touchX = e.touches[0].clientX;
-      const delta = (touchStartRef.current - touchX) * (isMobile ? 0.3 : 0.4); 
-      rotationRef.current = (rotationRef.current - delta) % 360;
+    const applyRotation = () => {
+      rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
       setRotation(rotationRef.current);
-      touchStartRef.current = touchX;
     };
 
-    const update = () => {
-      if (Math.abs(scrollVelocity.current) > 0.01) {
-        rotationRef.current = (rotationRef.current - scrollVelocity.current) % 360;
-        setRotation(rotationRef.current);
-        scrollVelocity.current *= 0.96; // RESTORED ORIGINAL FRICTION
-      }
-      frameRef.current = requestAnimationFrame(update);
+    const onScroll = () => {
+      if (activeTile) return;
+
+      const sectionEl = sectionRef.current;
+      if (!sectionEl) return;
+
+      const totalScrollable = sectionEl.offsetHeight - window.innerHeight;
+      if (totalScrollable <= 0) return;
+
+      const rect = sectionEl.getBoundingClientRect();
+      const passed = Math.max(0, Math.min(totalScrollable, -rect.top));
+      const progress = passed / totalScrollable;
+      const extraRotation = progress * TWO_TURNS_DEG;
+
+      scrollBaseRotationRef.current = initialRotationRef.current - extraRotation;
+      applyRotation();
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("touchstart", (e) => touchStartRef.current = e.touches[0].clientX);
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    frameRef.current = requestAnimationFrame(update);
+    const onWheel = (e) => {
+      if (activeTile) return;
+
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+
+      const rect = sectionRef.current?.getBoundingClientRect();
+      const inView = !!rect && rect.bottom > 0 && rect.top < window.innerHeight;
+      if (!inView) return;
+
+      horizontalOffsetRef.current -= e.deltaX * HORIZONTAL_WHEEL_FACTOR;
+      applyRotation();
+    };
+
+    const onTouchStart = (e) => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const inView = rect.bottom > 0 && rect.top < window.innerHeight;
+      if (!inView) return;
+
+      isTouchingRef.current = true;
+      touchStartRef.current = e.touches[0].clientX;
+    };
+
+    const onTouchMove = (e) => {
+      if (activeTile || !isTouchingRef.current) return;
+
+      const currentX = e.touches[0].clientX;
+      const delta = (touchStartRef.current - currentX) * HORIZONTAL_TOUCH_FACTOR;
+      touchStartRef.current = currentX;
+
+      horizontalOffsetRef.current -= delta;
+      applyRotation();
+    };
+
+    const onTouchEnd = () => {
+      isTouchingRef.current = false;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    onScroll();
 
     return () => {
-      window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchmove", handleTouchMove);
-      cancelAnimationFrame(frameRef.current);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, [activeTile, isMobile]);
+  }, [activeTile, HORIZONTAL_TOUCH_FACTOR, HORIZONTAL_WHEEL_FACTOR]);
 
  const tilesData = useMemo(() => {
   const out = [];
@@ -324,8 +368,10 @@ useEffect(() => {
 
   const newRotation = -targetAngle;
 
-  rotationRef.current = newRotation;
-  setRotation(newRotation);
+  initialRotationRef.current = newRotation;
+  scrollBaseRotationRef.current = newRotation;
+  rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
+  setRotation(rotationRef.current);
 
 }, [members]);
 
@@ -394,9 +440,9 @@ useEffect(() => {
   }, [rotation, activeTile, focusProgress, isMobile, tilesData]);
 
   return (
-    <section className="relative h-screen text-[var(--text-primary)] overflow-hidden touch-none overscroll-none">
+    <section ref={sectionRef} className="relative h-[300vh]">
       <div 
-        className="w-full h-full relative" 
+        className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden" 
         onClick={() => activeTile && closeCurrent()} 
         style={{ perspective: "1200px" }}
         

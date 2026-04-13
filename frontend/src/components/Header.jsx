@@ -129,22 +129,28 @@ function HeaderComponent() {
               {/* DESKTOP HAMBURGER */}
               <button
                 onClick={handleHamburgerClick}
-                className="flex flex-col gap-1.5 px-2 py-1"
+                aria-label="Toggle navigation menu"
+                className="relative m-[-6px] p-[6px]"
               >
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
-                <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                <span className="pointer-events-none flex flex-col gap-1.5 px-2 py-1">
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                </span>
               </button>
             </div>
 
             {/* MOBILE HAMBURGER */}
             <button
               onClick={handleHamburgerClick}
-              className="md:hidden flex flex-col gap-1.5 px-2 py-1 z-50"
+              aria-label="Toggle navigation menu"
+              className="md:hidden z-50 relative m-[-6px] p-[6px]"
             >
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
-              <span className={`h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+              <span className="pointer-events-none flex flex-col gap-1.5 px-2 py-1">
+                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
+                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
+                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+              </span>
             </button>
 
           </div>

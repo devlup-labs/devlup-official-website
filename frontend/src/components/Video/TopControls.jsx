@@ -4,7 +4,13 @@ import FilterButton from "./FilterButton";
 import { ThemeContext } from "../../App";
 import "./TopControls.css";
 
-export default function TopControls() {
+export default function TopControls({
+  searchTerm = "",
+  setSearchTerm = () => {},
+  selectedTag = "All",
+  setSelectedTag = () => {},
+  tags = ["All"]
+}) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
@@ -36,8 +42,19 @@ export default function TopControls() {
 
   return (
     <div className={`topControls ${glideClass}`}>
-      <SearchBar searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
-      <FilterButton filterOpen={filterOpen} setFilterOpen={setFilterOpen} />
+      <SearchBar 
+        searchOpen={searchOpen} 
+        setSearchOpen={setSearchOpen}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+      <FilterButton 
+        filterOpen={filterOpen} 
+        setFilterOpen={setFilterOpen}
+        selectedTag={selectedTag}
+        setSelectedTag={setSelectedTag}
+        tags={tags}
+      />
     </div>
   );
 }

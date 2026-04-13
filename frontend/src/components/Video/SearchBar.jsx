@@ -2,7 +2,7 @@ import { CiSearch } from "react-icons/ci";
 
 export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", setSearchTerm = () => {} }) {
   return (
-    <div className="flex items-center relative z-[2000]" onMouseDown={(e) => e.stopPropagation()}>
+    <div className="flex items-center relative z-[2000]" onClick={(e) => e.stopPropagation()}>
       
       <div
         className={`
@@ -17,13 +17,13 @@ export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", 
             : "w-10 h-10 justify-center"
           }
         `}
-        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* SEARCH ICON */}
         <CiSearch
           className="text-white cursor-pointer shrink-0 pointer-events-auto"
           size={18}
-          onMouseDown={(e) => {
+          onClick={(e) => {
             e.stopPropagation();
             setSearchOpen(!searchOpen);
           }}
@@ -35,7 +35,7 @@ export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", 
           placeholder="Search..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className={`
             bg-transparent border-none outline-none
             text-white text-sm

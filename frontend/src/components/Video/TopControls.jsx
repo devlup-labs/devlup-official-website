@@ -41,7 +41,7 @@ export default function TopControls({
   }
 
   return (
-    <div className={`topControls ${glideClass}`}>
+    <div className={`topControls relative z-[50000] pointer-events-none ${glideClass}`}>
       <SearchBar 
         searchOpen={searchOpen} 
         setSearchOpen={setSearchOpen}

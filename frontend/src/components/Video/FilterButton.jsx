@@ -9,11 +9,11 @@ export default function FilterButton({
 }) {
 
   return (
-    <div className="z-[2000]" onMouseDown={(e) => e.stopPropagation()}>
+    <div className="z-[2000]" onClick={(e) => e.stopPropagation()}>
 
       {/* SINGLE CONTAINER (IMPORTANT) */}
       <div
-        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         className={`
           flex items-center overflow-hidden
           bg-[var(--bg-muted)] backdrop-blur-md border border-white/10
@@ -26,7 +26,7 @@ export default function FilterButton({
 
         {/* BUTTON */}
         <button
-          onMouseDown={(e) => {
+          onClick={(e) => {
             e.stopPropagation();
             setFilterOpen(!filterOpen);
           }}
@@ -45,7 +45,7 @@ export default function FilterButton({
 
         {/* TAGS */}
         <div
-          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className={`
             flex items-center gap-2
             transition-all duration-500 ease-in-out
@@ -57,7 +57,7 @@ export default function FilterButton({
           {tags.map((tag) => (
             <button
               key={tag}
-              onMouseDown={(e) => {
+              onClick={(e) => {
                 e.stopPropagation();
                 setSelectedTag(tag);
               }}

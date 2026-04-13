@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
-import { getTimeline } from "../api/services"; 
+import { getTimeline } from "../api/services";
 
 export default function CircularTimeline() {
   // 1. STATE & DATA (Must be at the top)
@@ -45,8 +45,8 @@ export default function CircularTimeline() {
   const proxy = useRef({ rotation: startRotation });
 
   const maxRotation = startRotation;
-  const minRotation = events.length > 0 
-    ? startRotation - (events.length - 1) * sliceAngle 
+  const minRotation = events.length > 0
+    ? startRotation - (events.length - 1) * sliceAngle
     : startRotation;
 
   const theta = (sliceAngle * Math.PI) / 180;
@@ -127,7 +127,7 @@ export default function CircularTimeline() {
   /* ================= TEXT ANIMATION ================= */
   useEffect(() => {
     if (loading || events.length === 0) return;
-    
+
     gsap.fromTo(
       centerTextRef.current,
       { opacity: 0, y: -15 },

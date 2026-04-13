@@ -1,5 +1,6 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { ThemeContext } from "../App";
 import CircuitTree from "./Timeline/circuitTree";
 import RoadmapCard from "./Timeline/roadmapCard";
 import CameraRig from "./Timeline/cameraRig";
@@ -7,6 +8,7 @@ import { branches } from "./Timeline/data";
 import { getTimeline } from "../api/services"; 
 
 export default function Timeline() {
+  const { isDarkMode } = useContext(ThemeContext);
   const [activeCard, setActiveCard] = useState(null);
   const [cameraFocus, setCameraFocus] = useState(null);
   const [flippedCards, setFlippedCards] = useState({});
@@ -34,8 +36,14 @@ const containerHeight = 400 + branches.length * 240;
   return (
     
     <div
-     style={{ minHeight: containerHeight }}
-     className="relative  overflow-hidden pt-64 bg-[var(--bg-surface)]">
+     style={{ 
+       minHeight: containerHeight,
+       backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+       backgroundSize: "cover",
+       backgroundAttachment: "fixed",
+       backgroundPosition: "center"
+     }}
+     className="relative overflow-hidden pt-64 transition-all duration-500">
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
  
 

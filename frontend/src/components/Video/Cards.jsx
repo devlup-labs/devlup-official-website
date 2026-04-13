@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { FaYoutube } from "react-icons/fa";
 
 // Base dimensions for the background cards
 const CARD_WIDTH = 220;
@@ -61,7 +62,7 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
     const active = cards.find(c => c.id === activeId);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden" style={{ perspective: "1200px" }}>
+    <div className="relative w-full h-screen overflow-hidden">
 
       {/* 🔥 BACKDROP (click outside to close) */}
       {selectedId !== null && (
@@ -162,8 +163,9 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
                   />
 
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
-                    <div className="bg-red-600 w-12 h-8 rounded-lg flex items-center justify-center shadow-2xl">
-                      ▶
+                    <div className="relative flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                      <div className="absolute bg-white" style={{ width: '20px', height: '20px', zIndex: 0 }}></div>
+                      <FaYoutube className="text-red-600 w-16 h-16 drop-shadow-2xl relative z-10" />
                     </div>
                   </div>
                 </div>

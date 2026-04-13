@@ -8,7 +8,7 @@ const Timeline = () => {
 
   return (
     <div>
-      <TimelineComponent/>
+      <TimelineComponent />
     </div>
   );
 };

@@ -1,9 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
 import { getTeam } from "../api/services"; 
+import { CiSearch } from "react-icons/ci";
+import { FaTags } from "react-icons/fa";
+import { ThemeContext } from "../App"; 
 
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
@@ -131,6 +134,32 @@ function Team() {
   const [activeTile, setActiveTile] = useState(null);
   const [focusProgress, setFocusProgress] = useState(0);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("All");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (hamburgerOpen && (searchOpen || filterOpen)) {
+      setSearchOpen(false);
+      setFilterOpen(false);
+    }
+  }, [hamburgerOpen, searchOpen, filterOpen]);
+
+  useEffect(() => {
+    if ((searchOpen || filterOpen) && hamburgerOpen) {
+      setHamburgerOpen(false);
+    }
+  }, [searchOpen, filterOpen, hamburgerOpen, setHamburgerOpen]);
+
   const tileRefs = useRef({});
   const sectionRef = useRef(null);
   const rotationRef = useRef(0);
@@ -139,7 +168,7 @@ function Team() {
   const horizontalOffsetRef = useRef(0);
   const touchStartRef = useRef(0);
   const isTouchingRef = useRef(false);
-  const TWO_TURNS_DEG = 720;
+  const MAX_SCROLL_ROTATION = 360; // Faster, standard single complete sweep
 
 useEffect(() => {
   getTeam()
@@ -164,9 +193,10 @@ useEffect(() => {
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const HORIZONTAL_WHEEL_FACTOR = isMobile ? 0.25 : 0.35;
   const HORIZONTAL_TOUCH_FACTOR = isMobile ? 0.8 : 1;
-  const ROWS = 5;
-  const TILE_SIZE = isMobile ? 95 : 110; 
-  const TILE_GAP = isMobile ? 15 : 20;  
+  const ROWS = 4;
+  const COLS = 14;
+  const TILE_SIZE = isMobile ? 120 : 160; 
+  const TILE_GAP = isMobile ? 20 : 30;  
   const RADIUS = isMobile ? 320 : 700;  
   const SPLIT_SHIFT = isMobile ? 200 : 400; 
 
@@ -202,7 +232,7 @@ useEffect(() => {
 
   const animateToCenter = (id) => {
     const [row, index] = id.split("-").map(Number);
-    const angleStep = 360 / 18;
+    const angleStep = 360 / COLS;
     const offset = row % 2 ? angleStep / 2 : 0;
     const targetPosAngle = (index * angleStep + offset);
     const combinedAngle = (targetPosAngle + rotationRef.current) % 360;
@@ -219,6 +249,41 @@ useEffect(() => {
       if (t < 1) requestAnimationFrame(run);
     };
     requestAnimationFrame(run);
+  };
+
+  const snapToMember = (id) => {
+    const [row, index] = id.split("-").map(Number);
+    const angleStep = 360 / COLS;
+    const offset = row % 2 ? angleStep / 2 : 0;
+    const targetPosAngle = (index * angleStep + offset);
+    const currentRot = scrollBaseRotationRef.current + horizontalOffsetRef.current;
+    
+    let delta = (-targetPosAngle - currentRot) % 360;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+
+    const startOffset = horizontalOffsetRef.current;
+    const startTime = performance.now();
+    const run = (time) => {
+      const t = Math.min((time - startTime) / 800, 1);
+      const eased = 1 - Math.pow(1 - t, 4); // easeOutQuart
+      
+      horizontalOffsetRef.current = startOffset + (delta * eased);
+      rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
+      setRotation(rotationRef.current);
+      
+      if (t < 1) requestAnimationFrame(run);
+    };
+    requestAnimationFrame(run);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter" && searchTerm.trim() !== "") {
+      const match = tilesData.find(t => !t.isEmpty && t.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+      if (match) {
+        snapToMember(match.id);
+      }
+    }
   };
 
   useEffect(() => {
@@ -239,7 +304,7 @@ useEffect(() => {
       const rect = sectionEl.getBoundingClientRect();
       const passed = Math.max(0, Math.min(totalScrollable, -rect.top));
       const progress = passed / totalScrollable;
-      const extraRotation = progress * TWO_TURNS_DEG;
+      const extraRotation = progress * MAX_SCROLL_ROTATION;
 
       scrollBaseRotationRef.current = initialRotationRef.current - extraRotation;
       applyRotation();
@@ -301,9 +366,27 @@ useEffect(() => {
     };
   }, [activeTile, HORIZONTAL_TOUCH_FACTOR, HORIZONTAL_WHEEL_FACTOR]);
 
+  const filteredMembers = useMemo(() => {
+    return members.filter((m) => {
+      let tags = m.designation || m.tag || "";
+      if (typeof tags === 'string') {
+        tags = [tags.trim()];
+      }
+      return selectedTag === "All" || tags.includes(selectedTag);
+    });
+  }, [members, selectedTag]);
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set(["All"]);
+    members.forEach((m) => {
+      if (m.designation) tagSet.add(m.designation.trim());
+      else if (m.tag) tagSet.add(m.tag.trim());
+    });
+    return Array.from(tagSet);
+  }, [members]);
+
  const tilesData = useMemo(() => {
   const out = [];
-  const COLS = 18;
   const angleStep = 360 / COLS;
 
   // ⭐ Only use front half columns (visible initially)
@@ -311,7 +394,7 @@ useEffect(() => {
   const TOTAL_VISIBLE = ROWS * FRONT_COLS;
 
   // center within visible tiles
-  const startIndex = Math.floor((TOTAL_VISIBLE - members.length) / 2);
+  const startIndex = Math.floor((TOTAL_VISIBLE - filteredMembers.length) / 2);
 
   let visibleCounter = 0;
 
@@ -324,9 +407,9 @@ useEffect(() => {
       if (isFront) {
         if (
           visibleCounter >= startIndex &&
-          visibleCounter < startIndex + members.length
+          visibleCounter < startIndex + filteredMembers.length
         ) {
-          member = members[visibleCounter - startIndex];
+          member = filteredMembers[visibleCounter - startIndex];
         }
         visibleCounter++;
       }
@@ -342,13 +425,12 @@ useEffect(() => {
   }
 
   return out;
-}, [members]);
+}, [filteredMembers]);
 
 // 4. ⭐ ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
 useEffect(() => {
   if (members.length === 0) return;
 
-  const COLS = 18;
   const FRONT_COLS = Math.floor(COLS / 2);
   const angleStep = 360 / COLS;
 
@@ -377,8 +459,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (tilesData.length === 0) return;
-    const COLUMNS = 18;
-    const angleStep = 360 / COLUMNS;
+    const angleStep = 360 / COLS;
     let activeAngle = null;
 
     if (activeTile) {
@@ -441,6 +522,118 @@ useEffect(() => {
 
   return (
     <section ref={sectionRef} className="relative h-[300vh]">
+      {/* SEARCH AND FILTER CONTROLS - Fixed below header */}
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full pointer-events-none" style={{ top: "30px", background: "transparent" }}>
+        {/* SEARCH BAR */}
+        <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className={`
+              flex items-center
+              bg-[var(--bg-muted)]
+              border border-[var(--border-subtle)]
+              rounded-full
+              transition-all duration-500 ease-out
+              pointer-events-auto
+              ${searchOpen
+                ? "w-[300px] h-10 px-4 justify-start"
+                : "w-10 h-10 justify-center"
+              }
+            `}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <CiSearch
+              className="text-white cursor-pointer shrink-0 pointer-events-auto"
+              size={18}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSearchOpen(!searchOpen);
+              }}
+            />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search team..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              onMouseDown={(e) => e.stopPropagation()}
+              className={`
+                bg-transparent border-none outline-none
+                text-white text-sm
+                transition-all duration-300
+                pointer-events-auto
+                ${searchOpen
+                  ? "w-full ml-3 opacity-100"
+                  : "w-0 opacity-0"
+                }
+              `}
+              autoComplete="off"
+            />
+          </div>
+        </div>
+
+        {/* FILTER BUTTON */}
+        <div className="pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            className={`
+              flex items-center overflow-visible
+              bg-[var(--bg-muted)] backdrop-blur-md border border-white/10
+              transition-all duration-500 ease-in-out
+              pointer-events-auto
+              ${filterOpen ? "pr-3" : ""}
+              rounded-full
+            `}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setFilterOpen(!filterOpen);
+              }}
+              className={`
+                flex items-center justify-center text-white
+                w-10 h-10 md:w-auto md:px-4
+                transition-all duration-300 cursor-pointer
+                pointer-events-auto
+              `}
+            >
+              <FaTags size={16} />
+              <span className={`ml-2 text-xs text-white font-medium hidden md:block transition-opacity duration-300 ${filterOpen ? "opacity-100" : "opacity-100"}`}>
+                Filters
+              </span>
+            </button>
+
+            {/* TAGS */}
+            <div
+              className={`
+                flex items-center gap-2
+                transition-all duration-500 ease-in-out
+                pointer-events-auto
+                ${filterOpen ? "max-w-[800px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
+                overflow-hidden
+              `}
+            >
+              {allTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedTag(tag);
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-all pointer-events-auto ${
+                    selectedTag === tag
+                      ? "bg-white/30 text-white"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
       <div 
         className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden" 
         onClick={() => activeTile && closeCurrent()} 

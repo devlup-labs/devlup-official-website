@@ -1,10 +1,12 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, useContext } from "react";
 import { getBlog, getComments, postComment, deleteComment } from "../api/services.js";
 import { MessageCircle, Send, Loader, Trash2 } from "lucide-react";
+import { ThemeContext } from "../App";
 
 export default function BlogView() {
   const { id } = useParams();
+  const { isDarkMode } = useContext(ThemeContext);
   const [blog, setBlog] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,16 @@ export default function BlogView() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center text-white bg-[#0b0f14]">
+      <div 
+        className="h-screen flex items-center justify-center transition-all duration-500"
+        style={{
+          backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+          backgroundSize: "cover",
+          backgroundAttachment: "fixed",
+          backgroundPosition: "center",
+          color: isDarkMode ? "white" : "black"
+        }}
+      >
         Loading...
       </div>
     );
@@ -79,7 +90,16 @@ export default function BlogView() {
   /* ================= UI ================= */
 
   return (
-    <div className="bg-[#0b0f14] text-white min-h-screen flex flex-col">
+    <div 
+      className="min-h-screen flex flex-col transition-all duration-500"
+      style={{
+        backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+        color: isDarkMode ? "white" : "black"
+      }}
+    >
 
       {/* 🔷 HERO */}
       <div className="relative w-full h-[220px]">
@@ -97,8 +117,8 @@ export default function BlogView() {
         </div>
       </div>
 
-      {/* 🔻 CONTENT (FULL FLAT SECTION) */}
-      <div className="flex-1 w-full px-6 md:px-16 text-black bg-[var(--bg-card)] py-8">
+      {/* 🔻 MERGED CONTENT & COMMENTS */}
+      <div className={`flex-1 flex flex-col w-full px-6 md:px-16 pt-8 pb-10 backdrop-blur-md ${isDarkMode ? 'bg-black/30' : 'bg-white/50'}`}>
 
         {/* TAGS */}
         <div className="flex flex-wrap gap-2 text-sm mb-4">
@@ -115,22 +135,19 @@ export default function BlogView() {
         </p>
 
         {/* CONTENT */}
-        <p className="text-sm md:text-base leading-relaxed text-black whitespace-pre-wrap">
+        <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">
           {blog.blog_content}
         </p>
 
-      </div>
-
-      {/* 💬 COMMENTS (NO BOXES NOW) */}
-      <div className="w-full px-6 md:px-16 bg-[var(--bg-card)] text-black pb-10">
-
-        <h2 className="text-lg mb-4 flex gap-2 items-center">
+        {/* 💬 COMMENTS (NO BOXES NOW) */}
+        <div className={`mt-12 pt-8 border-t ${isDarkMode ? 'border-white/10' : 'border-black/10'}`}>
+          <h2 className="text-lg mb-4 flex gap-2 items-center">
           <MessageCircle size={18} />
           Comments ({comments.length})
         </h2>
 
         {comments.map((c) => (
-          <div key={c.comment_id} className="mb-4 border-b border-black pb-3">
+          <div key={c.comment_id} className={`mb-4 border-b pb-3 ${isDarkMode ? 'border-white/20' : 'border-black/20'}`}>
             <div className="flex justify-between text-xs opacity-50 mb-1">
               <span>{new Date(c.created_at).toLocaleDateString()}</span>
               <button onClick={() => handleDeleteComment(c.comment_id)}>
@@ -147,15 +164,25 @@ export default function BlogView() {
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.shiftKey) {
+                e.preventDefault();
+                handleSubmitComment(e);
+              }
+            }}
             rows={4}
             placeholder="Write comment..."
-            className="w-full p-3 bg-transparent border border-black rounded-lg outline-none"
+            className={`w-full p-3 bg-transparent border rounded-lg outline-none ${isDarkMode ? 'border-white/30 text-white placeholder:text-white/50' : 'border-black/30 text-black placeholder:text-black/50'}`}
           />
 
           <button
             type="submit"
             disabled={submitting}
-            className="mt-3 px-15 py-3 bg-[var(--bg-main1)] text-white rounded-lg flex items-center justify-center gap-2 w-fit"
+            className={`mt-3 px-15 py-3 text-white font-semibold rounded-lg flex items-center justify-center gap-2 w-fit transition-all hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:opacity-90 ${
+              isDarkMode 
+                ? 'bg-[var(--bg-surface)] border border-white/10 shadow-lg' 
+                : 'bg-[var(--bg-blog_card)] shadow-md'
+            }`}
           >
             {submitting ? (
               <Loader size={18} className="animate-spin" />
@@ -168,6 +195,7 @@ export default function BlogView() {
         </form>
 
       </div>
+    </div>
     </div>
   );
 }

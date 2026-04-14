@@ -1985,7 +1985,7 @@ export function SciFiHUD({ onClose }) {
         <color attach="background" args={['#000000']} />
         <fog attach="fog" args={['#000000', 10, 22]} />
 
-        <ScrollControls pages={1} damping={1}>
+        <ScrollControls pages={2} damping={0.1}>
           <SceneContent />
           <ScrollHTML />
         </ScrollControls>

@@ -491,7 +491,7 @@ useEffect(() => {
 
       const isActive = tile.id === activeTile;
 
-      const cx = window.innerWidth / 2 - 50;
+      const cx = window.innerWidth / 2 - 70;
       const cy = window.innerHeight / 2 + 10;
 
       let exX = 0, exY = 0, exZ = 0;

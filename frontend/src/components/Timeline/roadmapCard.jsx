@@ -130,7 +130,7 @@ export default function RoadmapCard({
           {/* Top text content */}
           <div>
             <h3 className="text-[13px] font-black text-bold uppercase leading-snug mb-2 tracking-tight">
-              Timeline Detailed Analysis: <br />
+              <span>Details about </span>
               <span className="">{title || "PHASE 1 ACHIEVEMENTS"}</span>
             </h3>
             <p className="text-[11px]  leading-relaxed line-clamp-3 font-medium">

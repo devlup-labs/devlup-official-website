@@ -1,19 +1,20 @@
-
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { branches } from "./data";
+
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function CircuitTree({ activeCard, flippedCards }) {
+export default function CircuitTree({ activeCard, flippedCards, branches }) {
   const centerLineRef = useRef(null);
   const branchRefs = useRef([]);
 
-  const LAST_Y = branches[branches.length - 1].y + 2000;
+  const data = Array.isArray(branches) ? branches : [];
+  const LAST_Y = data.length ? data[data.length - 1].y + 2000 : 2000;
 
   /* ================= CENTER LINE DRAW ================= */
   useEffect(() => {
+
     const length = centerLineRef.current.getTotalLength();
 
     gsap.fromTo(
@@ -33,7 +34,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
         },
       }
     );
-  }, []);
+  }, [data]);
 
   /* ================= BRANCH DRAW (ONCE) ================= */
   useEffect(() => {
@@ -61,13 +62,13 @@ export default function CircuitTree({ activeCard, flippedCards }) {
         }
       );
     });
-  }, []);
+  }, [data]);
 
 
 
   /* ================= BRANCH FLIP ANIMATION ================= */
   useEffect(() => {
-    branches.forEach((b) => {
+    data.forEach((b) => {
       const path = document.querySelector(
         `.branch-path[data-id="${b.id}"]`
       );
@@ -87,7 +88,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
         overwrite: "auto",
       });
     });
-  }, [flippedCards]);
+  }, [flippedCards, data]);
 
   /* ================= PATH HELPERS ================= */
   const STEM_X = 400;
@@ -123,7 +124,7 @@ export default function CircuitTree({ activeCard, flippedCards }) {
       />
 
       {/* ================= BRANCHES ================= */}
-      {branches.map((b, index) => (
+      {data.map((b, index) => (
         <g
           key={b.id}
           className="branch-wrapper"

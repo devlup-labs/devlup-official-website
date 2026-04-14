@@ -1,14 +1,16 @@
-
 import { useState, useEffect, useContext } from "react";
 import { ThemeContext } from "../App";
 import CircuitTree from "./Timeline/circuitTree";
 import RoadmapCard from "./Timeline/roadmapCard";
 import CameraRig from "./Timeline/cameraRig";
-import { branches } from "./Timeline/data";
-import { getTimeline } from "../api/services"; 
+import { getBranches } from "./Timeline/data";
 
 export default function Timeline() {
   const { isDarkMode } = useContext(ThemeContext);
+
+  const [branches, setBranches] = useState([]);
+  const [loadingBranches, setLoadingBranches] = useState(true);
+
   const [activeCard, setActiveCard] = useState(null);
   const [cameraFocus, setCameraFocus] = useState(null);
   const [flippedCards, setFlippedCards] = useState({});
@@ -20,53 +22,67 @@ export default function Timeline() {
     }));
   };
 
-const [timeline, setTimeline] = useState([]);
-
-  useEffect(() => { // backend connection test
-     getTimeline()
-      .then(res => {
-        console.log(res.data);
-        setTimeline(res.data);
+  useEffect(() => {
+    getBranches()
+      .then((data) => {
+        setBranches(data);
+        setLoadingBranches(false);
       })
-      .catch(err => console.error(err));
+      .catch((err) => {
+        console.error(err);
+        setLoadingBranches(false);
+      });
   }, []);
 
-const containerHeight = 400 + branches.length * 240;
+ if (loadingBranches) {
+  return (
+    <div className="h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-lg font-semibold text-white">
+          Loading Timeline...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+  const containerHeight = 400 + branches.length * 240;
 
   return (
-    
     <div
-     style={{ 
-       minHeight: containerHeight,
-       backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
-       backgroundSize: "cover",
-       backgroundAttachment: "fixed",
-       backgroundPosition: "center"
-     }}
-     className="relative overflow-hidden pt-64 transition-all duration-500">
+      style={{
+        minHeight: containerHeight,
+        backgroundImage: isDarkMode
+          ? "url('/bgweb4.jpeg')"
+          : "url('/bgweb3.jpeg')",
+        backgroundSize: "cover",
+        backgroundAttachment: "fixed",
+        backgroundPosition: "center",
+      }}
+      className="relative overflow-hidden pt-64 transition-all duration-500"
+    >
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
- 
 
-     {/* HEADING HERE */}
-<div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
-  <div className=" bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
-    <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
-      Chronicle of Progress
-    </h1>
-    <p className="mt-2 text-lg text-[var(--text-primary)]">
-      Defining growth through enduring milestones
-    </p>
-  </div>
-</div>
+      {/* HEADING */}
+      <div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
+        <div className="bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
+          <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
+            Chronicle of Progress
+          </h1>
+          <p className="mt-2 text-lg text-[var(--text-primary)]">
+            Defining growth through enduring milestones
+          </p>
+        </div>
+      </div>
 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
-        <CircuitTree activeCard={activeCard} flippedCards={flippedCards} />
+        <CircuitTree activeCard={activeCard} flippedCards={flippedCards}  branches={branches}  />
 
         {branches.map((branch) => (
           <RoadmapCard
             key={branch.id}
             {...branch}
-            id={branch.id}
             isActive={activeCard === branch.id}
             onActivate={() => {
               setActiveCard(branch.id);
@@ -83,7 +99,6 @@ const containerHeight = 400 + branches.length * 240;
     </div>
   );
 }
-
 
 
 // the old-code

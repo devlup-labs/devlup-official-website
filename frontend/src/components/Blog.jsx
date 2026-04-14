@@ -398,14 +398,23 @@ function Blog() {
       <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen overflow-hidden pointer-events-none z-0">
 
         {/* Debug info - shows if no cards are rendering */}
-        {layers.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-50">
-            <div className="text-white text-center">
-              <p className="text-2xl font-bold mb-4">Loading blogs...</p>
-              <p className="text-sm opacity-75">Blogs: {blogs.length} | Layers: {layers.length}</p>
-            </div>
-          </div>
-        )}
+    {layers.length === 0 && (
+  <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/40">
+    
+    <div className="flex flex-col items-center gap-4 text-center">
+      
+      {/* Spinner */}
+      <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+
+      {/* Main Text */}
+      <p className="text-xl font-semibold text-white tracking-wide">
+        Loading Blogs...
+      </p>
+
+
+    </div>
+  </div>
+)}
 
         {activeCard !== null && (
           <div

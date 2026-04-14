@@ -110,12 +110,12 @@ export default function Podcast() {
     });
   });
 
-  console.log("📊 Items array:", items);
-  console.log("📊 Items length:", items.length);
-  console.log("📊 Active index:", activeIndex);
-  console.log("📊 Clicked index:", clickedIndex);
-  console.log("📊 Active podcast:", items[activeIndex]);
-  console.log("📊 Audio URLs:", items.map(i => ({ title: i.title, audio: i.audio })));
+  // console.log("📊 Items array:", items);
+  // console.log("📊 Items length:", items.length);
+  // console.log("📊 Active index:", activeIndex);
+  // console.log("📊 Clicked index:", clickedIndex);
+  // console.log("📊 Active podcast:", items[activeIndex]);
+  // console.log("📊 Audio URLs:", items.map(i => ({ title: i.title, audio: i.audio })));
 
   // Ensure tracking updates in refs immediately
   useEffect(() => {

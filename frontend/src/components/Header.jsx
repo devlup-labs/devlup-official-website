@@ -43,8 +43,8 @@ function HeaderComponent() {
         <div className="flex items-center px-6 py-4">
 
           {/* LEFT */}
-          <Link
-            to="/"
+          <a
+            href="/"
             className="bg-[var(--bg-surface)]
             border border-[var(--border-subtle)]
             rounded-xl flex items-center gap-3 px-6 py-2 
@@ -54,7 +54,7 @@ function HeaderComponent() {
             <h1 className="text-[var(--text-primary)] text-lg font-semibold">
               DevlUp Labs
             </h1>
-          </Link>
+          </a>
 
           {/* RIGHT */}
           <div className="flex items-center ml-auto">

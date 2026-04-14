@@ -6,7 +6,6 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header.jsx";
-import Footer from "./Footer.jsx";
 
 /* ==================== DISC COMPONENTS ==================== */
 
@@ -51,10 +50,27 @@ export function Disc() {
 export function AnimatedBlock({ visible, popped = false, children }) {
   const groupRef = useRef();
   const currentScale = useRef(0);
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const target = visible ? (popped ? 2.05 : 1.8) : 0;
     currentScale.current = THREE.MathUtils.lerp(currentScale.current, target, 1 - Math.exp(-4 * delta));
-    if (groupRef.current) groupRef.current.scale.setScalar(currentScale.current);
+    if (groupRef.current) {
+      groupRef.current.scale.setScalar(currentScale.current);
+      
+      // Calculate angle from the model's absolute position to the camera's position
+      const worldPos = new THREE.Vector3();
+      groupRef.current.getWorldPosition(worldPos);
+      
+      const targetAngle = Math.atan2(
+        state.camera.position.x - worldPos.x,
+        state.camera.position.z - worldPos.z
+      );
+      
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        groupRef.current.rotation.y,
+        targetAngle,
+        5 * delta
+      );
+    }
   });
   return <group ref={groupRef} scale={0}>{children}</group>;
 }
@@ -78,6 +94,13 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
       meshRef.current.scale.setScalar(newScale);
     }
   });
+
+  const discUniforms = useMemo(() => ({ 
+    uTime: { value: 0 }, 
+    uColorInner: { value: new THREE.Color('#ffffff') }, 
+    uColorOuter: { value: new THREE.Color('#00E5FF') }, 
+    uGlobalOpacity: { value: 1.2 } 
+  }), []);
 
   const dotsCount = 16;
   const dots = useMemo(() => {
@@ -113,12 +136,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
               depthWrite={false} 
               blending={THREE.AdditiveBlending} 
               side={THREE.DoubleSide} 
-              uniforms={{ 
-                uTime: { value: 0 }, 
-                uColorInner: { value: new THREE.Color('#ffffff') }, 
-                uColorOuter: { value: new THREE.Color('#00E5FF') }, 
-                uGlobalOpacity: { value: 1.2 } 
-              }} 
+              uniforms={discUniforms} 
               vertexShader={`
                 varying vec2 vUv;
                 varying vec3 vNormal;
@@ -232,7 +250,7 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
   const isAnimatingBack = useRef(false);
   const prevFocused = useRef(null);
   const worldTarget = useRef(new THREE.Vector3());
-  const damping = 2.5;
+  const damping = 1.5;
 
   useFrame((_, delta) => {
     if (isTransitioning) return;
@@ -246,6 +264,9 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
     }
     
     if (targetSet && previousFocused !== null && focusedIndex !== previousFocused) {
+      // When switching between discs, save current camera state as new saved state
+      savedPos.current.copy(camera.position);
+      savedLookAt.current.copy(currentLookAt.current);
       isAnimatingBack.current = false;
     }
     
@@ -255,20 +276,20 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
     const lerpFactor = 1 - Math.exp(-damping * delta);
     if (targetSet) {
       const discObj = scene.getObjectByName(`disc-${focusedIndex}`);
-      if (!discObj) return;
-      
-      discObj.getWorldPosition(worldTarget.current);
-      outDir.current.set(worldTarget.current.x, 0, worldTarget.current.z).normalize();
-      
-      if (isNaN(outDir.current.x)) outDir.current.set(0, 0, 1);
+      if (discObj) {
+        discObj.getWorldPosition(worldTarget.current);
+        outDir.current.set(worldTarget.current.x, 0, worldTarget.current.z).normalize();
+        
+        if (isNaN(outDir.current.x)) outDir.current.set(0, 0, 1);
 
-      const hDist = 5, vDist = hDist * Math.tan(THREE.MathUtils.degToRad(25));
-      targetPos.current.set(worldTarget.current.x + outDir.current.x * hDist, worldTarget.current.y + vDist, worldTarget.current.z + outDir.current.z * hDist);
-      targetLookAt.current.set(worldTarget.current.x, worldTarget.current.y + 0.4, worldTarget.current.z);
-      
-      camera.position.lerp(targetPos.current, lerpFactor);
-      currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
-      camera.lookAt(currentLookAt.current);
+        const hDist = 5, vDist = hDist * Math.tan(THREE.MathUtils.degToRad(25));
+        targetPos.current.set(worldTarget.current.x + outDir.current.x * hDist, worldTarget.current.y + vDist, worldTarget.current.z + outDir.current.z * hDist);
+        targetLookAt.current.set(worldTarget.current.x, worldTarget.current.y + 0.4, worldTarget.current.z);
+        
+        camera.position.lerp(targetPos.current, lerpFactor);
+        currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
+        camera.lookAt(currentLookAt.current);
+      }
     } else if (isAnimatingBack.current) {
       camera.position.lerp(savedPos.current, lerpFactor);
       currentLookAt.current.lerp(savedLookAt.current, lerpFactor);
@@ -399,64 +420,15 @@ const HoloCard = ({ position, rotation, title, opacity, isMain }) => {
   );
 };
 
-export function HologramCards({ visible, scaleFactor = 1 }) {
-  const groupRef = useRef();
-  const card1Ref = useRef();
-  const card2Ref = useRef();
-  const card3Ref = useRef();
-  const currentScale = useRef(0);
-  const currentOpacity = useRef(0);
-  
-  useFrame((state, delta) => {
-    const targetScale = visible ? 1 : 0;
-    const targetOpacity = visible ? 1 : 0;
-    
-    currentScale.current = THREE.MathUtils.lerp(currentScale.current, targetScale, 1 - Math.exp(-6 * delta));
-    currentOpacity.current = THREE.MathUtils.lerp(currentOpacity.current, targetOpacity, 1 - Math.exp(-5 * delta));
-    
-    if (groupRef.current) {
-      const time = state.clock.elapsedTime;
-      groupRef.current.position.y = Math.sin(time * 1.2) * 0.12 + Math.sin(time * 2.3) * 0.05 + 1.5;
-      groupRef.current.scale.setScalar(currentScale.current);
-      groupRef.current.rotation.y = Math.sin(time * 0.3) * 0.05;
-    }
-    
-    if (card1Ref.current) {
-      card1Ref.current.position.z = THREE.MathUtils.lerp(card1Ref.current.position.z, 0, 1 - Math.exp(-5 * delta));
-      card1Ref.current.rotation.y = THREE.MathUtils.lerp(card1Ref.current.rotation.y, 0.35, 1 - Math.exp(-4 * delta));
-    }
-    
-    if (card2Ref.current) {
-      card2Ref.current.position.z = THREE.MathUtils.lerp(card2Ref.current.position.z, -1, 1 - Math.exp(-5 * delta));
-      card2Ref.current.scale.setScalar(THREE.MathUtils.lerp(card2Ref.current.scale.x, 1, 1 - Math.exp(-3 * delta)));
-    }
-    
-    if (card3Ref.current) {
-      card3Ref.current.position.z = THREE.MathUtils.lerp(card3Ref.current.position.z, 0, 1 - Math.exp(-5 * delta));
-      card3Ref.current.rotation.y = THREE.MathUtils.lerp(card3Ref.current.rotation.y, -0.35, 1 - Math.exp(-4 * delta));
-    }
-  });
-
-  if (!visible && currentScale.current < 0.01) return null;
-
-  return (
-    <group position={[0, 4, 10]}>
-      <group ref={groupRef}>
-          <group ref={card1Ref} position={[-3.5, 0, -3]}>
-            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="SYS_MONITOR" opacity={currentOpacity.current} />
-          </group>
-          <group ref={card2Ref} position={[0, 0, -4]} scale={0.8}>
-            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="CORE_MATRIX" isMain opacity={currentOpacity.current} />
-          </group>
-          <group ref={card3Ref} position={[3.5, 0, -3]}>
-            <HoloCard position={[0, 0, 0]} rotation={[0, 0, 0]} title="UPLINK_NODE" opacity={currentOpacity.current} />
-          </group>
-      </group>
-    </group>
-  );
-}
 
 export function WormholeTransition({ active }) {
+  const transitionUniforms = useMemo(() => ({
+    time: { value: 0 },
+    color1: { value: new THREE.Color('#000000') },
+    color2: { value: new THREE.Color('#00FFFF') },
+    color3: { value: new THREE.Color('#FFFFFF') }
+  }), []);
+
   const randomRange = useCallback((min, max) => THREE.MathUtils.randFloat(min, max), []);
   const createRandomCurve = useCallback((startPos) => {
     const points = [
@@ -535,12 +507,7 @@ export function WormholeTransition({ active }) {
         side={THREE.BackSide}
         transparent
         blending={THREE.AdditiveBlending}
-        uniforms={{
-          time: { value: 0 },
-          color1: { value: new THREE.Color('#000000') },
-          color2: { value: new THREE.Color('#00FFFF') },
-          color3: { value: new THREE.Color('#FFFFFF') }
-        }}
+        uniforms={transitionUniforms}
         vertexShader={`
           varying vec2 vUv;
           void main() {
@@ -928,6 +895,7 @@ export const Loader = ({ onComplete }) => {
       }`}
       style={{
         transition: 'opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+        
       }}
     >
       <div className="relative w-[600px] h-[480px] sm:w-[860px] sm:h-[580px]">
@@ -941,7 +909,7 @@ export const Loader = ({ onComplete }) => {
           <div className={`text-blacktext-[9rem] sm:text-[19rem] flex items-center loader-path-base ${morphPath ? 'loader-path-morph' : ''}`}>
             <span className="loader-brand-text loader-path-symbols">
               {text.includes('.') && (
-                <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>Â·</span>
+                <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>.</span>
               )}
               {text.includes('/') && <span className={`loader-path-slash ${morphPath && text === './' ? 'loader-slash-orbit' : ''}`}>/</span>}
             </span>
@@ -980,54 +948,6 @@ const HUDStyles = () => (
       100% { opacity: 0; }
     }
 
-    .holo-card-shell {
-      width: min(92vw, 1500px);
-      height: min(88vh, 720px);
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(182, 213, 255, 0.48);
-      border-radius: 34px;
-      background:
-        radial-gradient(120% 120% at 80% 20%, rgba(110, 158, 255, 0.32) 0%, rgba(98, 123, 255, 0.05) 42%, rgba(7, 14, 36, 0.14) 100%),
-        linear-gradient(165deg, rgba(164, 202, 255, 0.15) 0%, rgba(82, 105, 217, 0.09) 38%, rgba(17, 26, 56, 0.15) 100%);
-      backdrop-filter: blur(10px);
-      box-shadow:
-        0 0 40px rgba(157, 194, 255, 0.22),
-        0 18px 50px rgba(3, 9, 26, 0.45),
-        inset 0 0 0 1px rgba(208, 227, 255, 0.22);
-      color: #eef3ff;
-      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
-    }
-    .holo-border-glow {
-      position: absolute;
-      inset: 2px;
-      border-radius: 36px;
-      border: 2px solid rgba(223, 240, 255, 0.35);
-      box-shadow: inset 0 0 24px rgba(147, 194, 255, 0.28);
-      pointer-events: none;
-    }
-    .holo-corner {
-      position: absolute;
-      width: 64px;
-      height: 64px;
-      border: 3px solid rgba(224, 237, 255, 0.75);
-      border-bottom: none;
-      border-right: none;
-      border-radius: 10px 0 0 0;
-      opacity: 0.9;
-    }
-    .holo-avatar-ring {
-      position: absolute;
-      left: 50%;
-      top: 4.2%;
-      width: 44%;
-      aspect-ratio: 1;
-      border-radius: 999px;
-      opacity: 0.2;
-      transform: translateX(-50%);
-      border: 3px solid rgba(219, 239, 255, 0.9);
-      box-shadow: 0 0 28px rgba(155, 198, 255, 0.6), inset 0 0 30px rgba(127, 176, 255, 0.25);
-    }
     
     @keyframes typing {
       from { width: 0 }
@@ -1044,157 +964,19 @@ const HUDStyles = () => (
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .typewriter-title-container {
-      position: absolute;
-      top: 6%;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      z-index: 10;
-    }
-
-    .typewriter-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.8rem;
-      letter-spacing: 6px;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: rgba(223, 240, 255, 0.95);
-      text-shadow: 0 0 24px rgba(147, 194, 255, 0.7);
-      overflow: hidden;
-      border-right: .15em solid transparent;
-      white-space: nowrap;
-      display: inline-block;
-      text-align: center;
-      animation: 
-        typing 3s steps(40) forwards,
-        blink-caret .5s step-end 1;
-    }
-
-    .devlup-labs-watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: min(4vw, 4rem);
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 16px;
-      opacity: 0.2;
-      white-space: nowrap;
-      color: rgba(219, 239, 255, 1);
-      text-shadow: 0 0 40px rgba(155, 198, 255, 0.8);
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .about-us-content {
-      position: absolute;
-      top: 22%;
-      left: 8%;
-      right: 8%;
-      bottom: 8%;
-      color: rgba(238, 243, 255, 0.8);
-      font-size: 1.15rem;
-      line-height: 1.9;
-      text-shadow: 0 0 12px rgba(157, 194, 255, 0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-      z-index: 5;
-      opacity: 0;
-      animation: fade-in-text 1.2s ease-out 2.6s forwards;
-    }
-
-    .about-us-content p {
-      margin: 0;
-      text-align: justify-center;
-    }
-
-    .hud-back-button {
-      position: fixed;
-      top: 22px;
-      left: 22px;
-      z-index: 100000;
-      border: 1px solid rgba(198, 223, 255, 0.55);
-      border-radius: 999px;
-      background: linear-gradient(160deg, rgba(14, 24, 49, 0.78), rgba(33, 60, 118, 0.42));
-      color: rgba(233, 244, 255, 0.95);
-      font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
-      font-size: 0.95rem;
-      letter-spacing: 0.04em;
-      padding: 0.55rem 0.95rem;
-      cursor: pointer;
-      box-shadow: 0 0 18px rgba(133, 184, 255, 0.32), inset 0 0 0 1px rgba(220, 237, 255, 0.15);
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-    }
-
-    .hud-back-button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(214, 233, 255, 0.78);
-      box-shadow: 0 0 22px rgba(139, 189, 255, 0.45), inset 0 0 0 1px rgba(230, 242, 255, 0.25);
-    }
-
-    .hud-back-button:active {
-      transform: translateY(0);
-    }
-    
   `}</style>
   </>
 );
 
-const ProfileCard = () => {
-  return (
-    <group>
-      <Html transform distanceFactor={9} position={[0, 0, 0]} zIndexRange={[100, 0]}>
-        <div className="holo-card-shell">
-          <div className="holo-border-glow" />
-          <div className="holo-corner tl" />
-          <div className="holo-corner tr" />
-          <div className="holo-corner bl" />
-          <div className="holo-corner br" />
-
-          <div className="typewriter-title-container">
-            <h2 className="typewriter-title">About Us</h2>
-          </div>
-
-          <div className="holo-avatar-ring">
-            <div className="devlup-labs-watermark">DevlUp Labs</div>
-          </div>
-          <div className="holo-avatar" />
-
-          <div className="about-us-content">
-            <p>
-              We are DevlUp Labs, a visionary collective pioneering the bleeding edge of holographic and cybernetic design. Built from the ground up by forward-thinking engineers and architects, our fundamental goal is to reshape the very nature of human-computer interaction in three-dimensional space, delivering seamless and immersive experiences that defy classical computing limits.
-            </p>
-            <p>
-              Founded on the principles of open-source collaboration and unyielding innovation, our team merges low-latency WebGL architectures with hyper-futuristic UI aesthetics. We believe that technology should not just be a tool, but a synthetic extension of our digital identities-one that reacts, illuminates, and adapts to the contours of virtual environments.
-            </p>
-            <p>
-              Join us as we chart the unknown territories of the metaverse, translating abstract ideas into tangible glowing realities. We don't just build software; we fabricate digital dreams coded in neon and starlight, establishing a new baseline for what is possible on the web canvas. Stay tuned for the future.
-            </p>
-          </div>
-
-          <div className="holo-chip" />
-          <div className="holo-noise" />
-        </div>
-      </Html>
-    </group>
-  );
-};
-
-
-
 /* ==================== LANDING PAGE / HOME COMPONENTS ==================== */
 
 const SECTIONS = [
-  { name: "Home", icon: "ðŸ ", tagline: "Welcome to DevlUp Labs", description: "Your command center for everything we build." },
-  { name: "Timeline", icon: "ðŸ“…", tagline: "Chronicle Your Journey", description: "Visualize your milestones and progress." },
-  { name: "Videos", icon: "ðŸŽ¬", tagline: "Cinematic Storytelling", description: "Immersive video content crafted for maximum impact." },
-  { name: "Podcast", icon: "ðŸŽ™ï¸", tagline: "Voices That Resonate", description: "Deep conversations and thought-provoking discussions." },
-  { name: "Blogs", icon: "âœï¸", tagline: "Words That Inspire", description: "In-depth articles and thought leadership." },
-  { name: "Team", icon: "ðŸ‘¥", tagline: "The Minds Behind the Vision", description: "Passionate creators building the future." },
+  { name: "Home", tagline: "Welcome to DevlUp Labs", description: "Step into the central hub of DevlUp Labs where innovation meets creativity. Discover everything we build, explore our projects, and stay updated with our latest work. This is your starting point to navigate through our ecosystem. Designed to give you a complete overview of who we are and what we do." },
+  { name: "Timeline", tagline: "Chronicle Your Journey", description:  "Track your growth and visualize your journey through meaningful milestones. From small achievements to major breakthroughs, everything is captured here. The timeline helps you reflect on progress and stay motivated. It’s a dynamic view of how far you've come and where you're headed." },
+  { name: "Videos", tagline: "Visual Learning for Developers", description:"Experience visually engaging content crafted to inspire and educate. Our videos showcase projects, tutorials, and creative explorations. Each frame is designed to deliver impact and clarity. Dive into a cinematic journey of learning and innovation."},
+  { name: "Podcast", tagline: "Voices That Resonate", description: "Listen to insightful conversations with creators, developers, and thinkers. Our podcasts dive deep into ideas, experiences, and industry trends. Each episode is designed to spark curiosity and broaden perspectives. Tune in and connect with voices that truly matter." },
+  { name: "Blogs", tagline: "Words That Inspire", description: "Explore thoughtfully written articles covering technology, ideas, and innovation. Our blogs aim to educate, inspire, and provoke meaningful thinking. Whether you're a beginner or an expert, there's something valuable for everyone. Learn, grow, and stay ahead with our insights." },
+  { name: "Team", tagline: "The Minds Behind the Vision", description: "Meet the passionate individuals who bring DevlUp Labs to life. Our team is a blend of creativity, skill, and dedication. Each member contributes uniquely to building impactful projects. Together, we strive to innovate, collaborate, and shape the future." },
 ];
 
 const BLOCK_COLORS = ["#00E5FF", "#00A1FF", "#0044FF", "#00D2FF", "#0077FF", "#00BAFF"];
@@ -1212,6 +994,7 @@ const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
 });
 
 function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, isTransitioning, discClickedRef }) {
+  const floorUniforms = useMemo(() => ({ color: { value: new THREE.Color("#ffffff") } }), []);
   const ringGroupRef = useRef();
   const { gl } = useThree();
   const [hoveredModelIndex, setHoveredModelIndex] = useState(null);
@@ -1284,7 +1067,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
       
       <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} />
       <WormholeTransition active={isTransitioning} />
-      <HologramCards visible={showHologram} scaleFactor={cardOffsetFactor} />
+     
       <FlowingGrid showHologram={showHologram} />
 
       <group ref={ringGroupRef} visible={!isTransitioning}>
@@ -1297,7 +1080,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
               <FloatingDisc
                 {...disc}
                 isFocused={focusedIndex === i}
-                isLightOn={true}
+               isLightOn={focusedIndex === null || focusedIndex === i}
                 allowHoverScale={focusedIndex === null}
                 onClick={(e) => { 
                   e.stopPropagation(); 
@@ -1347,7 +1130,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
           transparent
           blending={THREE.AdditiveBlending}
           depthWrite={false}
-          uniforms={{ color: { value: new THREE.Color("#ffffff") } }}
+          uniforms={floorUniforms}
           vertexShader={`
             varying vec3 vWorldPos;
             void main() {
@@ -1506,7 +1289,7 @@ export default function Home() {
           }}
           performance={{ min: 0.35 }}
         >
-          <ScrollControls pages={2} damping={0.25} distance={1.5}>
+          <ScrollControls pages={2} damping={0.1}>
             <Suspense fallback={null}>
               <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} />
             </Suspense>
@@ -1549,18 +1332,45 @@ export default function Home() {
 
 
 const CSS_STYLES = `
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MUSEUM LANDING PAGE â€” about2.css
-   Scroll-driven cinematic layout Â· Louvre-inspired design
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* â”€â”€â”€ Hide Scrollbar Globally â”€â”€â”€ */
-::-webkit-scrollbar {
+html,
+body {
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%;
+  height: 100%;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   display: none;
 }
+
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  display: none;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  display: none;
+  background: transparent;
+}
+
 * {
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 /* â”€â”€â”€ Page Container â”€â”€â”€ */
@@ -1569,6 +1379,8 @@ const CSS_STYLES = `
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   background: #000000;
 }
 
@@ -1582,9 +1394,6 @@ const CSS_STYLES = `
   z-index: 1;
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   FIXED OVERLAY  (always above canvas + scroll)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .museum-overlay {
   position: fixed;
   inset: 0;
@@ -1618,152 +1427,7 @@ const CSS_STYLES = `
   );
 }
 
-/* â”€â”€â”€ Header â”€â”€â”€ */
-.museum-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 28px 48px;
-  z-index: 110;
-  animation: fadeIn 1.2s ease 0.3s both;
-}
 
-.museum-logo {
-  font-family: 'Cormorant Garamond', 'Georgia', serif;
-  font-size: 1.3rem;
-  font-weight: 400;
-  letter-spacing: 0.35em;
-  color: rgba(255, 255, 255, 0.85);
-  text-transform: uppercase;
-}
-
-/* â”€â”€â”€ Navigation â”€â”€â”€ */
-.museum-nav {
-  display: flex;
-  gap: 36px;
-  align-items: center;
-}
-
-.museum-nav-link {
-  position: relative;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.45);
-  text-decoration: none;
-  text-transform: uppercase;
-  transition: color 0.3s ease;
-  padding-bottom: 6px;
-  cursor: pointer;
-}
-
-.museum-nav-link:hover {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.museum-nav-link.active {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.museum-nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 18px;
-  height: 2px;
-  background: #4a7dff;
-  border-radius: 2px;
-}
-
-/* â”€â”€â”€ Menu Button (3Ã—3 dots) â”€â”€â”€ */
-.museum-menu-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  opacity: 0.5;
-  transition: opacity 0.3s ease;
-}
-
-.museum-menu-btn:hover {
-  opacity: 0.9;
-}
-
-.museum-dots-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 3.5px;
-}
-
-.museum-dot {
-  width: 3px;
-  height: 3px;
-  background: #ffffff;
-  border-radius: 50%;
-}
-
-/* â”€â”€â”€ Side Pagination â”€â”€â”€ */
-.museum-pagination {
-  position: absolute;
-  left: 48px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  animation: fadeIn 1.5s ease 1.2s both;
-}
-
-.museum-page-active {
-  width: 2px;
-  height: 32px;
-  background: #4a7dff;
-  border-radius: 2px;
-  box-shadow: 0 0 8px rgba(74, 125, 255, 0.4);
-}
-
-.museum-page-dot {
-  width: 4px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transition: background 0.3s ease;
-}
-
-/* â”€â”€â”€ Bottom Accent Line â”€â”€â”€ */
-.museum-bottom-line {
-  position: absolute;
-  bottom: 24px;
-  left: 48px;
-  right: 48px;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 255, 255, 0.08) 20%,
-    rgba(255, 255, 255, 0.08) 80%,
-    transparent
-  );
-}
-
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SCROLL SECTIONS  (inside <Scroll html>)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-.scroll-section {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  pointer-events: none;
-}
 
 /* â”€â”€ Section 1 â€” Hero â”€â”€ */
 .hero-section {
@@ -1775,6 +1439,7 @@ const CSS_STYLES = `
 
 .hero-text-group {
   max-width: 600px;
+  margin-top: 80px;
 }
 
 .hero-title {
@@ -1793,6 +1458,11 @@ const CSS_STYLES = `
 
 .hero-line {
   display: block;
+  margin-top: 10px;
+}
+
+.hero-line:first-child {
+  margin-top: 0;
 }
 
 .hero-indent {
@@ -1806,6 +1476,7 @@ const CSS_STYLES = `
 .hero-description-wrap {
   max-width: 240px;
   align-self: flex-end;
+  margin-top: 130px;
   margin-bottom: 2%;
 }
 
@@ -1826,10 +1497,11 @@ const CSS_STYLES = `
 }
 
 .detail-content {
-  max-width: 420px;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
   gap: 0;
+  margin-top: 120px;
 }
 
 .detail-block {
@@ -1873,9 +1545,6 @@ const CSS_STYLES = `
   );
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   KEYFRAME ANIMATIONS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -1892,9 +1561,6 @@ const CSS_STYLES = `
   to   { opacity: 1; }
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   RESPONSIVE
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media (max-width: 768px) {
   .museum-header {
     padding: 20px 24px;
@@ -1961,10 +1627,6 @@ const CSS_STYLES = `
 
 useGLTF.preload('/penguin3l.glb')
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   UTILITY FUNCTIONS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-
 /** Map a scroll offset range [start, end] â†’ [0, 1] */
 function scrollRange(offset, start, end) {
   return THREE.MathUtils.clamp((offset - start) / (end - start), 0, 1)
@@ -1975,11 +1637,6 @@ function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   3D COMPONENTS
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
-
-/* â”€â”€â”€ Glowing Ring (Torus) â”€â”€â”€ */
 function GlowRing({ scrollRef }) {
   const ringRef = useRef()
 
@@ -2013,7 +1670,6 @@ function GlowRing({ scrollRef }) {
   )
 }
 
-/* â”€â”€â”€ Scene Lighting â”€â”€â”€ */
 function SceneLighting() {
   return (
     <>
@@ -2046,24 +1702,27 @@ function SceneLighting() {
   )
 }
 
-/* â”€â”€â”€ Penguin Model â”€â”€â”€ */
+
 function PenguinModel({ scrollRef }) {
   const { scene } = useGLTF('/penguin3l.glb')
   const groupRef = useRef()
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (!groupRef.current) return
     const offset = scrollRef.current
 
+    // Calculate the overall scroll progress
     const move = easeInOutCubic(scrollRange(offset, 0.05, 0.35))
 
-    groupRef.current.position.x = THREE.MathUtils.lerp(
-      -10.8,
-      -12.8,
-      move
-    )
+    // 1) Define exactly where the penguin SHOULD be right now based on scroll
+    const targetX = THREE.MathUtils.lerp(-10.8, -9.5, move)
+    const targetScale = THREE.MathUtils.lerp(0.2, 0.12, move)
 
-    const s = 0.2
+    // 2) Smoothly animate (lerp) the actual properties TOWARDS the calculated targets using time (delta).
+    // This entirely dampens out bumpy scrolling or sudden stops!
+    groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 8 * delta)
+    
+    const s = THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 8 * delta)
     groupRef.current.scale.set(s, s, s)
   })
 
@@ -2079,7 +1738,7 @@ function PenguinModel({ scrollRef }) {
   )
 }
 
-/* â”€â”€â”€ Floating Particles â”€â”€â”€ */
+
 function FloatingParticles() {
   const particlesRef = useRef()
   const count = 60
@@ -2121,7 +1780,6 @@ function FloatingParticles() {
   )
 }
 
-/* â”€â”€â”€ Cinematic Camera Rig â”€â”€â”€ */
 function CameraRig({ scrollRef }) {
   const { camera } = useThree()
   const lookTarget = useMemo(() => new THREE.Vector3(-1, 0, 0), [])
@@ -2148,9 +1806,6 @@ function CameraRig({ scrollRef }) {
   return null
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SCENE ORCHESTRATOR  (lives inside ScrollControls)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function SceneContent() {
   const scroll = useScroll()
   const scrollRef = useRef(0)
@@ -2182,9 +1837,6 @@ function SceneContent() {
   )
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   SCROLL-DRIVEN HTML  (inside <Scroll html>)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function ScrollHTML() {
   const scroll = useScroll()
 
@@ -2215,24 +1867,25 @@ function ScrollHTML() {
     }
 
     if (detailRef.current) {
-      const fadeIn = easeInOutCubic(scrollRange(offset, 0.15, 0.35))
+      const fadeIn = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       detailRef.current.style.opacity = fadeIn
+      detailRef.current.style.transform = `translateY(${(1 - fadeIn) * 50}px)`
     }
 
     if (block1Ref.current) {
-      const o = easeInOutCubic(scrollRange(offset, 0.15, 0.28))
+      const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block1Ref.current.style.opacity = o
-      block1Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+      block1Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
     }
     if (block2Ref.current) {
-      const o = easeInOutCubic(scrollRange(offset, 0.20, 0.35))
+      const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block2Ref.current.style.opacity = o
-      block2Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+      block2Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
     }
     if (block3Ref.current) {
-      const o = easeInOutCubic(scrollRange(offset, 0.25, 0.40))
+      const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block3Ref.current.style.opacity = o
-      block3Ref.current.style.transform = `translateY(${(1 - o) * 40}px)`
+      block3Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
     }
   })
 
@@ -2259,32 +1912,35 @@ function ScrollHTML() {
         <div className="detail-content">
           <div ref={block1Ref} className="detail-block" style={{ opacity: 0 }}>
             <h2 className="detail-heading">Learning Driven Endeavour</h2>
-            <p className="detail-text">
-              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth as the 
-              primary objective. Rather than focusing solely on a final result, it prioritizes the process of 
+            <span className="detail-text">
+              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth 
+              as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of 
               improvement, curiosity, and adaptation. 
-            </p>
+            </span>
           </div>
 
           <div className="detail-separator" />
 
           <div ref={block2Ref} className="detail-block" style={{ opacity: 0 }}>
-            <h2 className="detail-heading detail-heading-large">Projects that matter to the community</h2>
-            <p className="detail-text">
+            <h2>
+            <span className="detail-heading detail-heading-large">Projects that matter to the community</span>
+            </h2>
+            <span className="detail-text">
               We at devlup labs are committed to products and projects that matter,
                projects that serve a real purpose for the community.
-            </p>
+            </span>
           </div>
 
           <div className="detail-separator" />
 
           <div ref={block3Ref} className="detail-block" style={{ opacity: 0 }}>
             <h2 className="detail-heading">Self Learning</h2>
-            <p className="detail-text">
-            At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals
-            take initiative to master new technologies. We maximize efficiency by ensuring the optimal 
-            utilization of available resources, enabling members to learn by building real-world projects.
-            </p>
+            
+            <span className="detail-text">
+            At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
+            We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
+            </span>
+           
           </div>
         </div>
       </div>
@@ -2292,9 +1948,6 @@ function ScrollHTML() {
   )
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   FIXED OVERLAY  (Nav, Grid, Pagination â€” always visible)
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 function FixedOverlay({ onClose }) {
   return (
     <div className="museum-overlay">
@@ -2311,9 +1964,6 @@ function FixedOverlay({ onClose }) {
   )
 }
 
-/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-   MAIN EXPORT
-   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 export function SciFiHUD({ onClose }) {
   return (
     <>
@@ -2343,7 +1993,6 @@ export function SciFiHUD({ onClose }) {
 
       <FixedOverlay onClose={onClose} />
         </div>
-        <Footer />
       </div>
     </>
   )

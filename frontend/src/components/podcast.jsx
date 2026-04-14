@@ -25,6 +25,8 @@ export default function Podcast() {
   const scrollPos = useRef(0);
   const velocity = useRef(0);
   const raf = useRef(null);
+  const targetIndex = useRef(null);
+  const clickedIndexRef = useRef(null); // Fix stale closure in animation frame
 
   const speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
   const friction = 0.92;
@@ -115,55 +117,81 @@ export default function Podcast() {
   console.log("📊 Active podcast:", items[activeIndex]);
   console.log("📊 Audio URLs:", items.map(i => ({ title: i.title, audio: i.audio })));
 
+  // Ensure tracking updates in refs immediately
+  useEffect(() => {
+    clickedIndexRef.current = clickedIndex;
+  }, [clickedIndex]);
+
   /* ================= SCROLL ================= */
 
   const updateTransforms = () => {
     const cards = containerRef.current?.children;
     if (!cards) return;
+    
+    // Always use latest from ref inside raf loop
+    const currentIndex = clickedIndexRef.current;
 
     for (let i = 0; i < cards.length; i++) {
       const offset = i - scrollPos.current;
       const distance = Math.abs(offset);
       const translateY = offset * 170;
-      const baseScale = 1 - Math.min(distance * 0.1, 0.5);
+      
+      // Enlarge the focused card smoothly and scale down the background cards
+      const baseScale = 1.05 - Math.min(distance * 0.1, 0.5);
 
       let clickScale = 1;
-      if (clickedIndex === i) clickScale = 1.12;
-      else if (clickedIndex !== null) clickScale = 0.94;
+      if (currentIndex === i) clickScale = 1.12;
+      else if (currentIndex !== null) clickScale = 0.94;
 
       const finalScale = baseScale * clickScale;
 
       const el = cards[i];
 
       el.style.transform = `translateY(${translateY}px) scale(${finalScale})`;
+      
+      // Background cards get darker/faded
       el.style.opacity =
         distance > 6
           ? 0
-          : clickedIndex !== null && clickedIndex !== i
-            ? 0.6
-            : 1;
+          : currentIndex !== null && currentIndex !== i
+            ? 0.4
+            : 1 - Math.min(distance * 0.2, 0.5);
+
+      const brightness = 1 - Math.min(distance * 0.3, 0.6);
 
       el.style.filter =
-        clickedIndex !== null && clickedIndex !== i
-          ? "blur(4px)"
-          : "none";
+        currentIndex !== null && currentIndex !== i
+          ? "blur(4px) brightness(0.4)"
+          : `brightness(${brightness})`;
 
       el.style.zIndex =
-        clickedIndex === i
+        currentIndex === i
           ? 5000
           : Math.round(1000 - distance * 50);
     }
   };
 
   const animate = () => {
-    velocity.current *= friction;
-    scrollPos.current += velocity.current;
+    let diff = 0;
+    if (targetIndex.current !== null) {
+      // Smoothly animate towards the clicked card
+      diff = targetIndex.current - scrollPos.current;
+      scrollPos.current += diff * 0.08;
+      
+      if (Math.abs(diff) < 0.005) {
+        scrollPos.current = targetIndex.current;
+        targetIndex.current = null;
+      }
+    } else {
+      velocity.current *= friction;
+      scrollPos.current += velocity.current;
 
-    scrollPos.current = Math.max(0, Math.min(items.length - 1, scrollPos.current));
+      scrollPos.current = Math.max(0, Math.min(items.length - 1, scrollPos.current));
 
-    if (Math.abs(velocity.current) < 0.002) {
-      const nearest = Math.round(scrollPos.current);
-      scrollPos.current += (nearest - scrollPos.current) * snapStrength;
+      if (Math.abs(velocity.current) < 0.002) {
+        const nearest = Math.round(scrollPos.current);
+        scrollPos.current += (nearest - scrollPos.current) * snapStrength;
+      }
     }
 
     const newIndex = Math.round(scrollPos.current);
@@ -172,6 +200,7 @@ export default function Podcast() {
     updateTransforms();
 
     if (
+      targetIndex.current !== null ||
       Math.abs(velocity.current) > 0.0005 ||
       Math.abs(scrollPos.current - newIndex) > 0.0005
     ) {
@@ -196,6 +225,14 @@ export default function Podcast() {
     const onWheel = (e) => {
       if (!hovering) return;
       e.preventDefault();
+
+      // Break focus/animations when manually scrolling
+      if (targetIndex.current !== null || clickedIndexRef.current !== null) {
+        targetIndex.current = null;
+        setClickedIndex(null);
+        clickedIndexRef.current = null;
+        setIsPlaying(false);
+      }
 
       const delta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 60);
       velocity.current += delta * wheelStrength;
@@ -336,28 +373,44 @@ export default function Podcast() {
                     <div
                       key={item.id}
                       onClick={() => {
-                        if (clickedIndex === index) {
-                          setClickedIndex(null);
-                          setIsPlaying(false);
+                        if (activeIndex === index) {
+                          if (clickedIndex === index) {
+                            setClickedIndex(null);
+                            clickedIndexRef.current = null;
+                            setIsPlaying(false);
+                            targetIndex.current = null;
+                          } else {
+                            setClickedIndex(index);
+                            clickedIndexRef.current = index;
+                            setIsPlaying(true);
+                          }
                         } else {
-                          setClickedIndex(index);
-                          setActiveIndex(index);
-                          setIsPlaying(true);
+                          targetIndex.current = index;
+                          velocity.current = 0;
+                          setClickedIndex(null);
+                          clickedIndexRef.current = null;
+                          setIsPlaying(false);
+                          
+                          // Ensure raf triggers
+                          if (raf.current) cancelAnimationFrame(raf.current);
+                          raf.current = requestAnimationFrame(animate);
                         }
                       }}
-                      className="absolute w-[520px] h-[320px] rounded-2xl overflow-hidden shadow-xl cursor-pointer"
+                      className="absolute w-[520px] h-[320px] rounded-2xl shadow-xl cursor-pointer"
                     >
-                      {!imageLoaded[item.id] && (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                        </div>
-                      )}
-                      <img
-                        src={item.img}
-                        className="w-full h-full object-cover"
-                        onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
-                        onError={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
-                      />
+                      <div className="w-full h-full rounded-2xl overflow-hidden transition-transform duration-300 hover:scale-105">
+                        {!imageLoaded[item.id] && (
+                          <div className="flex h-full w-full items-center justify-center bg-gray-700">
+                            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
+                          </div>
+                        )}
+                        <img
+                          src={item.img}
+                          className="h-full w-full object-cover"
+                          onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                          onError={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>

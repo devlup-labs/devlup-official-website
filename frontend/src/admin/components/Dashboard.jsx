@@ -73,7 +73,7 @@ const getEndpoint = () => {
     item.video_title ||
     item.member_name ||
     item.event_title ||
-    item.name;
+   ""; // Default to empty string instead of undefined
 
   const getItemAuthor = (item) =>
       item.email ||   
@@ -81,13 +81,17 @@ const getEndpoint = () => {
     item.blog_author ||
     item.member_designation ||
     item.event_subtitle ||
-    item.category;
+    item.category||
+    ""; // Default to empty string
 
-    const getTags = (item) => //added for filtering
-  item.video_tags ||
-  item.blog_tags ||
-  item.podcast_tags ||
-  [];
+
+const getTags = (item) =>
+  activeTab === "team"
+    ? [item.member_designation] 
+    : item.video_tags ||
+      item.blog_tags ||
+      item.podcast_tags ||
+      [];
 
 
   // --- API LOGIC ---
@@ -102,7 +106,7 @@ const getEndpoint = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-        // ✅ FIX: handle all tabs
+        //  FIX: handle all tabs
     setItems(response.data.data || response.data || []);
 
 
@@ -198,10 +202,19 @@ const handleEdit = (item) => {
     { id: 'contact', label: 'Contacts', icon: <FileText size={20} /> }
   ];
 
-  const allTags =
-    activeTab === 'video' || activeTab === 'blog' || activeTab === 'podcast'
-      ? ["all", ...new Set(items.flatMap(item => getTags(item).filter(Boolean)))]
-      : [];
+ const allTags =
+  ['video', 'blog', 'podcast', 'team'].includes(activeTab)
+    ? [
+        "all",
+        ...new Set(
+          items.flatMap(item =>
+            getTags(item)
+              .filter(Boolean)
+              .map(tag => tag.trim().toLowerCase()) // 🔥 FIX HERE
+          )
+        )
+      ]
+    : [];
 
   //  FILTER LOGIC (SEARCH + TAG)
   const filteredItems = items.filter((item) => {
@@ -318,7 +331,7 @@ const handleEdit = (item) => {
   </div>
 
   {/* Tag Dropdown */}
-  {(activeTab === 'video' || activeTab === 'blog' || activeTab === 'podcast') && (
+  {['video', 'blog', 'podcast', 'team'].includes(activeTab) && (
     <select
       value={selectedTag}
       onChange={(e) => setSelectedTag(e.target.value)}
@@ -380,16 +393,13 @@ const handleEdit = (item) => {
         </td>
 
         {/* QUERY ONLY FOR CONTACT */}
-        {activeTab === "contact" && (
-          <td 
-  className="p-4 max-w-xs cursor-pointer"
-  title={item.query}
->
-  {item.query.length > 60 
-    ? item.query.slice(0, 60) + "..." 
-    : item.query}
-</td>
-        )}
+ {activeTab === "contact" && (
+  <td className="p-4 max-w-xs cursor-pointer" title={item.query || ""}>
+    {item.query?.length > 60 
+      ? item.query.slice(0, 60) + "..." 
+      : (item.query || "No message")}
+  </td>
+)}
 
         {/* ACTIONS */}
         <td className="p-4 text-right flex justify-end gap-2">

@@ -83,7 +83,7 @@ useEffect(() => {
     member_name: formData.member_name,
     member_image: formData.member_image,
     member_roll_number: formData.member_roll_number,
-    member_designation: formData.member_designation,
+    member_designation: formData.member_designation.trim().toLowerCase(),
     member_tag: formData.member_tag,
     member_about: formData.member_about,
     member_github_id: formData.member_github_id,

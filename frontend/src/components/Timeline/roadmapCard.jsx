@@ -12,6 +12,7 @@ export default function RoadmapCard({
   date,
   description,
   isActive,
+  isMobile = false,
   onActivate,
   onDeactivate,
   onFlip,
@@ -45,16 +46,17 @@ export default function RoadmapCard({
     const deltaX = viewportCenterX - cardCenterX;
 
     gsap.to(card.current, {
-      x: isActive ? deltaX : 0,
-      rotateY: isActive ? side * 180 : 0,
-      scale: isActive ? 1.6 : 1,
+      x: isMobile ? 0 : isActive ? deltaX : 0,
+      rotateY: isMobile ? 0 : isActive ? side * 180 : 0,
+      rotateX: isMobile ? (isActive ? 180 : 0) : 0,
+      scale: isMobile ? (isActive ? 1.03 : 1) : isActive ? 1.6 : 1,
       z: isActive ? 120 : 0,
       duration: 1.2,
       ease: "power4.out",
       delay: isActive ? 0.3 : 0,
       overwrite: "auto",
     });
-  }, [isActive, side]);
+  }, [isActive, side, isMobile]);
 
   const handleClick = () => {
     if (isActive) {
@@ -68,6 +70,9 @@ export default function RoadmapCard({
 
   const CARD_WIDTH = 350;
   const CARD_OFFSET = 250; 
+  const mobileCardWidth = "min(300px, calc(100vw - 132px))";
+  const mobileLineX = 72;
+  const mobileCardLeft = mobileLineX + 26;
 
   return (
     <div
@@ -75,8 +80,10 @@ export default function RoadmapCard({
       data-id={id}
       style={{
         top: y - 50,
-        left: "50%",
-        transform: `translateX(${side * CARD_OFFSET - CARD_WIDTH / 2}px)`,
+        left: isMobile ? 0 : "50%",
+        transform: isMobile
+          ? `translateX(${mobileCardLeft}px)`
+          : `translateX(${side * CARD_OFFSET - CARD_WIDTH / 2}px)`,
       }}
     >
       <div
@@ -84,10 +91,14 @@ export default function RoadmapCard({
         onClick={handleClick}
         className="cursor-pointer relative"
         style={{
-          width: `${CARD_WIDTH}px`,
+          width: isMobile ? mobileCardWidth : `${CARD_WIDTH}px`,
           height: "150px",
           transformStyle: "preserve-3d",
-          transformOrigin: side === 1 ? "left center" : "right center",
+          transformOrigin: isMobile
+            ? "center center"
+            : side === 1
+            ? "left center"
+            : "right center",
         }}
       >
         {/* --- FRONT FACE (SUMMARY STATE - LIKE PHASE 2 IN IMAGE) --- */}
@@ -125,7 +136,8 @@ export default function RoadmapCard({
         {/* --- BACK FACE (DETAILED STATE - LIKE PHASE 1 IN IMAGE) --- */}
         <div
           className="card-face card-back absolute inset-0 flex flex-col justify-between p-4 [backface-visibility:hidden] 
-                     [transform:rotateY(180deg)] rounded-xl bg-[var(--bg-blog_card)] text-white border border-white/10  overflow-hidden"
+                     rounded-xl bg-[var(--bg-blog_card)] text-white border border-white/10  overflow-hidden"
+          style={{ transform: isMobile ? "rotateX(180deg)" : "rotateY(180deg)" }}
         >
           {/* Top text content */}
           <div>

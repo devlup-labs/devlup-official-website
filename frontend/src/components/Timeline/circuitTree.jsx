@@ -5,7 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function CircuitTree({ activeCard, flippedCards, branches }) {
+export default function CircuitTree({ activeCard, flippedCards, branches, isMobile = false }) {
   const centerLineRef = useRef(null);
   const branchRefs = useRef([]);
 
@@ -74,9 +74,7 @@ export default function CircuitTree({ activeCard, flippedCards, branches }) {
       );
       if (!path) return;
 
-      const targetSide = flippedCards?.[b.id]
-        ? -b.side
-        : b.side;
+      const targetSide = isMobile ? 1 : flippedCards?.[b.id] ? -b.side : b.side;
 
       gsap.to(path, {
         attr: {
@@ -88,12 +86,26 @@ export default function CircuitTree({ activeCard, flippedCards, branches }) {
         overwrite: "auto",
       });
     });
-  }, [flippedCards, data]);
+  }, [flippedCards, data, isMobile]);
 
   /* ================= PATH HELPERS ================= */
-  const STEM_X = 400;
+  const SVG_WIDTH = isMobile ? 420 : 800;
+  const STEM_X = isMobile ? 72 : 400;
 
   const makeBranchPath = (b, side) => {
+    if (isMobile) {
+      const branchSide = 1;
+      const curveX = STEM_X + 75;
+      const END_X = STEM_X + branchSide * 160;
+
+      return `
+        M${STEM_X} ${b.y - 260}
+        V ${b.y - 15}
+        Q ${STEM_X} ${b.y + 20}, ${curveX} ${b.y + 20}
+        H ${END_X}
+      `;
+    }
+
     // Card center is at side * 250px from the center
     const curveX = STEM_X + side * 125;
     const END_X = STEM_X + side * 250;
@@ -109,14 +121,14 @@ export default function CircuitTree({ activeCard, flippedCards, branches }) {
   /* ================= RENDER ================= */
   return (
     <svg
-      className="absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none overflow-visible"
-      width="800"
+      className={isMobile ? "absolute left-0 top-0 pointer-events-none overflow-visible" : "absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none overflow-visible"}
+      width={SVG_WIDTH}
       height={LAST_Y + 200}
     >
       {/* ================= CENTER LINE ================= */}
       <path
         ref={centerLineRef}
-        d={`M400 0 L400 ${LAST_Y}`}
+        d={`M${STEM_X} 0 L${STEM_X} ${LAST_Y}`}
         stroke="#22d3ee"
         strokeWidth="4"
         fill="none"
@@ -142,7 +154,7 @@ export default function CircuitTree({ activeCard, flippedCards, branches }) {
 
           {/* NODE */}
           <circle
-            cx="400"
+            cx={STEM_X}
             cy={b.y}
             r="5"
             fill="#22d3ee"

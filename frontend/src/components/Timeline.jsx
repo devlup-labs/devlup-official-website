@@ -14,6 +14,9 @@ export default function Timeline() {
   const [activeCard, setActiveCard] = useState(null);
   const [cameraFocus, setCameraFocus] = useState(null);
   const [flippedCards, setFlippedCards] = useState({});
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
 
   const handleFlip = (id, flipped) => {
     setFlippedCards((prev) => ({
@@ -32,6 +35,15 @@ export default function Timeline() {
         console.error(err);
         setLoadingBranches(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
  if (loadingBranches) {
@@ -67,8 +79,10 @@ export default function Timeline() {
       {/* HEADING */}
       <div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
         <div className="bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
-          <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
-            Timeline
+          <h1
+            className={`${isMobile ? "text-2xl" : "text-4xl md:text-6xl"} font-bold text-[var(--text-primary)]`}
+          >
+            Chronicle of Progress
           </h1>
           <p className="mt-2 text-lg text-[var(--text-primary)]">
             Defining growth through enduring milestones
@@ -77,12 +91,13 @@ export default function Timeline() {
       </div>
 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
-        <CircuitTree activeCard={activeCard} flippedCards={flippedCards}  branches={branches}  />
+        <CircuitTree activeCard={activeCard} flippedCards={flippedCards} branches={branches} isMobile={isMobile} />
 
         {branches.map((branch) => (
           <RoadmapCard
             key={branch.id}
             {...branch}
+            isMobile={isMobile}
             isActive={activeCard === branch.id}
             onActivate={() => {
               setActiveCard(branch.id);

@@ -15,17 +15,17 @@ const videoData = [
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTags, setSelectedTags] = useState([]);
 
-  const tags = ["All", "General", "Web", "React", "3D Web", "Blockchain", "JS", "Cloud"];
+  const tags = ["General", "Web", "React", "3D Web", "Blockchain", "JS", "Cloud"];
 
   const filteredVideoData = useMemo(() => {
     return videoData.filter(video => {
       const matchSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchTag = selectedTag === "All" || video.tag === selectedTag;
+      const matchTag = selectedTags.length === 0 || selectedTags.includes(video.tag);
       return matchSearch && matchTag;
     });
-  }, [searchTerm, selectedTag]);
+  }, [searchTerm, selectedTags]);
 
   const filteredVideoIds = filteredVideoData.map(v => v.id);
 
@@ -34,8 +34,8 @@ export default function App() {
       <TopControls 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        selectedTag={selectedTag}
-        setSelectedTag={setSelectedTag}
+        selectedTags={selectedTags}
+        setSelectedTags={setSelectedTags}
         tags={tags}
       />
       {filteredVideoIds.length > 0 ? (

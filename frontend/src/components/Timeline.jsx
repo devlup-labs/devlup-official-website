@@ -40,7 +40,7 @@ export default function Timeline() {
       <div className="text-center">
         <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
         <p className="text-lg font-semibold text-white">
-          Loading Timeline...
+          
         </p>
       </div>
     </div>
@@ -68,7 +68,7 @@ export default function Timeline() {
       <div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
         <div className="bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
           <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)]">
-            Chronicle of Progress
+            Timeline
           </h1>
           <p className="mt-2 text-lg text-[var(--text-primary)]">
             Defining growth through enduring milestones

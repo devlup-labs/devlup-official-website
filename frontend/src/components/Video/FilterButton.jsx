@@ -1,11 +1,11 @@
 import { FaTags } from "react-icons/fa";
 
-export default function FilterButton({ 
-  filterOpen, 
+export default function FilterButton({
+  filterOpen,
   setFilterOpen,
-  selectedTag = "All",
-  setSelectedTag = () => {},
-  tags = ["All", "3D Web", "Blockchain", "JS", "React", "Cloud"]
+  selectedTags = [],
+  setSelectedTags = () => { },
+  tags = ["3D Web", "Blockchain", "JS", "React", "Cloud"]
 }) {
 
   return (
@@ -49,7 +49,7 @@ export default function FilterButton({
           className={`
             flex items-center gap-2
             transition-all duration-500 ease-in-out
-            ${filterOpen ? "max-w-[500px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
+            ${filterOpen ? "max-w-[800px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
             overflow-hidden
             pointer-events-auto
           `}
@@ -59,17 +59,31 @@ export default function FilterButton({
               key={tag}
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedTag(tag);
+                if (selectedTags.includes(tag)) {
+                  setSelectedTags(selectedTags.filter(t => t !== tag));
+                } else {
+                  setSelectedTags([...selectedTags, tag]);
+                }
               }}
-              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto ${
-                selectedTag === tag
+              className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto ${selectedTags.includes(tag)
                   ? "bg-white/30 text-white font-semibold"
                   : "text-white hover:text-white hover:bg-white/10"
-              }`}
+                }`}
             >
               {tag}
             </button>
           ))}
+          {selectedTags.length > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedTags([]);
+              }}
+              className="px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto text-red-300 hover:bg-white/10 hover:text-red-200 ml-2"
+            >
+              Clear All
+            </button>
+          )}
         </div>
 
       </div>

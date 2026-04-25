@@ -135,7 +135,7 @@ function Team() {
   const [focusProgress, setFocusProgress] = useState(0);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTags, setSelectedTags] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
@@ -152,13 +152,13 @@ function Team() {
       setSearchOpen(false);
       setFilterOpen(false);
     }
-  }, [hamburgerOpen, searchOpen, filterOpen]);
+  }, [hamburgerOpen]);
 
   useEffect(() => {
     if ((searchOpen || filterOpen) && hamburgerOpen) {
       setHamburgerOpen(false);
     }
-  }, [searchOpen, filterOpen, hamburgerOpen, setHamburgerOpen]);
+  }, [searchOpen, filterOpen]);
 
   const tileRefs = useRef({});
   const sectionRef = useRef(null);
@@ -204,6 +204,8 @@ useEffect(() => {
 
   // RESTORED: Exactly your original friction and scroll logic
   const openTile = (id) => {
+    setSearchOpen(false);
+    setFilterOpen(false);
     if (activeTile === id) { closeCurrent(); return; }
     if (activeTile) { closeCurrent(() => triggerOpen(id)); } 
     else { triggerOpen(id); }
@@ -372,12 +374,12 @@ useEffect(() => {
       if (typeof tags === 'string') {
         tags = [tags.trim()];
       }
-      return selectedTag === "All" || tags.includes(selectedTag);
+      return selectedTags.length === 0 || tags.some(tag => selectedTags.includes(tag));
     });
-  }, [members, selectedTag]);
+  }, [members, selectedTags]);
 
   const allTags = useMemo(() => {
-    const tagSet = new Set(["All"]);
+    const tagSet = new Set();
     members.forEach((m) => {
       if (m.designation) tagSet.add(m.designation.trim());
       else if (m.tag) tagSet.add(m.tag.trim());
@@ -578,7 +580,7 @@ useEffect(() => {
             className={`
               flex items-center overflow-visible
               bg-[var(--bg-muted)] backdrop-blur-md border border-white/10
-              transition-all duration-500 ease-in-out
+              transition-all ease-in-out ${hamburgerOpen ? "duration-0" : "duration-500"}
               pointer-events-auto
               ${filterOpen ? "pr-3" : ""}
               rounded-full
@@ -607,7 +609,7 @@ useEffect(() => {
             <div
               className={`
                 flex items-center gap-2
-                transition-all duration-500 ease-in-out
+                transition-all ease-in-out ${hamburgerOpen ? "duration-0" : "duration-500"}
                 pointer-events-auto
                 ${filterOpen ? "max-w-[800px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
                 overflow-hidden
@@ -618,18 +620,31 @@ useEffect(() => {
                   key={tag}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedTag(tag);
+                    if (selectedTags.includes(tag)) {
+                      setSelectedTags(selectedTags.filter(t => t !== tag));
+                    } else {
+                      setSelectedTags([...selectedTags, tag]);
+                    }
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-all pointer-events-auto ${
-                    selectedTag === tag
-                      ? "bg-white/30 text-white"
-                      : "text-white hover:bg-white/10"
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${
+                    selectedTags.includes(tag)
+                      ? "bg-white/30 text-white font-semibold"
+                      : "text-white hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {tag}
                 </button>
               ))}
+              {selectedTags.length > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setSelectedTags([]); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto text-red-300 hover:bg-white/10 hover:text-red-200 ml-2"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
           </div>
         </div>

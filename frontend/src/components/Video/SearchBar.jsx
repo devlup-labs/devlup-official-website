@@ -1,9 +1,9 @@
 import { CiSearch } from "react-icons/ci";
 
-export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", setSearchTerm = () => {} }) {
+export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", setSearchTerm = () => { } }) {
   return (
     <div className="flex items-center relative z-[2000]" onClick={(e) => e.stopPropagation()}>
-      
+
       <div
         className={`
           flex items-center

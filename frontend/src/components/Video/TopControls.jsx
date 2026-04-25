@@ -6,10 +6,10 @@ import "./TopControls.css";
 
 export default function TopControls({
   searchTerm = "",
-  setSearchTerm = () => {},
-  selectedTag = "All",
-  setSelectedTag = () => {},
-  tags = ["All"]
+  setSearchTerm = () => { },
+  selectedTags = [],
+  setSelectedTags = () => { },
+  tags = []
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -42,17 +42,17 @@ export default function TopControls({
 
   return (
     <div className={`topControls relative z-[50000] pointer-events-none ${glideClass}`}>
-      <SearchBar 
-        searchOpen={searchOpen} 
+      <SearchBar
+        searchOpen={searchOpen}
         setSearchOpen={setSearchOpen}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
-      <FilterButton 
-        filterOpen={filterOpen} 
+      <FilterButton
+        filterOpen={filterOpen}
         setFilterOpen={setFilterOpen}
-        selectedTag={selectedTag}
-        setSelectedTag={setSelectedTag}
+        selectedTags={selectedTags}
+        setSelectedTags={setSelectedTags}
         tags={tags}
       />
     </div>

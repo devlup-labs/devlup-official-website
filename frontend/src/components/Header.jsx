@@ -77,7 +77,7 @@ function HeaderComponent() {
                     key={item.name}
                     to={item.path}
                     onClick={() => setHamburgerOpen(false)}
-                    className="text-[var(--text-primary)] whitespace-nowrap hover:text-blue-500 transition"
+                    className="text-[var(--text-primary)] whitespace-nowrap hover:text-blue-500 transition py-2 -my-2 px-2"
                   >
                     {item.name}
                   </Link>
@@ -85,13 +85,9 @@ function HeaderComponent() {
 
                 {/* THEME TOGGLE */}
                 <button
-  onClick={toggleTheme}
-  className="p-2 rounded-lg
-  bg-[var(--bg-surface)]
-  border border-[var(--border-subtle)]
-  flex items-center justify-center
-  hover:cursor-pointer"
->
+                  onClick={toggleTheme}
+                  className="p-2 rounded-lg flex items-center justify-center hover:cursor-pointer transition hover:bg-black/5 dark:hover:bg-white/5"
+                >
   {isDarkMode ? (
     <svg
       xmlns="http://www.w3.org/2000/svg"

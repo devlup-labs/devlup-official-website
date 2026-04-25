@@ -15,7 +15,7 @@ export default function Podcast() {
   const [duration, setDuration] = useState(0);
   const [speed, setSpeed] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTags, setSelectedTags] = useState([]);
 
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
 
@@ -94,13 +94,13 @@ export default function Podcast() {
     const authorMatch = item.author?.toLowerCase().includes(searchTerm.toLowerCase());
     const searchMatch = titleMatch || authorMatch;
 
-    const tagMatch = selectedTag === "All" || item.tags.includes(selectedTag);
+    const tagMatch = selectedTags.length === 0 || item.tags.some(tag => selectedTags.includes(tag));
 
     return searchMatch && tagMatch;
   });
 
   // Extract all unique tags from podcasts
-  const allTags = ["All"];
+  const allTags = [];
   podcasts.forEach((podcast) => {
     const tags = Array.isArray(podcast.podcast_tags) ? podcast.podcast_tags : [];
     tags.forEach(tag => {
@@ -120,6 +120,9 @@ export default function Podcast() {
   // Ensure tracking updates in refs immediately
   useEffect(() => {
     clickedIndexRef.current = clickedIndex;
+    if (!raf.current) {
+      raf.current = requestAnimationFrame(animate);
+    }
   }, [clickedIndex]);
 
   /* ================= SCROLL ================= */
@@ -140,24 +143,25 @@ export default function Podcast() {
       const baseScale = 1.05 - Math.min(distance * 0.1, 0.5);
 
       let clickScale = 1;
-      if (currentIndex === i) clickScale = 1.12;
-      else if (currentIndex !== null) clickScale = 0.94;
+      if (currentIndex === i) clickScale = 1.05; // Change this value to adjust the zoom (e.g., 1.05 is 5% zoom, 1.12 was 12%)
+      else if (currentIndex !== null) clickScale = 0.96; // Adjusts how much the other cards shrink
 
       const finalScale = baseScale * clickScale;
 
       const el = cards[i];
 
       el.style.transform = `translateY(${translateY}px) scale(${finalScale})`;
+      el.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease, filter 0.4s ease';
       
       // Background cards get darker/faded
       el.style.opacity =
         distance > 6
           ? 0
-          : currentIndex !== null && currentIndex !== i
-            ? 0.4
-            : 1 - Math.min(distance * 0.2, 0.5);
+          : currentIndex !== null
+            ? (currentIndex === i ? 1 : 0.4)
+            : 1;
 
-      const brightness = 1 - Math.min(distance * 0.3, 0.6);
+      const brightness = currentIndex !== null && currentIndex !== i ? 0.4 : 1;
 
       el.style.filter =
         currentIndex !== null && currentIndex !== i
@@ -334,8 +338,8 @@ export default function Podcast() {
           <TopControls 
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
-            selectedTag={selectedTag}
-            setSelectedTag={setSelectedTag}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
             tags={allTags}
           />
         </div>
@@ -417,7 +421,7 @@ export default function Podcast() {
               </div>
 
               {/* RIGHT SIDE */}
-              <div className="absolute right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
+              <div className="absolute right-[2%] lg:right-[5%] xl:right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
                 <div className="flex flex-col gap-6 h-full">
 
                   {active && (

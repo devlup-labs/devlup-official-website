@@ -17,7 +17,7 @@ function Blog() {
   const tickingRef = useRef(false);
   const [blogs, setBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTags, setSelectedTags] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
@@ -34,7 +34,7 @@ function Blog() {
         tags = tags.split(',').map(t => t.trim()).filter(t => t);
       }
 
-      const tagMatch = selectedTag === "All" || tags.includes(selectedTag);
+      const tagMatch = selectedTags.length === 0 || tags.some(tag => selectedTags.includes(tag));
 
       return searchMatch && tagMatch;
     });
@@ -65,11 +65,11 @@ function Blog() {
         baseScale: 0.2,
       };
     });
-  }, [blogs, searchTerm, selectedTag]);
+  }, [blogs, searchTerm, selectedTags]);
 
   // Extract all unique tags from blogs
   const allTags = useMemo(() => {
-    const tagSet = new Set(["All"]);
+    const tagSet = new Set();
     blogs.forEach((blog) => {
       let tags = blog.blog_tags || [];
       if (typeof tags === 'string') {
@@ -331,7 +331,7 @@ function Blog() {
             className={`
               flex items-center overflow-visible
               bg-[var(--bg-muted)] backdrop-blur-md border border-white/10
-              transition-all duration-500 ease-in-out
+              transition-all ease-in-out ${hamburgerOpen ? "duration-0" : "duration-500"}
               pointer-events-auto
               ${filterOpen ? "pr-3" : ""}
               rounded-full
@@ -360,7 +360,7 @@ function Blog() {
             <div
               className={`
                 flex items-center gap-2
-                transition-all duration-500 ease-in-out
+                transition-all ease-in-out ${hamburgerOpen ? "duration-0" : "duration-500"}
                 pointer-events-auto
                 ${filterOpen ? "max-w-[800px] opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
                 overflow-hidden
@@ -371,18 +371,31 @@ function Blog() {
                   key={tag}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedTag(tag);
+                    if (selectedTags.includes(tag)) {
+                      setSelectedTags(selectedTags.filter(t => t !== tag));
+                    } else {
+                      setSelectedTags([...selectedTags, tag]);
+                    }
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-all pointer-events-auto ${
-                    selectedTag === tag
-                      ? "bg-white/30 text-white"
-                      : "text-white hover:bg-white/10"
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${
+                    selectedTags.includes(tag)
+                      ? "bg-white/30 text-white font-semibold"
+                      : "text-white hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {tag}
                 </button>
               ))}
+              {selectedTags.length > 0 && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setSelectedTags([]); }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto text-red-300 hover:bg-white/10 hover:text-red-200 ml-2"
+                >
+                  Clear All
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -408,7 +421,7 @@ function Blog() {
 
       {/* Main Text */}
       <p className="text-xl font-semibold text-white tracking-wide">
-        Loading Blogs...
+
       </p>
 
 

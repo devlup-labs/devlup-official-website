@@ -6,6 +6,9 @@ export default function Podcast() {
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState({});
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
 
   // Declare all states first
   const [activeIndex, setActiveIndex] = useState(0);
@@ -32,6 +35,12 @@ export default function Podcast() {
   const friction = 0.92;
   const wheelStrength = 0.0022;
   const snapStrength = 0.12;
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     console.log("🚀 Starting to fetch podcasts from admin panel...");
@@ -119,11 +128,32 @@ export default function Podcast() {
 
   // Ensure tracking updates in refs immediately
   useEffect(() => {
+    if (items.length === 0) {
+      setActiveIndex(0);
+      setClickedIndex(null);
+      setIsPlaying(false);
+      scrollPos.current = 0;
+      return;
+    }
+
+    if (activeIndex > items.length - 1) {
+      const nextIndex = items.length - 1;
+      setActiveIndex(nextIndex);
+      scrollPos.current = nextIndex;
+      if (clickedIndex !== null && clickedIndex > items.length - 1) {
+        setClickedIndex(null);
+        setIsPlaying(false);
+      }
+    }
+  }, [items.length, activeIndex, clickedIndex]);
+
+  useEffect(() => {
     clickedIndexRef.current = clickedIndex;
+    if (isMobile) return;
     if (!raf.current) {
       raf.current = requestAnimationFrame(animate);
     }
-  }, [clickedIndex]);
+  }, [clickedIndex, isMobile]);
 
   /* ================= SCROLL ================= */
 
@@ -215,6 +245,8 @@ export default function Podcast() {
   };
 
   useEffect(() => {
+    if (isMobile) return;
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -254,7 +286,7 @@ export default function Podcast() {
       window.removeEventListener("wheel", onWheel);
       cancelAnimationFrame(raf.current);
     };
-  }, [items.length]);
+  }, [items.length, isMobile]);
 
   /* ================= AUDIO ================= */
 
@@ -332,18 +364,20 @@ export default function Podcast() {
 
   return (
     <div className="text-white">
-      {/* Fixed TopControls - Always Visible */}
-      <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none">
-        <div className="pointer-events-auto">
-          <TopControls
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
-            tags={allTags}
-          />
+      {/* Desktop/Laptop controls remain fixed on top */}
+      {!isMobile && (
+        <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none">
+          <div className="pointer-events-auto">
+            <TopControls 
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedTags={selectedTags}
+              setSelectedTags={setSelectedTags}
+              tags={allTags}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className="h-screen flex items-center justify-center">
@@ -367,6 +401,176 @@ export default function Podcast() {
             onLoadedMetadata={handleLoaded}
           />
 
+          {isMobile ? (
+            <div className="min-h-screen pt-18 pb-8 px-4">
+              <div className="mx-auto w-full max-w-md flex flex-col gap-1">
+                <div className="flex justify-center mb-0">
+                  <div className="pointer-events-auto">
+                    <TopControls 
+                      searchTerm={searchTerm}
+                      setSearchTerm={setSearchTerm}
+                      selectedTags={selectedTags}
+                      setSelectedTags={setSelectedTags}
+                      tags={allTags}
+                    />
+                  </div>
+                </div>
+
+                {active && (
+                  <>
+                    <div className="rounded-2xl overflow-hidden shadow-xl bg-black/20 border border-white/10">
+                      {!imageLoaded[active.id] && (
+                        <div className="flex h-[220px] w-full items-center justify-center bg-gray-700">
+                          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
+                        </div>
+                      )}
+                      <img
+                        src={active.img}
+                        className="h-[220px] w-full object-cover"
+                        onLoad={() => setImageLoaded(prev => ({ ...prev, [active.id]: true }))}
+                        onError={() => setImageLoaded(prev => ({ ...prev, [active.id]: true }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs opacity-70 px-1">
+                      <span>{active.date}</span>
+                      <span>{active.author}</span>
+                    </div>
+
+                    <h1 className="text-xl font-bold uppercase leading-tight">
+                      {active.title}: {active.subtitle}
+                    </h1>
+
+                    <p className="text-sm opacity-70 leading-relaxed">{active.description}</p>
+                  </>
+                )}
+
+                <div className="p-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
+                      <button
+                        onClick={() => {
+                          setClickedIndex(null);
+                          setIsPlaying(false);
+                          setShowSpeedMenu(false);
+                        }}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 shadow-md"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-5 h-5 stroke-white" fill="none" strokeWidth="2.5">
+                          <path d="M14 3h5v18h-5" strokeLinecap="round" />
+                          <path d="M10 12H3" strokeLinecap="round" />
+                          <path d="M6 9l-3 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M10 6v3" strokeLinecap="round" />
+                          <path d="M10 15v3" strokeLinecap="round" />
+                        </svg>
+                      </button>
+
+                      <button
+                        onClick={() => skipTime(-5)}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 shadow-md text-white text-xs font-semibold"
+                      >
+                        -5s
+                      </button>
+
+                      <button
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 shadow-[0_12px_40px_rgba(0,0,0,0.35)]"
+                      >
+                        {isPlaying ? (
+                          <div className="flex gap-[5px]">
+                            <div className="w-[5px] h-6 bg-white rounded-sm" />
+                            <div className="w-[5px] h-6 bg-white rounded-sm" />
+                          </div>
+                        ) : (
+                          <div className="w-0 h-0 border-l-[18px] border-l-white border-y-[10px] border-y-transparent ml-[4px]" />
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => skipTime(5)}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-400 to-blue-600 shadow-md text-white text-xs font-semibold"
+                      >
+                        +5s
+                      </button>
+
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowSpeedMenu((prev) => !prev)}
+                          className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white text-sm"
+                        >
+                          {speed}x
+                        </button>
+
+                        {showSpeedMenu && (
+                          <div className="absolute right-0 top-full mt-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl py-2 px-2 flex flex-col gap-1 text-sm text-white z-50 shadow-xl">
+                            {speeds.map((s) => (
+                              <button
+                                key={s}
+                                onClick={() => {
+                                  setSpeed(s);
+                                  setShowSpeedMenu(false);
+                                }}
+                                className={`px-3 py-1 rounded-md transition ${speed === s ? "bg-white/20" : "hover:bg-white/10"}`}
+                              >
+                                {s}x
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="w-full flex items-center gap-3">
+                      <span className="text-xs w-10 text-right">{formatTime(progress)}</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max={duration || 0}
+                        value={progress}
+                        onChange={handleSeek}
+                        className="w-full accent-blue-500"
+                      />
+                      <span className="text-xs w-10">{formatTime(duration)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="w-full overflow-x-auto pb-2">
+                  <div className="flex gap-3 min-w-max">
+                    {items.map((item, index) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setShowSpeedMenu(false);
+                          if (activeIndex === index) {
+                            if (clickedIndex === index) {
+                              setClickedIndex(null);
+                              clickedIndexRef.current = null;
+                              setIsPlaying(false);
+                            } else {
+                              setClickedIndex(index);
+                              clickedIndexRef.current = index;
+                              setIsPlaying(true);
+                            }
+                          } else {
+                            setActiveIndex(index);
+                            scrollPos.current = index;
+                            velocity.current = 0;
+                            setClickedIndex(null);
+                            clickedIndexRef.current = null;
+                            setIsPlaying(false);
+                          }
+                        }}
+                        className={`relative w-24 h-16 shrink-0 rounded-lg overflow-hidden border transition ${activeIndex === index ? "border-blue-400 ring-2 ring-blue-400/30" : "border-white/10"}`}
+                      >
+                        <img src={item.img} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
           <div className="h-screen flex items-center justify-center overflow-hidden">
             <div className="relative w-full h-full flex items-center justify-center">
 
@@ -587,6 +791,7 @@ export default function Podcast() {
 
             </div>
           </div>
+          )}
         </>
       )}
     </div>

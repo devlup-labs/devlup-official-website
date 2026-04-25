@@ -3,57 +3,56 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub, faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { faEnvelope } from '@fortawesome/free-regular-svg-icons';
-import { getTeam } from "../api/services"; 
+import { getTeam } from "../api/services";
 import { CiSearch } from "react-icons/ci";
 import { FaTags } from "react-icons/fa";
-import { ThemeContext } from "../App"; 
+import { ThemeContext } from "../App";
 
 const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusProgress }) => {
   const navigate = useNavigate();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [profileImageLoaded, setProfileImageLoaded] = useState(false);
   const showProfileUI = isActive && focusProgress > 0.8;
-const handleViewProfile = (e) => {
-  e.stopPropagation();
-  navigate(`/portfolio/${tile.memberId}`); // use member_id
-};
+  const handleViewProfile = (e) => {
+    e.stopPropagation();
+    navigate(`/portfolio/${tile.memberId}`); // use member_id
+  };
 
-const getBorderColor = (designation = "") => {
-  const role = designation.toLowerCase();
+  const getBorderColor = (designation = "") => {
+    const role = designation.toLowerCase();
 
-  if (role.includes("core")) return "#3ba8f6";      
-  if (role.includes("coordinator")) return "#bcb613"; 
-  if (role.includes("mentor")) return "#3db910";     
-  if (role.includes("alumni")) return "#f5690b";     
+    if (role.includes("core")) return "#3ba8f6";
+    if (role.includes("coordinator")) return "#bcb613";
+    if (role.includes("mentor")) return "#3db910";
+    if (role.includes("alumni")) return "#f5690b";
 
-  return "#E5E7EB"; // default gray
-};
+    return "#E5E7EB"; // default gray
+  };
 
   return (
     <div
       ref={(el) => (tileRefs.current[tile.id] = el)}
       className="absolute top-0 left-0"
-       style={{ willChange: "transform", zIndex: isActive ? 5000 : 1 }}
+      style={{ willChange: "transform", zIndex: isActive ? 5000 : 1 }}
     >
       <div
-       onClick={(e) => {
-  e.stopPropagation();
-  if (!tile.isEmpty) openTile(tile.id);
-}}
-        className={`relative flex flex-col items-center justify-center transition-colors duration-500 ${
-          isActive
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!tile.isEmpty) openTile(tile.id);
+        }}
+        className={`relative flex flex-col items-center justify-center transition-colors duration-500 ${isActive
             ? "rounded-full"
             : "rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-md"
-        }`}
-  style={{
-  width: TILE_SIZE,
-  height: TILE_SIZE,
-  backfaceVisibility: "hidden",
-  border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`,
-  boxShadow: tile.isEmpty
-    ? "none"
-    : `0 0 10px ${getBorderColor(tile.designation)}80`
-}}
+          }`}
+        style={{
+          width: TILE_SIZE,
+          height: TILE_SIZE,
+          backfaceVisibility: "hidden",
+          border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`,
+          boxShadow: tile.isEmpty
+            ? "none"
+            : `0 0 10px ${getBorderColor(tile.designation)}80`
+        }}
 
       >
         {/* THE SMOOTH BAND IMAGE (Always fast) */}
@@ -63,13 +62,13 @@ const getBorderColor = (designation = "") => {
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
             </div>
           )}
-      <img 
-  src={tile.isEmpty ? "https://static.vecteezy.com/system/resources/previews/036/280/651/non_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg" : tile.profileImage}
-  alt={tile.name || "default"}
-  className="w-full h-full object-cover"
-  onLoad={() => setImageLoaded(true)}
-  onError={() => setImageLoaded(true)}
-/>
+          <img
+            src={tile.isEmpty ? "https://static.vecteezy.com/system/resources/previews/036/280/651/non_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg" : tile.profileImage}
+            alt={tile.name || "default"}
+            className="w-full h-full object-cover"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
+          />
         </div>
 
         {/* THE PROFILE CARD OVERLAY (Matches Image 1) */}
@@ -82,44 +81,44 @@ const getBorderColor = (designation = "") => {
               transform: `scale(${focusProgress})`,
               opacity: focusProgress,
               border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`,
- 
+
             }}
           >
-            {showProfileUI && ( <div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
-                <div className="flex flex-row items-center gap-4 mb-4">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg">
-                    {!profileImageLoaded && (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      </div>
-                    )}
-                    <img 
-                      src={tile.profileImage} 
-                      alt={tile.name} 
-                      className="w-full h-full object-cover" 
-                      onLoad={() => setProfileImageLoaded(true)}
-                      onError={() => setProfileImageLoaded(true)}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <h2 className="text-xl md:text-2xl font-black uppercase leading-tight">{tile.name}</h2>
-                    <p className="text-[10px] font-bold opacity-70 uppercase">{tile.designation}</p>
-                    <div className="flex gap-3 mt-2 text-lg">
-                      <a href={tile.github} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faGithub} /></a>
-                      <a href={`mailto:${tile.email}`} onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faEnvelope} /></a>
-                      <a href={tile.linkedin} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faLinkedin} /></a>
+            {showProfileUI && (<div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
+              <div className="flex flex-row items-center gap-4 mb-4">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg">
+                  {!profileImageLoaded && (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                     </div>
+                  )}
+                  <img
+                    src={tile.profileImage}
+                    alt={tile.name}
+                    className="w-full h-full object-cover"
+                    onLoad={() => setProfileImageLoaded(true)}
+                    onError={() => setProfileImageLoaded(true)}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <h2 className="text-xl md:text-2xl font-black uppercase leading-tight">{tile.name}</h2>
+                  <p className="text-[10px] font-bold opacity-70 uppercase">{tile.designation}</p>
+                  <div className="flex gap-3 mt-2 text-lg">
+                    <a href={tile.github} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faGithub} /></a>
+                    <a href={`mailto:${tile.email}`} onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faEnvelope} /></a>
+                    <a href={tile.linkedin} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}><FontAwesomeIcon icon={faLinkedin} /></a>
                   </div>
                 </div>
-                <div className="border-t border-black/10 pt-3 w-full text-center">
-                  <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.tag}</span>
-                  <p className="text-[11px] leading-tight mt-1 line-clamp-3 px-4">{tile.bio}</p>
-                </div>
-                <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-[var(--bg-muted)] text-white text-[10px] font-bold rounded-full hover:bg-[var(--bg-muted)] transition-all">
-                  VIEW PROFILE
-                </button>
-  
               </div>
+              <div className="border-t border-black/10 pt-3 w-full text-center">
+                <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">{tile.tag}</span>
+                <p className="text-[11px] leading-tight mt-1 line-clamp-3 px-4">{tile.bio}</p>
+              </div>
+              <button onClick={handleViewProfile} className="mt-4 px-6 py-2 bg-[var(--bg-muted)] text-white text-[10px] font-bold rounded-full hover:bg-[var(--bg-muted)] transition-all">
+                VIEW PROFILE
+              </button>
+
+            </div>
             )}
           </div>
         )}
@@ -139,6 +138,16 @@ function Team() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const { hamburgerOpen, setHamburgerOpen } = useContext(ThemeContext);
+
+  const [isMobile, setIsMobile] = useState(typeof window !== "undefined" && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const searchInputRef = useRef(null);
 
   useEffect(() => {
@@ -170,44 +179,44 @@ function Team() {
   const isTouchingRef = useRef(false);
   const MAX_SCROLL_ROTATION = 360; // Faster, standard single complete sweep
 
-useEffect(() => {
-  getTeam()
-    .then(res => {
-    const formatted = res.data.data.map(item => ({
-  memberId: item.member_id,
-  name: item.member_name,
-  profileImage: item.member_image,
-  rollNumber: item.member_roll_number,
-  designation: item.member_designation,
-  tag: item.member_tag,
-  bio: item.member_about,
-  github: item.member_github_id, // already full URL ✅
-  linkedin: item.member_linkedin,
-  email: item.member_email
-}));;
+  useEffect(() => {
+    getTeam()
+      .then(res => {
+        const formatted = res.data.data.map(item => ({
+          memberId: item.member_id,
+          name: item.member_name,
+          profileImage: item.member_image,
+          rollNumber: item.member_roll_number,
+          designation: item.member_designation,
+          tag: item.member_tag,
+          bio: item.member_about,
+          github: item.member_github_id, // already full URL ✅
+          linkedin: item.member_linkedin,
+          email: item.member_email
+        }));;
 
-      setMembers(formatted);
-    })
-    .catch(err => console.error("API error:", err));
-}, []);
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+        setMembers(formatted);
+      })
+      .catch(err => console.error("API error:", err));
+  }, []);
+
   const HORIZONTAL_WHEEL_FACTOR = isMobile ? 0.25 : 0.35;
   const HORIZONTAL_TOUCH_FACTOR = isMobile ? 0.8 : 1;
   const ROWS = 4;
   const COLS = 14;
-  const TILE_SIZE = isMobile ? 120 : 160; 
-  const TILE_GAP = isMobile ? 20 : 30;  
-  const RADIUS = isMobile ? 320 : 700;  
-  const SPLIT_SHIFT = isMobile ? 200 : 400; 
+  const TILE_SIZE = isMobile ? 120 : 160;
+  const TILE_GAP = isMobile ? 20 : 30;
+  const RADIUS = isMobile ? 320 : 700;
+  const SPLIT_SHIFT = isMobile ? 200 : 400;
 
- 
+
 
   // RESTORED: Exactly your original friction and scroll logic
   const openTile = (id) => {
     setSearchOpen(false);
     setFilterOpen(false);
     if (activeTile === id) { closeCurrent(); return; }
-    if (activeTile) { closeCurrent(() => triggerOpen(id)); } 
+    if (activeTile) { closeCurrent(() => triggerOpen(id)); }
     else { triggerOpen(id); }
   };
 
@@ -219,9 +228,9 @@ useEffect(() => {
       const eased = 1 - Math.pow(1 - t, 3);
       setFocusProgress(startVal * (1 - eased));
       if (t < 1) requestAnimationFrame(run);
-      else { 
-        setActiveTile(null); 
-        if (callback) callback(); 
+      else {
+        setActiveTile(null);
+        if (callback) callback();
       }
     };
     requestAnimationFrame(run);
@@ -259,7 +268,7 @@ useEffect(() => {
     const offset = row % 2 ? angleStep / 2 : 0;
     const targetPosAngle = (index * angleStep + offset);
     const currentRot = scrollBaseRotationRef.current + horizontalOffsetRef.current;
-    
+
     let delta = (-targetPosAngle - currentRot) % 360;
     if (delta > 180) delta -= 360;
     if (delta < -180) delta += 360;
@@ -269,11 +278,11 @@ useEffect(() => {
     const run = (time) => {
       const t = Math.min((time - startTime) / 800, 1);
       const eased = 1 - Math.pow(1 - t, 4); // easeOutQuart
-      
+
       horizontalOffsetRef.current = startOffset + (delta * eased);
       rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
       setRotation(rotationRef.current);
-      
+
       if (t < 1) requestAnimationFrame(run);
     };
     requestAnimationFrame(run);
@@ -387,77 +396,77 @@ useEffect(() => {
     return Array.from(tagSet);
   }, [members]);
 
- const tilesData = useMemo(() => {
-  const out = [];
-  const angleStep = 360 / COLS;
+  const tilesData = useMemo(() => {
+    const out = [];
+    const angleStep = 360 / COLS;
 
-  // ⭐ Only use front half columns (visible initially)
-  const FRONT_COLS = Math.floor(COLS / 2); // 9
-  const TOTAL_VISIBLE = ROWS * FRONT_COLS;
+    // ⭐ Only use front half columns (visible initially)
+    const FRONT_COLS = Math.floor(COLS / 2); // 9
+    const TOTAL_VISIBLE = ROWS * FRONT_COLS;
 
-  // center within visible tiles
-  const startIndex = Math.floor((TOTAL_VISIBLE - filteredMembers.length) / 2);
+    // center within visible tiles
+    const startIndex = Math.floor((TOTAL_VISIBLE - filteredMembers.length) / 2);
 
-  let visibleCounter = 0;
+    let visibleCounter = 0;
 
-  for (let row = 0; row < ROWS; row++) {
-    for (let i = 0; i < COLS; i++) {
-      const isFront = i < FRONT_COLS; // ⭐ front half
+    for (let row = 0; row < ROWS; row++) {
+      for (let i = 0; i < COLS; i++) {
+        const isFront = i < FRONT_COLS; // ⭐ front half
 
-      let member = null;
+        let member = null;
 
-      if (isFront) {
-        if (
-          visibleCounter >= startIndex &&
-          visibleCounter < startIndex + filteredMembers.length
-        ) {
-          member = filteredMembers[visibleCounter - startIndex];
+        if (isFront) {
+          if (
+            visibleCounter >= startIndex &&
+            visibleCounter < startIndex + filteredMembers.length
+          ) {
+            member = filteredMembers[visibleCounter - startIndex];
+          }
+          visibleCounter++;
         }
-        visibleCounter++;
+
+        out.push({
+          id: `${row}-${i}`,
+          ...(member || {}),
+          isEmpty: !member,
+          baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0),
+          row
+        });
       }
-
-      out.push({
-        id: `${row}-${i}`,
-        ...(member || {}),
-        isEmpty: !member,
-        baseAngle: i * angleStep + (row % 2 ? angleStep / 2 : 0),
-        row
-      });
     }
-  }
 
-  return out;
-}, [filteredMembers]);
+    return out;
+  }, [filteredMembers]);
 
-// 4. ⭐ ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
-useEffect(() => {
-  if (members.length === 0) return;
+  // 4. ⭐ ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
+  useEffect(() => {
+    if (members.length === 0) return;
 
-  const FRONT_COLS = Math.floor(COLS / 2);
-  const angleStep = 360 / COLS;
+    const FRONT_COLS = Math.floor(COLS / 2);
+    const angleStep = 360 / COLS;
 
-  const TOTAL_VISIBLE = ROWS * FRONT_COLS;
-  const startIndex = Math.floor((TOTAL_VISIBLE - members.length) / 2);
+    const TOTAL_VISIBLE = ROWS * FRONT_COLS;
+    const startIndex = Math.floor((TOTAL_VISIBLE - members.length) / 2);
 
-  const firstVisibleIndex = startIndex;
+    const firstVisibleIndex = startIndex;
 
-  const row = Math.floor(firstVisibleIndex / FRONT_COLS);
-  const colInFront = firstVisibleIndex % FRONT_COLS;
+    const row = Math.floor(firstVisibleIndex / FRONT_COLS);
+    const colInFront = firstVisibleIndex % FRONT_COLS;
 
-  const actualCol = colInFront;
+    const actualCol = colInFront;
 
-  const offset = row % 2 ? angleStep / 2 : 0;
+    const offset = row % 2 ? angleStep / 2 : 0;
 
-  const targetAngle = actualCol * angleStep + offset;
+    const targetAngle = actualCol * angleStep + offset;
 
-  const newRotation = -targetAngle;
+    const newRotation = -targetAngle;
 
-  initialRotationRef.current = newRotation;
-  scrollBaseRotationRef.current = newRotation;
-  rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
-  setRotation(rotationRef.current);
+    initialRotationRef.current = newRotation;
+    scrollBaseRotationRef.current = newRotation;
+    rotationRef.current = scrollBaseRotationRef.current + horizontalOffsetRef.current;
+    setRotation(rotationRef.current);
 
-}, [members]);
+  }, [members]);
 
   useEffect(() => {
     if (tilesData.length === 0) return;
@@ -493,14 +502,14 @@ useEffect(() => {
 
       const isActive = tile.id === activeTile;
 
-      const cx = window.innerWidth / 2 - 70;
-      const cy = window.innerHeight / 2 + 10;
+      const cx = isMobile ? window.innerWidth / 2 : window.innerWidth / 2 - 70;
+      const cy = isMobile ? window.innerHeight / 2 : window.innerHeight / 2 + 10;
 
       let exX = 0, exY = 0, exZ = 0;
       if (isActive) {
         exX = -x * focusProgress;
         exY = -curvedY * focusProgress;
-        exZ = (isMobile ? 250 : 600 - z) * focusProgress;
+        exZ = (isMobile ? 280 : 600 - z) * focusProgress;
       }
 
       const baseScale = 0.5 + ((z + RADIUS) / (2 * RADIUS)) * 0.5;
@@ -525,7 +534,10 @@ useEffect(() => {
   return (
     <section ref={sectionRef} className="relative h-[300vh]">
       {/* SEARCH AND FILTER CONTROLS - Fixed below header */}
-      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full pointer-events-none" style={{ top: "30px", background: "transparent" }}>
+      <div
+        className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full pointer-events-none"
+        style={{ top: isMobile ? "90px" : "100px", background: "transparent" }}
+      >
         {/* SEARCH BAR */}
         <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
           <div
@@ -537,20 +549,22 @@ useEffect(() => {
               transition-all duration-500 ease-out
               pointer-events-auto
               ${searchOpen
-                ? "w-[300px] h-10 px-4 justify-start"
+                ? (isMobile ? "w-[calc(100vw-80px)] h-10 px-4 justify-start" : "w-[300px] h-10 px-4 justify-start")
                 : "w-10 h-10 justify-center"
               }
             `}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <CiSearch
-              className="text-white cursor-pointer shrink-0 pointer-events-auto"
-              size={18}
-              onClick={(e) => {
-                e.stopPropagation();
-                setSearchOpen(!searchOpen);
-              }}
-            />
+              <CiSearch
+                className="text-white cursor-pointer shrink-0 pointer-events-auto"
+                size={18}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const newState = !searchOpen;
+                  setSearchOpen(newState);
+                  if (newState && isMobile) setFilterOpen(false);
+                }}
+              />
             <input
               ref={searchInputRef}
               type="text"
@@ -590,7 +604,9 @@ useEffect(() => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setFilterOpen(!filterOpen);
+                const newState = !filterOpen;
+                setFilterOpen(newState);
+                if (newState && isMobile) setSearchOpen(false);
               }}
               className={`
                 flex items-center justify-center text-white
@@ -627,11 +643,10 @@ useEffect(() => {
                     }
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${
-                    selectedTags.includes(tag)
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${selectedTags.includes(tag)
                       ? "bg-white/30 text-white font-semibold"
                       : "text-white hover:text-white hover:bg-white/10"
-                  }`}
+                    }`}
                 >
                   {tag}
                 </button>
@@ -649,11 +664,11 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      <div 
-        className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden" 
-        onClick={() => activeTile && closeCurrent()} 
+      <div
+        className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden"
+        onClick={() => activeTile && closeCurrent()}
         style={{ perspective: "1200px" }}
-        
+
       >
         {tilesData.map((tile) => (
           <Tile

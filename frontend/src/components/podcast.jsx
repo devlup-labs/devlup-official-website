@@ -130,7 +130,7 @@ export default function Podcast() {
   const updateTransforms = () => {
     const cards = containerRef.current?.children;
     if (!cards) return;
-    
+
     // Always use latest from ref inside raf loop
     const currentIndex = clickedIndexRef.current;
 
@@ -138,7 +138,7 @@ export default function Podcast() {
       const offset = i - scrollPos.current;
       const distance = Math.abs(offset);
       const translateY = offset * 170;
-      
+
       // Enlarge the focused card smoothly and scale down the background cards
       const baseScale = 1.05 - Math.min(distance * 0.1, 0.5);
 
@@ -152,7 +152,7 @@ export default function Podcast() {
 
       el.style.transform = `translateY(${translateY}px) scale(${finalScale})`;
       el.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s ease, filter 0.4s ease';
-      
+
       // Background cards get darker/faded
       el.style.opacity =
         distance > 6
@@ -181,7 +181,7 @@ export default function Podcast() {
       // Smoothly animate towards the clicked card
       diff = targetIndex.current - scrollPos.current;
       scrollPos.current += diff * 0.08;
-      
+
       if (Math.abs(diff) < 0.005) {
         scrollPos.current = targetIndex.current;
         targetIndex.current = null;
@@ -335,7 +335,7 @@ export default function Podcast() {
       {/* Fixed TopControls - Always Visible */}
       <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none">
         <div className="pointer-events-auto">
-          <TopControls 
+          <TopControls
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             selectedTags={selectedTags}
@@ -394,7 +394,7 @@ export default function Podcast() {
                           setClickedIndex(null);
                           clickedIndexRef.current = null;
                           setIsPlaying(false);
-                          
+
                           // Ensure raf triggers
                           if (raf.current) cancelAnimationFrame(raf.current);
                           raf.current = requestAnimationFrame(animate);

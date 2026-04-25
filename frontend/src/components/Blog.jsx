@@ -17,6 +17,7 @@ function Blog() {
   const tickingRef = useRef(false);
   const [blogs, setBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
   const [selectedTags, setSelectedTags] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -112,18 +113,31 @@ function Blog() {
 
     const updateCards = () => {
       const section = sectionRef.current;
-      if (!section) return;
+      if (!section) {
+        tickingRef.current = false;
+        return;
+      }
 
       const rect = section.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > viewportHeight) return;
+      let progress = 0;
 
-      const progress = Math.min(Math.max(-rect.top / rect.height, 0), 1);
+      if (rect.bottom < 0) {
+        progress = 1;
+      } else if (rect.top > viewportHeight) {
+        progress = 0;
+      } else {
+        progress = Math.min(Math.max(-rect.top / rect.height, 0), 1);
+      }
 
       const diff = progress - smoothProgress.current;
       const easing = Math.abs(diff) > 0.2 ? 0.22 : 0.12;
       smoothProgress.current += diff * easing;
 
       const hasActive = activeCard !== null;
+      const _isMobile = window.innerWidth < 768;
+      const maxScale = _isMobile ? 1.2 : 1.8;
+      const mobileFactorX = _isMobile ? 0.35 : 1;
+      const mobileFactorY = _isMobile ? 0.55 : 1;
 
       for (let i = 0; i < layers.length; i++) {
         const layer = layers[i];
@@ -148,15 +162,15 @@ function Blog() {
         const localProgress = (smoothProgress.current - depth) / windowSize;
         const clamped = Math.min(localProgress, 1);
 
-        const scale = layer.baseScale + clamped * 1.8;
+        const scale = layer.baseScale + clamped * maxScale;
 
-        let x = layer.rx * clamped;
-        let y = layer.ry * clamped;
+        let x = layer.rx * mobileFactorX * clamped;
+        let y = layer.ry * mobileFactorY * clamped;
 
         if (localProgress > 1) {
           const exit = localProgress - 1;
-          x += layer.rx * exit * 3;
-          y += layer.ry * exit * 3;
+          x += layer.rx * mobileFactorX * exit * 3;
+          y += layer.ry * mobileFactorY * exit * 3;
         }
 
         let blur = 0;
@@ -185,17 +199,24 @@ function Blog() {
         card.style.pointerEvents = clickable ? "auto" : "none";
       }
 
-      tickingRef.current = false;
+      if (Math.abs(diff) > 0.001) {
+        requestAnimationFrame(updateCards);
+      } else {
+        smoothProgress.current = progress;
+        tickingRef.current = false;
+      }
     };
 
     const onScroll = () => {
       if (!tickingRef.current) {
-        requestAnimationFrame(updateCards);
         tickingRef.current = true;
+        requestAnimationFrame(updateCards);
       }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
+
+    tickingRef.current = true;
     requestAnimationFrame(updateCards);
 
     return () => window.removeEventListener("scroll", onScroll);
@@ -300,7 +321,9 @@ function Blog() {
               size={18}
               onClick={(e) => {
                 e.stopPropagation();
-                setSearchOpen(!searchOpen);
+                const newState = !searchOpen;
+                setSearchOpen(newState);
+                if (newState && isMobile) setFilterOpen(false);
               }}
             />
             <input
@@ -341,7 +364,9 @@ function Blog() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setFilterOpen(!filterOpen);
+                const newState = !filterOpen;
+                setFilterOpen(newState);
+                if (newState && isMobile) setSearchOpen(false);
               }}
               className={`
                 flex items-center justify-center text-white
@@ -378,11 +403,10 @@ function Blog() {
                     }
                   }}
                   onMouseDown={(e) => e.stopPropagation()}
-                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${
-                    selectedTags.includes(tag)
+                  className={`px-3 py-1 rounded-full text-[10px] md:text-xs whitespace-nowrap transition-colors pointer-events-auto ${selectedTags.includes(tag)
                       ? "bg-white/30 text-white font-semibold"
                       : "text-white hover:text-white hover:bg-white/10"
-                  }`}
+                    }`}
                 >
                   {tag}
                 </button>
@@ -408,109 +432,109 @@ function Blog() {
         className="relative bg-[var(--bg-main-gradient)] font-body"
       >
 
-      <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen overflow-hidden pointer-events-none z-0">
+        <div className="fixed top-0 left-0 right-0 bottom-0 h-screen w-screen overflow-hidden pointer-events-none z-0">
 
-        {/* Debug info - shows if no cards are rendering */}
-    {layers.length === 0 && (
-  <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/40">
-    
-    <div className="flex flex-col items-center gap-4 text-center">
-      
-      {/* Spinner */}
-      <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          {/* Debug info - shows if no cards are rendering */}
+          {layers.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/40">
 
-      {/* Main Text */}
-      <p className="text-xl font-semibold text-white tracking-wide">
+              <div className="flex flex-col items-center gap-4 text-center">
 
-      </p>
+                {/* Spinner */}
+                <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
 
+                {/* Main Text */}
+                <p className="text-xl font-semibold text-white tracking-wide">
 
-    </div>
-  </div>
-)}
+                </p>
 
-        {activeCard !== null && (
-          <div
-            onClick={() => setActiveCard(null)}
-            className="absolute inset-0 bg-black/50 backdrop-blur-md z-[9000] pointer-events-auto"
-          />
-        )}
-
-        {layers.map((layer, i) => (
-          <div
-            key={i}
-            ref={(el) => (cardRefs.current[i] = el)}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveCard(i);
-            }}
-            style={
-              activeCard === i
-                ? {
-                  transform: "translate(-50%, -50%) scale(2)",
-                  zIndex: 9999,
-                  filter: "blur(0px)",
-                  transition:
-                    "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
-                }
-                : {}
-            }
-            className="absolute left-1/2 top-1/2 w-56 h-72 rounded-2xl overflow-hidden bg-[var(--bg-blog_card)] text-white border border-white/10 shadow-xl cursor-pointer will-change-transform pointer-events-auto"
-          >
-
-            {activeCard !== i ? (
-              <div className="w-full h-full flex flex-col">
-
-                {/* 🔷 TOP IMAGE (SMALLER) */}
-                <div className="h-[25%] overflow-hidden">
-                  <img src={layer.image} className="w-full h-full object-cover" alt={layer.title} />
-                </div>
-
-                {/* 🔻 TEXT AREA (BIGGER) */}
-                <div className="h-[50%] flex flex-col items-center justify-center bg-[var(--bg-blog_card)] border-y border-white/10 px-3">
-
-                  <p className="font-heading text-base font-bold text-center line-clamp-2 mb-2">
-                    {layer.title}
-                  </p>
-
-                  <p className="text-xs opacity-70 text-center">
-                    {layer.author}
-                  </p>
-
-                </div>
-
-                {/* 🔷 BOTTOM IMAGE (SMALLER) */}
-                <div className="h-[25%] overflow-hidden">
-                  <img
-                    src={layer.image}
-                    className="w-full h-full object-cover"
-                    style={{ transform: "scaleY(-1)" }}
-                    alt={layer.title}
-                  />
-                </div>
 
               </div>
-            ) : (
-              <div className="w-full h-full flex flex-col">
+            </div>
+          )}
 
-                <div className="relative h-20">
-                  <img src={layer.image} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40" />
-                  <div className="absolute right-2 top-2 text-[10px] font-bold uppercase">
-                    {layer.location}
+          {activeCard !== null && (
+            <div
+              onClick={() => setActiveCard(null)}
+              className="absolute inset-0 bg-black/50 backdrop-blur-md z-[9000] pointer-events-auto"
+            />
+          )}
+
+          {layers.map((layer, i) => (
+            <div
+              key={i}
+              ref={(el) => (cardRefs.current[i] = el)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveCard(i);
+              }}
+              style={
+                activeCard === i
+                  ? {
+                    transform: `translate(-50%, -50%) scale(${isMobile ? 1.3 : 2})`,
+                    zIndex: 9999,
+                    filter: "blur(0px)",
+                    transition:
+                      "transform 0.35s cubic-bezier(0.22,1,0.36,1)",
+                  }
+                  : {}
+              }
+              className="absolute left-1/2 top-1/2 w-56 h-72 rounded-2xl overflow-hidden bg-[var(--bg-blog_card)] text-white border border-white/10 shadow-xl cursor-pointer will-change-transform pointer-events-auto"
+            >
+
+              {activeCard !== i ? (
+                <div className="w-full h-full flex flex-col">
+
+                  {/* 🔷 TOP IMAGE (SMALLER) */}
+                  <div className="h-[25%] overflow-hidden">
+                    <img src={layer.image} className="w-full h-full object-cover" alt={layer.title} />
                   </div>
-                </div>
 
-                <div className="p-3 flex flex-col h-full">
+                  {/* 🔻 TEXT AREA (BIGGER) */}
+                  <div className="h-[50%] flex flex-col items-center justify-center bg-[var(--bg-blog_card)] border-y border-white/10 px-3">
 
-                  {/* CONTENT */}
-                  <div className="flex flex-col gap-2">
-
-                    <h2 className="text-sm font-extrabold font-heading leading-tight">
+                    <p className="font-heading text-base font-bold text-center line-clamp-2 mb-2">
                       {layer.title}
-                    </h2>
+                    </p>
 
-                    {/* BLOG ID
+                    <p className="text-xs opacity-70 text-center">
+                      {layer.author}
+                    </p>
+
+                  </div>
+
+                  {/* 🔷 BOTTOM IMAGE (SMALLER) */}
+                  <div className="h-[25%] overflow-hidden">
+                    <img
+                      src={layer.image}
+                      className="w-full h-full object-cover"
+                      style={{ transform: "scaleY(-1)" }}
+                      alt={layer.title}
+                    />
+                  </div>
+
+                </div>
+              ) : (
+                <div className="w-full h-full flex flex-col">
+
+                  <div className="relative h-20">
+                    <img src={layer.image} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40" />
+                    <div className="absolute right-2 top-2 text-[10px] font-bold uppercase">
+                      {layer.location}
+                    </div>
+                  </div>
+
+                  <div className="p-3 flex flex-col h-full">
+
+                    {/* CONTENT */}
+                    <div className="flex flex-col gap-2">
+
+                      <h2 className="text-sm font-extrabold font-heading leading-tight">
+                        {layer.title}
+                      </h2>
+
+                      {/* BLOG ID
 
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] rounded-full">
@@ -518,55 +542,55 @@ function Blog() {
                     </span>
                   </div> */}
 
-                    <div className="flex gap-2 text-[10px] opacity-80">
-                      {layer.tags.map((t, idx) => (
-                        <span key={idx}>{t}</span>
-                      ))}
+                      <div className="flex gap-2 text-[10px] opacity-80">
+                        {layer.tags.map((t, idx) => (
+                          <span key={idx}>{t}</span>
+                        ))}
+                      </div>
+
+                      <p className="text-[10px] opacity-60">{layer.date}</p>
+
+                      <div>
+                        <p className="text-[10px] opacity-50 uppercase">
+                          Published by:
+                        </p>
+                        <p className="text-xs font-semibold">{layer.author}</p>
+                      </div>
+
+                      <div className="flex gap-4 mt-2 text-sm opacity-80">
+                        <a href={layer.instagram} target="_blank" rel="noreferrer">
+                          <FontAwesomeIcon icon={faInstagram} />
+                        </a>
+                        <a href={layer.github} target="_blank" rel="noreferrer">
+                          <FontAwesomeIcon icon={faGithub} />
+                        </a>
+                        <a href={layer.linkedin} target="_blank" rel="noreferrer">
+                          <FontAwesomeIcon icon={faLinkedin} />
+                        </a>
+                      </div>
+
                     </div>
 
-                    <p className="text-[10px] opacity-60">{layer.date}</p>
-
-                    <div>
-                      <p className="text-[10px] opacity-50 uppercase">
-                        Published by:
-                      </p>
-                      <p className="text-xs font-semibold">{layer.author}</p>
-                    </div>
-
-                    <div className="flex gap-4 mt-2 text-sm opacity-80">
-                      <a href={layer.instagram} target="_blank" rel="noreferrer">
-                        <FontAwesomeIcon icon={faInstagram} />
-                      </a>
-                      <a href={layer.github} target="_blank" rel="noreferrer">
-                        <FontAwesomeIcon icon={faGithub} />
-                      </a>
-                      <a href={layer.linkedin} target="_blank" rel="noreferrer">
-                        <FontAwesomeIcon icon={faLinkedin} />
-                      </a>
-                    </div>
+                    {/* 🔥 VIEW BUTTON (NEW) */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // 🔥 prevents animation break
+                        navigate(`/blogs/${layer.blog_id}`);
+                      }}
+                      className="mt-auto w-full py-1.5 text-[11px] rounded-full border border-white/20 
+             hover:bg-white/10 transition-all duration-300"
+                    >
+                      View
+                    </button>
 
                   </div>
 
-                  {/* 🔥 VIEW BUTTON (NEW) */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // 🔥 prevents animation break
-                      navigate(`/blogs/${layer.blog_id}`);
-                    }}
-                    className="mt-auto w-full py-1.5 text-[11px] rounded-full border border-white/20 
-             hover:bg-white/10 transition-all duration-300"
-                  >
-                    View
-                  </button>
-
                 </div>
 
-              </div>
-
-            )}
-          </div>
-        ))}
-      </div>
+              )}
+            </div>
+          ))}
+        </div>
       </section>
     </>
   );

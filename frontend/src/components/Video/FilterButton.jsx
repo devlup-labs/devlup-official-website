@@ -66,8 +66,8 @@ export default function FilterButton({
                 }
               }}
               className={`px-3 py-1 rounded-full text-[10px] md:text-xs transition-colors whitespace-nowrap pointer-events-auto ${selectedTags.includes(tag)
-                  ? "bg-white/30 text-white font-semibold"
-                  : "text-white hover:text-white hover:bg-white/10"
+                ? "bg-white/30 text-white font-semibold"
+                : "text-white hover:text-white hover:bg-white/10"
                 }`}
             >
               {tag}

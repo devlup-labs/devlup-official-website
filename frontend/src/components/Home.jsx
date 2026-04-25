@@ -10,39 +10,39 @@ import Header from "./Header.jsx";
 /* ==================== DISC COMPONENTS ==================== */
 
 function UniformDisc() {
-	// Create a 2D shape with a hole, then we will extrude it into 3D
-	const shape = useMemo(() => {
-		const s = new THREE.Shape();
-		s.absarc(0, 0,8, 0, Math.PI * 2, false); // Outer radius
-		const hole = new THREE.Path();
-		hole.absarc(0, 0, 5.1, 0, Math.PI * 2, true); // Inner radius (hole)
-		s.holes.push(hole);
-		return s;
-	}, []);
+  // Create a 2D shape with a hole, then we will extrude it into 3D
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    s.absarc(0, 0, 8, 0, Math.PI * 2, false); // Outer radius
+    const hole = new THREE.Path();
+    hole.absarc(0, 0, 5.1, 0, Math.PI * 2, true); // Inner radius (hole)
+    s.holes.push(hole);
+    return s;
+  }, []);
 
-	return (
-		// Positioned slightly down so the extrusion (which goes "up") centers around Y=0
-		<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]}>
-			{/* ExtrudeGeometry gives the flat shape thickness (depth) along what becomes the Y axis */}
-			<extrudeGeometry args={[shape, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }]} />
-			<meshStandardMaterial color="#1565C0" emissive="#0D47A1" emissiveIntensity={0.08} metalness={0} roughness={1} />
-		</mesh>
-	);
+  return (
+    // Positioned slightly down so the extrusion (which goes "up") centers around Y=0
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]}>
+      {/* ExtrudeGeometry gives the flat shape thickness (depth) along what becomes the Y axis */}
+      <extrudeGeometry args={[shape, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }]} />
+      <meshStandardMaterial color="#1565C0" emissive="#0D47A1" emissiveIntensity={0.08} metalness={0} roughness={1} />
+    </mesh>
+  );
 }
 
 export function Disc() {
-	return (
-		<div className="w-screen h-screen bg-[#070b16]">
-			<Canvas camera={{ position: [0, 4, 8], fov: 50 }} dpr={[1, 1.2]}>
-				<color attach="background" args={["#070b16"]} />
-				<ambientLight intensity={0.45} />
-				<directionalLight position={[6, 8, 4]} intensity={1.1} />
-				<pointLight position={[-5, 3, -4]} intensity={0.6} color="#2ea8ff" />
-				<UniformDisc />
-				<OrbitControls enablePan={false} />
-			</Canvas>
-		</div>
-	);
+  return (
+    <div className="w-screen h-screen bg-[#070b16]">
+      <Canvas camera={{ position: [0, 4, 8], fov: 50 }} dpr={[1, 1.2]}>
+        <color attach="background" args={["#070b16"]} />
+        <ambientLight intensity={0.45} />
+        <directionalLight position={[6, 8, 4]} intensity={1.1} />
+        <pointLight position={[-5, 3, -4]} intensity={0.6} color="#2ea8ff" />
+        <UniformDisc />
+        <OrbitControls enablePan={false} />
+      </Canvas>
+    </div>
+  );
 }
 
 /* ==================== EFFECTS COMPONENTS ==================== */
@@ -55,16 +55,16 @@ export function AnimatedBlock({ visible, popped = false, children }) {
     currentScale.current = THREE.MathUtils.lerp(currentScale.current, target, 1 - Math.exp(-4 * delta));
     if (groupRef.current) {
       groupRef.current.scale.setScalar(currentScale.current);
-      
+
       // Calculate angle from the model's absolute position to the camera's position
       const worldPos = new THREE.Vector3();
       groupRef.current.getWorldPosition(worldPos);
-      
+
       const targetAngle = Math.atan2(
         state.camera.position.x - worldPos.x,
         state.camera.position.z - worldPos.z
       );
-      
+
       groupRef.current.rotation.y = THREE.MathUtils.lerp(
         groupRef.current.rotation.y,
         targetAngle,
@@ -86,7 +86,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
       caseMatRef.current.uniforms.uGlobalOpacity.value = THREE.MathUtils.lerp(caseMatRef.current.uniforms.uGlobalOpacity.value, tCaseOp, 1 - Math.exp(-4 * delta));
       caseMatRef.current.uniforms.uTime.value += delta;
     }
-    
+
     if (meshRef.current) {
       targetScale.current = hovered && allowHoverScale ? scale * 1.05 : scale;
       const currentScale = meshRef.current.scale.x;
@@ -95,11 +95,11 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
     }
   });
 
-  const discUniforms = useMemo(() => ({ 
-    uTime: { value: 0 }, 
-    uColorInner: { value: new THREE.Color('#ffffff') }, 
-    uColorOuter: { value: new THREE.Color('#00E5FF') }, 
-    uGlobalOpacity: { value: 1.2 } 
+  const discUniforms = useMemo(() => ({
+    uTime: { value: 0 },
+    uColorInner: { value: new THREE.Color('#ffffff') },
+    uColorOuter: { value: new THREE.Color('#00E5FF') },
+    uGlobalOpacity: { value: 1.2 }
   }), []);
 
   const dotsCount = 16;
@@ -113,7 +113,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
   return (
     <group ref={meshRef} position={position} onClick={(e) => { if (e.intersections.length > 0 && e.intersections[0].eventObject !== e.eventObject) return; onClick(e); }} onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}>
       <pointLight color={color || "#00D2FF"} distance={10} intensity={isLightOn ? 8 : 0} position={[0, 2, 0]} />
-      
+
       <mesh><cylinderGeometry args={[1.45, 1.5, 0.4, 32]} /><meshStandardMaterial color="#020408" roughness={0.6} metalness={0.4} /></mesh>
 
       {isLightOn && (
@@ -130,13 +130,13 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
 
           <mesh position={[0, 4.0, 0]}>
             <cylinderGeometry args={[0.2, 1.15, 8.0, 32, 1, true]} />
-            <shaderMaterial 
-              ref={caseMatRef} 
-              transparent 
-              depthWrite={false} 
-              blending={THREE.AdditiveBlending} 
-              side={THREE.DoubleSide} 
-              uniforms={discUniforms} 
+            <shaderMaterial
+              ref={caseMatRef}
+              transparent
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+              side={THREE.DoubleSide}
+              uniforms={discUniforms}
               vertexShader={`
                 varying vec2 vUv;
                 varying vec3 vNormal;
@@ -148,7 +148,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
                   vViewPosition = -mvPosition.xyz;
                   gl_Position = projectionMatrix * mvPosition;
                 }
-              `} 
+              `}
               fragmentShader={`
                 precision mediump float;
                 varying vec2 vUv;
@@ -173,7 +173,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
                   vec3 finalColor = mix(uColorOuter, uColorInner, hotCore * 0.8);
                   gl_FragColor = vec4(finalColor * intensity * 2.0, intensity);
                 }
-              `} 
+              `}
             />
           </mesh>
         </>
@@ -186,19 +186,19 @@ export function FloatingBlocks({ count = 30 }) {
   const meshRef = useRef();
   const scroll = useScroll();
   const dummy = useMemo(() => new THREE.Object3D(), []);
-  
+
   const particles = useMemo(() => {
     const temp = [];
     for (let i = 0; i < count; i++) {
-      temp.push({ 
-        factor: 10 + Math.random() * 40, 
-        speed: 0.05 + Math.random() * 0.3, 
-        x: (Math.random() - 0.5) * 40, 
-        z: (Math.random() - 0.5) * 40, 
-        yStart: -10 - Math.random() * 10, 
-        yEnd: 15 + Math.random() * 15, 
-        scale: Math.random() * 0.6 + 0.3, 
-        timeOffset: Math.random() * 100 
+      temp.push({
+        factor: 10 + Math.random() * 40,
+        speed: 0.05 + Math.random() * 0.3,
+        x: (Math.random() - 0.5) * 40,
+        z: (Math.random() - 0.5) * 40,
+        yStart: -10 - Math.random() * 10,
+        yEnd: 15 + Math.random() * 15,
+        scale: Math.random() * 0.6 + 0.3,
+        timeOffset: Math.random() * 100
       });
     }
     return temp;
@@ -208,22 +208,22 @@ export function FloatingBlocks({ count = 30 }) {
     if (!meshRef.current) return;
     const r1 = scroll ? scroll.offset : 0;
     const time = state.clock.getElapsedTime();
-    
+
     particles.forEach((p, i) => {
       const pTime = time + p.timeOffset;
       const curY = p.yStart + (p.yEnd - p.yStart) * r1 * 1.5;
-      
+
       if (curY > 35 || curY < -20) {
-         dummy.position.set(0, -999, 0);
+        dummy.position.set(0, -999, 0);
       } else {
-         const xOff = Math.sin(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
-         const zOff = Math.cos(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
-         const yOff = Math.sin(pTime * p.speed * 1.5) * (p.factor * 0.05);
-         const spread = 1 + r1 * 0.5;
-         
-         dummy.position.set(p.x * spread + xOff, curY + yOff, p.z * spread + zOff);
-         dummy.rotation.set(pTime * p.speed, pTime * p.speed * 0.5, pTime * p.speed * 0.2);
-         dummy.scale.setScalar(p.scale);
+        const xOff = Math.sin(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
+        const zOff = Math.cos(pTime * p.speed) * (p.factor * 0.05) * (1 + r1);
+        const yOff = Math.sin(pTime * p.speed * 1.5) * (p.factor * 0.05);
+        const spread = 1 + r1 * 0.5;
+
+        dummy.position.set(p.x * spread + xOff, curY + yOff, p.z * spread + zOff);
+        dummy.rotation.set(pTime * p.speed, pTime * p.speed * 0.5, pTime * p.speed * 0.2);
+        dummy.scale.setScalar(p.scale);
       }
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
@@ -256,20 +256,20 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
     if (isTransitioning) return;
     const previousFocused = prevFocused.current;
     const targetSet = focusedIndex !== null;
-    
+
     if (targetSet && previousFocused === null) {
       savedPos.current.copy(camera.position);
       savedLookAt.current.copy(currentLookAt.current);
       isAnimatingBack.current = false;
     }
-    
+
     if (targetSet && previousFocused !== null && focusedIndex !== previousFocused) {
       // When switching between discs, save current camera state as new saved state
       savedPos.current.copy(camera.position);
       savedLookAt.current.copy(currentLookAt.current);
       isAnimatingBack.current = false;
     }
-    
+
     if (!targetSet && previousFocused !== null) isAnimatingBack.current = true;
     prevFocused.current = focusedIndex;
 
@@ -279,13 +279,13 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
       if (discObj) {
         discObj.getWorldPosition(worldTarget.current);
         outDir.current.set(worldTarget.current.x, 0, worldTarget.current.z).normalize();
-        
+
         if (isNaN(outDir.current.x)) outDir.current.set(0, 0, 1);
 
         const hDist = 5, vDist = hDist * Math.tan(THREE.MathUtils.degToRad(25));
         targetPos.current.set(worldTarget.current.x + outDir.current.x * hDist, worldTarget.current.y + vDist, worldTarget.current.z + outDir.current.z * hDist);
         targetLookAt.current.set(worldTarget.current.x, worldTarget.current.y + 0.4, worldTarget.current.z);
-        
+
         camera.position.lerp(targetPos.current, lerpFactor);
         currentLookAt.current.lerp(targetLookAt.current, lerpFactor);
         camera.lookAt(currentLookAt.current);
@@ -347,7 +347,7 @@ export function FlowingGrid({ showHologram }) {
     const time = state.clock.elapsedTime;
     const offset = scroll ? scroll.offset : 0;
     const scrollActivation = THREE.MathUtils.smoothstep(offset, 0.15, 0.5);
-    
+
     holoAnim.current = THREE.MathUtils.lerp(holoAnim.current, showHologram ? 1 : 0, 1 - Math.exp(-3 * delta));
     const activation = scrollActivation * (1 - holoAnim.current);
     const hoveredChanged = hoveredIdRef.current !== prevHoveredIdRef.current;
@@ -397,11 +397,11 @@ export function FlowingGrid({ showHologram }) {
         <planeGeometry args={[65, 65]} />
         <meshBasicMaterial color="#ffffff" transparent opacity={0.15} />
       </mesh>
-      <instancedMesh 
-        ref={meshRef} 
-        args={[null, null, count * count]} 
-        position={[0, -0.1, 0]} 
-        onPointerMove={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId; }} 
+      <instancedMesh
+        ref={meshRef}
+        args={[null, null, count * count]}
+        position={[0, -0.1, 0]}
+        onPointerMove={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId; }}
         onPointerOut={() => { hoveredIdRef.current = null; }}
       >
         <boxGeometry args={[1, 1, 1]} />
@@ -467,14 +467,14 @@ export function WormholeTransition({ active }) {
   useFrame((state, delta) => {
     if (!active || !curve) return;
     if (matRef.current) matRef.current.uniforms.time.value += delta;
-    
+
     progress.current += delta * 0.34;
     const rawT = Math.min(progress.current, 1);
     const easedT = Math.pow(rawT, 3.2);
     const pos = curve.getPointAt(easedT);
-    
-    camera.position.lerp(pos, 0.2); 
-    
+
+    camera.position.lerp(pos, 0.2);
+
     if (easedT < 0.98) {
       const nextPos = curve.getPointAt(Math.min(easedT + 0.03, 1));
       const targetLook = new THREE.Vector3().copy(startLookAt.current).lerp(nextPos, Math.min(rawT * 4, 1));
@@ -483,17 +483,17 @@ export function WormholeTransition({ active }) {
 
     const rollSpeed = Math.pow(rawT, 2) * 15;
     camera.rotation.z += delta * rollSpeed;
-    
+
     camera.fov = THREE.MathUtils.lerp(55, 155, Math.pow(rawT, 4));
     camera.updateProjectionMatrix();
 
     if (rawT > 0.85 && !document.getElementById('whiteout-overlay')) {
-       const div = document.createElement('div');
-       div.id = 'whiteout-overlay';
-       div.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;opacity:0;transition:opacity 0.6s ease-in-out;z-index:99999;pointer-events:none;';
-       div.classList.add('page-transition-overlay');
-       document.body.appendChild(div);
-       requestAnimationFrame(() => div.style.opacity = '1');
+      const div = document.createElement('div');
+      div.id = 'whiteout-overlay';
+      div.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:white;opacity:0;transition:opacity 0.6s ease-in-out;z-index:99999;pointer-events:none;';
+      div.classList.add('page-transition-overlay');
+      document.body.appendChild(div);
+      requestAnimationFrame(() => div.style.opacity = '1');
     }
   });
 
@@ -890,12 +890,11 @@ export const Loader = ({ onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red ${
-        fading ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}
+      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red ${fading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
       style={{
         transition: 'opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        
+
       }}
     >
       <div className="relative w-[600px] h-[480px] sm:w-[860px] sm:h-[580px]">
@@ -929,8 +928,8 @@ export const Loader = ({ onComplete }) => {
 
 const HUDStyles = () => (
   <>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
-  <style>{`
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+    <style>{`
     .whiteout-fade {
       position: fixed;
       top: 0;
@@ -972,8 +971,8 @@ const HUDStyles = () => (
 
 const SECTIONS = [
   { name: "Home", tagline: "Welcome to DevlUp Labs", description: "Step into the central hub of DevlUp Labs where innovation meets creativity. Discover everything we build, explore our projects, and stay updated with our latest work. This is your starting point to navigate through our ecosystem. Designed to give you a complete overview of who we are and what we do." },
-  { name: "Timeline", tagline: "Chronicle Your Journey", description:  "Track your growth and visualize your journey through meaningful milestones. From small achievements to major breakthroughs, everything is captured here. The timeline helps you reflect on progress and stay motivated. It’s a dynamic view of how far you've come and where you're headed." },
-  { name: "Videos", tagline: "Visual Learning for Developers", description:"Experience visually engaging content crafted to inspire and educate. Our videos showcase projects, tutorials, and creative explorations. Each frame is designed to deliver impact and clarity. Dive into a cinematic journey of learning and innovation."},
+  { name: "Timeline", tagline: "Chronicle Your Journey", description: "Track your growth and visualize your journey through meaningful milestones. From small achievements to major breakthroughs, everything is captured here. The timeline helps you reflect on progress and stay motivated. It’s a dynamic view of how far you've come and where you're headed." },
+  { name: "Videos", tagline: "Visual Learning for Developers", description: "Experience visually engaging content crafted to inspire and educate. Our videos showcase projects, tutorials, and creative explorations. Each frame is designed to deliver impact and clarity. Dive into a cinematic journey of learning and innovation." },
   { name: "Podcast", tagline: "Voices That Resonate", description: "Listen to insightful conversations with creators, developers, and thinkers. Our podcasts dive deep into ideas, experiences, and industry trends. Each episode is designed to spark curiosity and broaden perspectives. Tune in and connect with voices that truly matter." },
   { name: "Blogs", tagline: "Words That Inspire", description: "Explore thoughtfully written articles covering technology, ideas, and innovation. Our blogs aim to educate, inspire, and provoke meaningful thinking. Whether you're a beginner or an expert, there's something valuable for everyone. Learn, grow, and stay ahead with our insights." },
   { name: "Team", tagline: "The Minds Behind the Vision", description: "Meet the passionate individuals who bring DevlUp Labs to life. Our team is a blend of creativity, skill, and dedication. Each member contributes uniquely to building impactful projects. Together, we strive to innovate, collaborate, and shape the future." },
@@ -986,9 +985,9 @@ const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
   const angle = (i * Math.PI * 2) / 6;
   return {
     position: [Math.sin(angle) * X_RADIUS, 1.2, Math.cos(angle) * Z_RADIUS],
-    color: BLOCK_COLORS[i], 
+    color: BLOCK_COLORS[i],
     speed: [0.8, 1.1, 0.6, 0.9, 1.3, 0.7][i],
-    rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i], 
+    rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i],
     scale: [1.15, 1.1, 0.9, 0.9, 1.1, 1.0][i],
   };
 });
@@ -1006,14 +1005,14 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 
   useFrame((_, delta) => {
     const offset = scroll ? scroll.offset : 0;
-    
+
     if (offset < 0.8 && showHologram) {
       setShowHologram(false);
     }
-    
+
     if (ringGroupRef.current) {
       ringGroupRef.current.rotation.y = THREE.MathUtils.lerp(ringGroupRef.current.rotation.y, targetRotationY.current, 1 - Math.exp(-8 * delta));
-      const riseHeight = offset * 30; 
+      const riseHeight = offset * 30;
       const ringVisibility = 1 - THREE.MathUtils.smoothstep(offset, 0, 0.4);
       ringGroupRef.current.scale.setScalar(ringVisibility);
       ringGroupRef.current.position.set(0, riseHeight, -(offset * 10));
@@ -1064,10 +1063,10 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
       <spotLight position={[-5, 12, -5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#0044FF" castShadow={false} />
       <pointLight position={[0, 3, 0]} intensity={1.5} distance={15} castShadow={false} />
       <Environment preset="city" background={false} frames={1} />
-      
+
       <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} />
       <WormholeTransition active={isTransitioning} />
-     
+
       <FlowingGrid showHologram={showHologram} />
 
       <group ref={ringGroupRef} visible={!isTransitioning}>
@@ -1080,11 +1079,11 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
               <FloatingDisc
                 {...disc}
                 isFocused={focusedIndex === i}
-               isLightOn={focusedIndex === null || focusedIndex === i}
+                isLightOn={focusedIndex === null || focusedIndex === i}
                 allowHoverScale={focusedIndex === null}
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  if (discClickedRef) discClickedRef.current = true; 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (discClickedRef) discClickedRef.current = true;
                   if (focusedIndex === i && i !== 0) {
                     // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
@@ -1101,9 +1100,9 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 name={`disc-${i}`}
                 onPointerOver={() => { setHoveredModelIndex(i); document.body.style.cursor = "pointer"; }}
                 onPointerOut={() => { setHoveredModelIndex(null); document.body.style.cursor = "default"; }}
-                onClick={(e) => { 
-                  e.stopPropagation(); 
-                  if (discClickedRef) discClickedRef.current = true; 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (discClickedRef) discClickedRef.current = true;
                   if (focusedIndex === i && i !== 0) {
                     // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
@@ -1123,7 +1122,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
           ))}
         </ParallaxRig>
       </group>
-      
+
       <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isTransitioning}>
         <planeGeometry args={[60, 60]} />
         <shaderMaterial
@@ -1174,10 +1173,10 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 
 function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
   const navigate = useNavigate();
-  
+
   // Map section index to routes
   const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
-  
+
   const handleNavigate = () => {
     if (focusedIndex !== null && focusedIndex !== 0) {
       navigate(routeMap[focusedIndex]);
@@ -1188,12 +1187,12 @@ function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
   return (
     <AnimatePresence>
       {focusedIndex !== null && (
-        <motion.div 
-          ref={sidebarRef} 
-          initial={{ x: "100%", opacity: 0 }} 
-          animate={{ x: 0, opacity: 1 }} 
-          exit={{ x: "100%", opacity: 0 }} 
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }} 
+        <motion.div
+          ref={sidebarRef}
+          initial={{ x: "100%", opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: "100%", opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           onClick={handleNavigate}
           className="absolute right-0 top-0 h-screen w-full sm:w-[400px] bg-black/60 backdrop-blur-2xl border-l border-[#00E5FF]/30 shadow-[-30px_0_80px_-20px_rgba(0,229,255,0.3)] z-50 flex flex-col pointer-events-auto cursor-pointer hover:bg-black/70 transition-all"
         >
@@ -1269,60 +1268,60 @@ export default function Home() {
               transition: 'opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
-        <div className="absolute inset-0 z-[1]">
-        <Canvas 
-          dpr={[1, 1.1]} 
-          camera={{ position: [0, 5, 15], fov: 55 }} 
-          onPointerMissed={() => {
-            if (discClickedRef.current) {
-              discClickedRef.current = false;
-              return;
-            }
-            setFocusedIndex(null);
-          }}
-          gl={{ 
-            antialias: false, 
-            alpha: false, 
-            powerPreference: "high-performance",
-            toneMapping: THREE.ACESFilmicToneMapping, 
-            toneMappingExposure: 1.2 
-          }}
-          performance={{ min: 0.35 }}
-        >
-          <ScrollControls pages={2} damping={0.1}>
-            <Suspense fallback={null}>
-              <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} />
-            </Suspense>
-            <Scroll html style={{ width: '100vw' }}>
-              <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
-                <div className="w-full h-full flex flex-col items-center justify-center p-20 text-center bg-gradient-to-t from-black/80 to-transparent">
-                  <div className="inline-block px-5 py-2 rounded-full border border-cyan-400/40 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">Phase II</div>
-                  <h2 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF] max-w-5xl drop-shadow-[0_0_30px_rgba(0,229,255,0.4)] mb-8">
-                    DevlUp Labs
-                  </h2>
-                  <p className="text-2xl text-slate-300 max-w-3xl font-light leading-relaxed drop-shadow-md">
-                    You've reached the second chapter. This is the perfect space to introduce new case studies, interactive articles, or showcase immersive 3D content.
-                  </p>
-                  <button onClick={() => {
-                    setIsTransitioning(true);
-                    setTimeout(() => {
-                      setShowSciFiHUD(true);
-                      setIsTransitioning(false);
-                    }, 3200);
-                  }} className="mt-14 px-12 py-5 rounded-full bg-white/10 text-white font-bold tracking-[0.2em] uppercase hover:bg-white/20 transition-all border border-white/30 hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(0,229,255,0.3)] backdrop-blur-md">
-                    Explore Further
-                  </button>
-                </div>
-              </div>
-              
-            </Scroll>
-          </ScrollControls>
-        </Canvas>
-        </div>
-        <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
-          <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
-        </div>
-      </div>
+            <div className="absolute inset-0 z-[1]">
+              <Canvas
+                dpr={[1, 1.1]}
+                camera={{ position: [0, 5, 15], fov: 55 }}
+                onPointerMissed={() => {
+                  if (discClickedRef.current) {
+                    discClickedRef.current = false;
+                    return;
+                  }
+                  setFocusedIndex(null);
+                }}
+                gl={{
+                  antialias: false,
+                  alpha: false,
+                  powerPreference: "high-performance",
+                  toneMapping: THREE.ACESFilmicToneMapping,
+                  toneMappingExposure: 1.2
+                }}
+                performance={{ min: 0.35 }}
+              >
+                <ScrollControls pages={2} damping={0.1}>
+                  <Suspense fallback={null}>
+                    <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} />
+                  </Suspense>
+                  <Scroll html style={{ width: '100vw' }}>
+                    <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
+                      <div className="w-full h-full flex flex-col items-center justify-center p-20 text-center bg-gradient-to-t from-black/80 to-transparent">
+                        <div className="inline-block px-5 py-2 rounded-full border border-cyan-400/40 bg-cyan-900/30 text-cyan-300 text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">Phase II</div>
+                        <h2 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF] max-w-5xl drop-shadow-[0_0_30px_rgba(0,229,255,0.4)] mb-8">
+                          DevlUp Labs
+                        </h2>
+                        <p className="text-2xl text-slate-300 max-w-3xl font-light leading-relaxed drop-shadow-md">
+                          You've reached the second chapter. This is the perfect space to introduce new case studies, interactive articles, or showcase immersive 3D content.
+                        </p>
+                        <button onClick={() => {
+                          setIsTransitioning(true);
+                          setTimeout(() => {
+                            setShowSciFiHUD(true);
+                            setIsTransitioning(false);
+                          }, 3200);
+                        }} className="mt-14 px-12 py-5 rounded-full bg-white/10 text-white font-bold tracking-[0.2em] uppercase hover:bg-white/20 transition-all border border-white/30 hover:scale-[1.03] hover:shadow-[0_0_40px_rgba(0,229,255,0.3)] backdrop-blur-md">
+                          Explore Further
+                        </button>
+                      </div>
+                    </div>
+
+                  </Scroll>
+                </ScrollControls>
+              </Canvas>
+            </div>
+            <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
+              <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
+            </div>
+          </div>
         </>
       )}
     </>
@@ -1502,6 +1501,7 @@ body::-webkit-scrollbar {
   flex-direction: column;
   gap: 0;
   margin-top: 120px;
+  padding-top: 100px;
 }
 
 .detail-block {
@@ -1657,7 +1657,7 @@ function GlowRing({ scrollRef }) {
   })
 
   return (
-    <mesh ref={ringRef} position={[-1.25, -0.2, -1]} scale={[1,1,1]}>
+    <mesh ref={ringRef} position={[-1.25, -0.2, -1.3]} scale={[1, 1, 1]}>
       <torusGeometry args={[3.2, 0.06, 32, 128]} />
       <meshStandardMaterial
         color="#ffffff"
@@ -1705,7 +1705,18 @@ function SceneLighting() {
 
 function PenguinModel({ scrollRef }) {
   const { scene } = useGLTF('/penguin3l.glb')
+
+  // 1) Center the geometry internally once so it rotates around its own spine
+  useMemo(() => {
+    const box = new THREE.Box3().setFromObject(scene)
+    const center = new THREE.Vector3()
+    box.getCenter(center)
+    // Offset the scene by the negative of its bounding box center
+    scene.position.sub(center)
+  }, [scene])
+
   const groupRef = useRef()
+  const targetPosition = useMemo(() => new THREE.Vector3(), [])
 
   useFrame((state, delta) => {
     if (!groupRef.current) return
@@ -1714,16 +1725,37 @@ function PenguinModel({ scrollRef }) {
     // Calculate the overall scroll progress
     const move = easeInOutCubic(scrollRange(offset, 0.05, 0.35))
 
-    // 1) Define exactly where the penguin SHOULD be right now based on scroll
-    const targetX = THREE.MathUtils.lerp(-10.8, -9.5, move)
-    const targetScale = THREE.MathUtils.lerp(0.2, 0.12, move)
+    // Set exactly where the penguin SHOULD be right now based on scroll
+    // Aligned to match the GlowRing center
+    const targetX = THREE.MathUtils.lerp(-1, -4.2, move)
+    const targetScale = THREE.MathUtils.lerp(0.2, 0.1, move)
 
-    // 2) Smoothly animate (lerp) the actual properties TOWARDS the calculated targets using time (delta).
-    // This entirely dampens out bumpy scrolling or sudden stops!
-    groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, targetX, 8 * delta)
-    
+    targetPosition.set(targetX, -0.2, -3)
+
+    groupRef.current.position.lerp(targetPosition, 1 - Math.exp(-8 * delta))
+
     const s = THREE.MathUtils.lerp(groupRef.current.scale.x, targetScale, 8 * delta)
     groupRef.current.scale.set(s, s, s)
+
+    // 2) Rotate slightly toward the cursor on the local Y-axis
+    // Find where the penguin is essentially on the screen (-1 to 1)
+    const projected = targetPosition.clone().project(state.camera)
+
+    // dx is the difference between mouse cursor (state.pointer.x) and the penguin's screen X
+    const dx = state.pointer.x - projected.x
+    // dy for looking up/down if you want, or just stick to dx for Y-rotation
+    const dy = state.pointer.y - projected.y
+
+    // Calculate angle: standard rotation is -Math.PI / 2
+    // We add an angle based on the cursor distance. 
+    // Math.atan2 scales perfectly and smoothly without breaking 360 degrees.
+    const targetRotationY = -Math.PI / 2 + Math.atan2(dx, 1.5)
+
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y,
+      targetRotationY,
+      1 - Math.exp(-10 * delta)
+    )
   })
 
   return (
@@ -1854,16 +1886,20 @@ function ScrollHTML() {
     if (heroRef.current && leftTextRef.current && rightTextRef.current) {
       heroRef.current.style.perspective = '1200px'
 
-      const openProgress = easeInOutCubic(scrollRange(offset, 0.02, 0.15))
-      const opacity = 1 - openProgress
+      const openProgress = easeInOutCubic(scrollRange(offset, 0.02, 0.15));
+      const opacity = 1 - openProgress;
 
-      leftTextRef.current.style.opacity = opacity
-      leftTextRef.current.style.transformOrigin = 'left center'
-      leftTextRef.current.style.transform = `translateZ(${-500 * openProgress}px) rotateY(${-45 * openProgress}deg)`
+      const scrollY = offset * window.innerHeight;
+      const stopThreshold = 60; // How many pixels it can move up before stopping
+      const counterScroll = Math.max(0, scrollY - stopThreshold);
 
-      rightTextRef.current.style.opacity = opacity
-      rightTextRef.current.style.transformOrigin = 'right center'
-      rightTextRef.current.style.transform = `translateZ(${500 * openProgress}px) rotateY(${-45 * openProgress}deg)`
+      leftTextRef.current.style.opacity = opacity;
+      leftTextRef.current.style.transformOrigin = 'left center';
+      leftTextRef.current.style.transform = `translateY(${counterScroll}px) translateZ(${-500 * openProgress}px) rotateY(${-45 * openProgress}deg)`;
+
+      rightTextRef.current.style.opacity = opacity;
+      rightTextRef.current.style.transformOrigin = 'right center';
+      rightTextRef.current.style.transform = `translateY(${counterScroll}px) translateZ(${500 * openProgress}px) rotateY(${-45 * openProgress}deg)`;
     }
 
     if (detailRef.current) {
@@ -1875,17 +1911,17 @@ function ScrollHTML() {
     if (block1Ref.current) {
       const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block1Ref.current.style.opacity = o
-      block1Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
+      block1Ref.current.style.transform = `translateY(${(1 - o) * 20}px)`
     }
     if (block2Ref.current) {
       const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block2Ref.current.style.opacity = o
-      block2Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
+      block2Ref.current.style.transform = `translateY(${(1 - o) * 20}px)`
     }
     if (block3Ref.current) {
       const o = easeInOutCubic(scrollRange(offset, 0.16, 0.30))
       block3Ref.current.style.opacity = o
-      block3Ref.current.style.transform = `translateY(${(1 - o) * 24}px)`
+      block3Ref.current.style.transform = `translateY(${(1 - o) * 20}px)`
     }
   })
 
@@ -1901,9 +1937,9 @@ function ScrollHTML() {
         <div ref={rightTextRef} className="hero-description-wrap">
           <br />
           <span className=" text-stone-50 leading-relaxed">
-          DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
-          highest of standards.We aim to build an open source community through proper guidance and by encouraging self learning.
-          We encourage development of technology and Innovation through various sessions, workshops and webinars.
+            DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
+            highest of standards.We aim to build an open source community through proper guidance and by encouraging self learning.
+            We encourage development of technology and Innovation through various sessions, workshops and webinars.
           </span>
         </div>
       </div>
@@ -1913,9 +1949,9 @@ function ScrollHTML() {
           <div ref={block1Ref} className="detail-block" style={{ opacity: 0 }}>
             <h2 className="detail-heading">Learning Driven Endeavour</h2>
             <span className="detail-text">
-              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth 
-              as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of 
-              improvement, curiosity, and adaptation. 
+              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
+              as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of
+              improvement, curiosity, and adaptation.
             </span>
           </div>
 
@@ -1923,11 +1959,11 @@ function ScrollHTML() {
 
           <div ref={block2Ref} className="detail-block" style={{ opacity: 0 }}>
             <h2>
-            <span className="detail-heading detail-heading-large">Projects that matter to the community</span>
+              <span className="detail-heading detail-heading-large">Projects that matter to the community</span>
             </h2>
             <span className="detail-text">
               We at devlup labs are committed to products and projects that matter,
-               projects that serve a real purpose for the community.
+              projects that serve a real purpose for the community.
             </span>
           </div>
 
@@ -1935,12 +1971,12 @@ function ScrollHTML() {
 
           <div ref={block3Ref} className="detail-block" style={{ opacity: 0 }}>
             <h2 className="detail-heading">Self Learning</h2>
-            
+
             <span className="detail-text">
-            At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
-            We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
+              At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
+              We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
             </span>
-           
+
           </div>
         </div>
       </div>
@@ -1952,8 +1988,8 @@ function FixedOverlay({ onClose }) {
   return (
     <div className="museum-overlay">
       {/* Back Button */}
-      
-      
+
+
       {/* Faint vertical grid lines */}
       <div className="museum-grid-lines">
         {[...Array(6)].map((_, i) => (
@@ -1970,28 +2006,28 @@ export function SciFiHUD({ onClose }) {
       <style>{CSS_STYLES}</style>
       <div className="museum-layout w-screen min-h-screen relative overflow-x-hidden bg-[#050814]">
         <Header />
-        
+
         <div className="museum-page" style={{ height: '100vh', position: 'relative' }}>
           <Canvas
 
-        className="museum-canvas"
-        camera={{ position: [-0.5, 0.5, 7], fov: 45 }}
-        gl={{
-          antialias: true,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.0,
-        }}
-      >
-        <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 10, 22]} />
+            className="museum-canvas"
+            camera={{ position: [0, 0, 0], fov: 45 }}
+            gl={{
+              antialias: true,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.0,
+            }}
+          >
+            <color attach="background" args={['#000000']} />
+            <fog attach="fog" args={['#000000', 10, 22]} />
 
-        <ScrollControls pages={2} damping={0.1}>
-          <SceneContent />
-          <ScrollHTML />
-        </ScrollControls>
-      </Canvas>
+            <ScrollControls pages={2} damping={0.1}>
+              <SceneContent />
+              <ScrollHTML />
+            </ScrollControls>
+          </Canvas>
 
-      <FixedOverlay onClose={onClose} />
+          <FixedOverlay onClose={onClose} />
         </div>
       </div>
     </>

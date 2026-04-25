@@ -72,12 +72,12 @@ export default function Timeline() {
         backgroundAttachment: "fixed",
         backgroundPosition: "center",
       }}
-      className="relative overflow-hidden pt-64 transition-all duration-500"
+      className={`relative overflow-hidden ${isMobile ? "pt-40" : "pt-64"} transition-all duration-500`}
     >
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
 
       {/* HEADING */}
-      <div className="absolute top-24 w-full flex justify-center z-20 pointer-events-none">
+      <div className={`absolute ${isMobile ? "top-20 px-4" : "top-24"} w-full flex justify-center z-20 pointer-events-none`}>
         <div className="bg-[var(--bg-blog_card)] shadow-lg rounded-lg px-8 py-6 text-center max-w-2xl border border-gray-200">
           <h1
             className={`${isMobile ? "text-2xl" : "text-4xl md:text-6xl"} font-bold text-[var(--text-primary)]`}

@@ -472,15 +472,15 @@ const loadPortfolio = (inputCode) => {
       </div>
 
       {/* CONTROLS */}
-      <div ref={controlsRef} className="mt-10 flex gap-4 opacity-0 hover:opacity-100 transition-opacity duration-300">
+      <div ref={controlsRef} className="mt-10 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
 
         <input
           type="text"
           value={searchKey}
           onChange={(e) => setSearchKey(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && loadPortfolio(searchKey)}
-          placeholder="ENTER THE PASS"
-          className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+          placeholder=""
+          className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] cursor-text"
         />
 
         

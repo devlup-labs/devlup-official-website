@@ -3,9 +3,9 @@ import { FaYoutube } from "react-icons/fa";
 
 // Base dimensions for the background cards
 const CARD_WIDTH = 220;
-const CARD_HEIGHT = 124; 
+const CARD_HEIGHT = 124;
 const SIZE = CARD_WIDTH;
-const MIN_DIST = 140; 
+const MIN_DIST = 140;
 const MAX_ATTEMPTS = 60;
 
 const R1 = 75; const R2 = 150; const R3 = 220; const R4 = 300;
@@ -19,7 +19,7 @@ const START_OFFSET_Y = 34;
 const BOTTOM_OFFSET = 44;
 const SIDE_OFFSET = 32;
 
-export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiXIRuZj0","314S3-0_I2I","hlhy1QsZ4Bw","U-isVE5n4TY","WvQCFqRkaec","ZdTQ-bCDU0w"] }) {
+export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiXIRuZj0", "314S3-0_I2I", "hlhy1QsZ4Bw", "U-isVE5n4TY", "WvQCFqRkaec", "ZdTQ-bCDU0w"] }) {
   const [activeId, setActiveId] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
 
@@ -40,26 +40,26 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
         const y = START_OFFSET_Y + (CARD_HEIGHT / 2) + Math.random() * Math.max(0, h - START_OFFSET_Y);
 
         if (result.every(c => Math.hypot(c.x - x, c.y - y) > MIN_DIST)) {
-            const vId = videoIds[id % videoIds.length];
-            result.push({
-              id,
-              videoId: vId,
-              thumbnail: `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
-              x,
-              y,
-              baseScale: 0.75 + Math.random() * 0.5,
-            });
-            id++;
-            placed = true;
-          }
-          attempts++;
+          const vId = videoIds[id % videoIds.length];
+          result.push({
+            id,
+            videoId: vId,
+            thumbnail: `https://img.youtube.com/vi/${vId}/hqdefault.jpg`,
+            x,
+            y,
+            baseScale: 0.75 + Math.random() * 0.5,
+          });
+          id++;
+          placed = true;
         }
-        if (!placed) break;
+        attempts++;
       }
-      return result;
-    }, [videoIds]);
-  
-    const active = cards.find(c => c.id === activeId);
+      if (!placed) break;
+    }
+    return result;
+  }, [videoIds]);
+
+  const active = cards.find(c => c.id === activeId);
 
   return (
     <div className="relative w-full h-screen overflow-hidden">

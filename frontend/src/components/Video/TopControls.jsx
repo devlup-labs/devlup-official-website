@@ -40,17 +40,29 @@ export default function TopControls({
     glideClass = "glide-both";
   }
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  const handleSetSearchOpen = (val) => {
+    setSearchOpen(val);
+    if (val && isMobile) setFilterOpen(false);
+  };
+
+  const handleSetFilterOpen = (val) => {
+    setFilterOpen(val);
+    if (val && isMobile) setSearchOpen(false);
+  };
+
   return (
     <div className={`topControls relative z-[50000] pointer-events-none ${glideClass}`}>
       <SearchBar
         searchOpen={searchOpen}
-        setSearchOpen={setSearchOpen}
+        setSearchOpen={handleSetSearchOpen}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
       <FilterButton
         filterOpen={filterOpen}
-        setFilterOpen={setFilterOpen}
+        setFilterOpen={handleSetFilterOpen}
         selectedTags={selectedTags}
         setSelectedTags={setSelectedTags}
         tags={tags}

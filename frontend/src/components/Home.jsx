@@ -49,6 +49,7 @@ export function Disc() {
 
 export function AnimatedBlock({ visible, popped = false, children }) {
   const groupRef = useRef();
+  const innerRef = useRef();
   const currentScale = useRef(0);
   useFrame((state, delta) => {
     const target = visible ? (popped ? 2.05 : 1.8) : 0;
@@ -71,8 +72,23 @@ export function AnimatedBlock({ visible, popped = false, children }) {
         5 * delta
       );
     }
+    
+    // Apply pitch to the inner group so it tilts consistently up and down
+    if (innerRef.current) {
+      innerRef.current.rotation.x = THREE.MathUtils.lerp(
+        innerRef.current.rotation.x,
+        0,
+        5 * delta
+      );
+    }
   });
-  return <group ref={groupRef} scale={0}>{children}</group>;
+  return (
+    <group ref={groupRef} scale={0}>
+      <group ref={innerRef}>
+        {children}
+      </group>
+    </group>
+  );
 }
 
 export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn = true, allowHoverScale = true, onClick, softness = 2.0 }) {
@@ -306,8 +322,8 @@ export function ParallaxRig({ children, enabled }) {
   const { pointer } = useThree();
   useFrame(() => {
     if (groupRef.current && enabled) {
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, pointer.x * 0.15, 0.05);
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -pointer.y * 0.1, 0.05);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, 0, 0.05);
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, 0, 0.05);
     }
   });
   return <group ref={groupRef}>{children}</group>;
@@ -326,6 +342,7 @@ export function FlowingGrid({ showHologram }) {
   const prevActivationRef = useRef(0);
   const staticPoseAppliedRef = useRef(false);
   const holoAnim = useRef(0);
+  const waveTime = useRef(0);
 
   const gridData = useMemo(() => {
     const data = [];
@@ -344,8 +361,14 @@ export function FlowingGrid({ showHologram }) {
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
-    const time = state.clock.elapsedTime;
     const offset = scroll ? scroll.offset : 0;
+    
+    // The buildings will only animate (wave up and down) when we scroll past 0.35
+    if (offset > 0.35) {
+      waveTime.current += delta;
+    }
+    const time = waveTime.current;
+    
     const scrollActivation = THREE.MathUtils.smoothstep(offset, 0.15, 0.5);
 
     holoAnim.current = THREE.MathUtils.lerp(holoAnim.current, showHologram ? 1 : 0, 1 - Math.exp(-3 * delta));
@@ -353,8 +376,6 @@ export function FlowingGrid({ showHologram }) {
     const hoveredChanged = hoveredIdRef.current !== prevHoveredIdRef.current;
     const activationChanged = Math.abs(activation - prevActivationRef.current) > 0.001;
     const isStatic = activation < 0.001;
-
-    if (offset > 0.8) return;
 
     if (isStatic && staticPoseAppliedRef.current && !hoveredChanged) return;
 
@@ -1028,6 +1049,31 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 
   const cardOffsetFactor = scroll ? THREE.MathUtils.smoothstep(scroll.offset, 1, 0) : 0;
 
+  const handleSmoothScrollDown = () => {
+    if (!scroll || !scroll.el) return;
+    const start = scroll.el.scrollTop;
+    const target = scroll.el.scrollHeight - scroll.el.clientHeight; 
+    const change = target - start;
+    if (change <= 0) return;
+    
+    const duration = 2500; // 2.5 seconds (very slow and smooth)
+    const startTime = performance.now();
+    
+    const animateScroll = (time) => {
+      const elapsed = time - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease In Out Cubic for super smooth deceleration
+      const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      scroll.el.scrollTop = start + change * ease;
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateScroll);
+      }
+    };
+    
+    requestAnimationFrame(animateScroll);
+  };
+
   useEffect(() => {
     const canvas = gl.domElement;
     const onPointerDown = (e) => { if (e.button !== 2 || focusedIndex !== null) return; isDragging.current = true; previousX.current = e.clientX; };
@@ -1084,7 +1130,14 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 onClick={(e) => {
                   e.stopPropagation();
                   if (discClickedRef) discClickedRef.current = true;
-                  if (focusedIndex === i && i !== 0) {
+                  
+                  // For the first model (Home), slide down to "Explore Further" slowly
+                  if (i === 0) {
+                    handleSmoothScrollDown();
+                    return;
+                  }
+
+                  if (focusedIndex === i) {
                     // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
                     navigate(routeMap[i]);
@@ -1103,7 +1156,14 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 onClick={(e) => {
                   e.stopPropagation();
                   if (discClickedRef) discClickedRef.current = true;
-                  if (focusedIndex === i && i !== 0) {
+                  
+                  // For the first model (Home), slide down to "Explore Further" slowly
+                  if (i === 0) {
+                    handleSmoothScrollDown();
+                    return;
+                  }
+
+                  if (focusedIndex === i) {
                     // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
                     navigate(routeMap[i]);
@@ -1510,7 +1570,7 @@ body::-webkit-scrollbar {
 }
 
 .hero-title {
-  font-family: 'Cormorant Garamond', 'Georgia', serif;
+  font-family: 'sans-serif';
   font-weight: 300;
   font-size: clamp(3rem, 7vw, 6.5rem);
   line-height: 1.05;
@@ -1568,7 +1628,7 @@ body::-webkit-scrollbar {
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-top: 120px;
+  margin-top: 10px;
   padding-top: 100px;
 }
 

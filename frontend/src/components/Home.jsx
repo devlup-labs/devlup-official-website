@@ -255,7 +255,7 @@ export function FloatingBlocks({ count = 30 }) {
   );
 }
 
-export function CameraAnimator({ focusedIndex, isTransitioning }) {
+export function CameraAnimator({ focusedIndex, isTransitioning, cameraReturnLockRef }) {
   const { camera, scene } = useThree();
   const targetPos = useRef(new THREE.Vector3());
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
@@ -286,7 +286,10 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
       isAnimatingBack.current = false;
     }
 
-    if (!targetSet && previousFocused !== null) isAnimatingBack.current = true;
+    if (!targetSet && previousFocused !== null) {
+      isAnimatingBack.current = true;
+      if (cameraReturnLockRef) cameraReturnLockRef.current = true;
+    }
     prevFocused.current = focusedIndex;
 
     const lerpFactor = 1 - Math.exp(-damping * delta);
@@ -310,7 +313,10 @@ export function CameraAnimator({ focusedIndex, isTransitioning }) {
       camera.position.lerp(savedPos.current, lerpFactor);
       currentLookAt.current.lerp(savedLookAt.current, lerpFactor);
       camera.lookAt(currentLookAt.current);
-      if (camera.position.distanceTo(savedPos.current) < 0.05) isAnimatingBack.current = false;
+      if (camera.position.distanceTo(savedPos.current) < 0.05) {
+        isAnimatingBack.current = false;
+        if (cameraReturnLockRef) cameraReturnLockRef.current = false;
+      }
     }
   });
 
@@ -1013,7 +1019,7 @@ const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
   };
 });
 
-function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, isTransitioning, discClickedRef }) {
+function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, isTransitioning, discClickedRef, cameraReturnLockRef }) {
   const floorUniforms = useMemo(() => ({ color: { value: new THREE.Color("#ffffff") } }), []);
   const ringGroupRef = useRef();
   const { gl } = useThree();
@@ -1039,7 +1045,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
       ringGroupRef.current.position.set(0, riseHeight, -(offset * 10));
     }
 
-    if (focusedIndex === null && !isTransitioning) {
+    if (focusedIndex === null && !isTransitioning && !cameraReturnLockRef?.current) {
       const targetZ = showHologram ? 18 : 15;
       const targetY = showHologram ? 6 : 5;
       _.camera.position.lerp(new THREE.Vector3(0, targetY, targetZ), 1 - Math.exp(-3 * delta));
@@ -1110,7 +1116,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
       <pointLight position={[0, 3, 0]} intensity={1.5} distance={15} castShadow={false} />
       <Environment preset="city" background={false} frames={1} />
 
-      <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} />
+      <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} cameraReturnLockRef={cameraReturnLockRef} />
       <WormholeTransition active={isTransitioning} />
 
       <FlowingGrid showHologram={showHologram} />
@@ -1231,7 +1237,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
   );
 }
 
-function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
+function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
   const navigate = useNavigate();
 
   // Map section index to routes
@@ -1249,20 +1255,55 @@ function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
       {focusedIndex !== null && (
         <motion.div
           ref={sidebarRef}
-          initial={{ x: "100%", opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: "100%", opacity: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ x: 140, y: 20, opacity: 0, scale: 0.97 }}
+          animate={{ x: 0, y: [0, -18, 0, 14, 0], rotate: [0, -1.2, 0, 1.2, 0], opacity: 1, scale: 1.01 }}
+          exit={{ x: 140, y: 20, opacity: 0, scale: 0.97 }}
+          transition={{
+            duration: 0.7,
+            ease: [0.16, 1, 0.3, 1],
+            y: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
+            scale: { duration: 0.7 },
+          }}
           onClick={handleNavigate}
-          className="absolute right-0 top-0 h-screen w-full sm:w-[400px] bg-black/60 backdrop-blur-2xl border-l border-[#00E5FF]/30 shadow-[-30px_0_80px_-20px_rgba(0,229,255,0.3)] z-50 flex flex-col pointer-events-auto cursor-pointer hover:bg-black/70 transition-all"
+          className="fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] bg-black/55 backdrop-blur-3xl border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.45),0_0_60px_rgba(0,229,255,0.14)] z-50 flex flex-col overflow-hidden pointer-events-auto cursor-pointer hover:bg-black/65 transition-all"
+          style={{ willChange: "transform" }}
         >
-          <div className="flex-1 p-12 flex flex-col pt-28 overflow-y-auto">
-            <h2 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#00E5FF] mb-3 tracking-tight">{SECTIONS[focusedIndex].name}</h2>
-            <h3 className="text-2xl font-bold text-cyan-300 uppercase tracking-widest mb-10">{SECTIONS[focusedIndex].tagline}</h3>
-            <div className="w-16 h-1.5 bg-gradient-to-r from-[#00E5FF] to-blue-500 rounded-full mb-10" />
-            <p className="text-slate-300 text-xl leading-relaxed font-light">{SECTIONS[focusedIndex].description}</p>
+          <div className="flex-1 p-6 md:p-8 flex flex-col gap-4 overflow-y-auto">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-900/20 text-cyan-300 text-[11px] font-bold tracking-[0.28em] uppercase mb-4">
+                  {focusedIndex === 0 ? "Home" : "Section"}
+                </div>
+                <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#00E5FF] tracking-tight">
+                  {SECTIONS[focusedIndex].name}
+                </h2>
+                <h3 className="text-sm md:text-lg font-bold text-cyan-300 uppercase tracking-[0.25em] mt-2">
+                  {SECTIONS[focusedIndex].tagline}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close card"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFocusedIndex(null);
+                }}
+                className="shrink-0 w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="w-14 h-1 bg-gradient-to-r from-[#00E5FF] to-blue-500 rounded-full" />
+
+            <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light">
+              {SECTIONS[focusedIndex].description}
+            </p>
+
             {focusedIndex !== 0 && (
-              <button className="mt-auto px-6 py-2 bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300 rounded-lg transition-all">
+              <button className="mt-auto px-5 py-3 bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300 rounded-xl transition-all text-sm md:text-base">
                 Go to {SECTIONS[focusedIndex].name}
               </button>
             )}
@@ -1283,6 +1324,7 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSciFiHUD, setShowSciFiHUD] = useState(false);
   const discClickedRef = useRef(false);
+  const cameraReturnLockRef = useRef(false);
   const secretClickStateRef = useRef({ startTime: 0, count: 0, required: 0 });
   const secretResetTimerRef = useRef(null);
   const [showLoader, setShowLoader] = useState(() => {
@@ -1360,6 +1402,20 @@ export default function Home() {
   }, [focusedIndex]);
 
   useEffect(() => {
+    if (focusedIndex === null) return;
+
+    const onWheel = (event) => {
+      if (event.deltaY > 0) {
+        event.preventDefault();
+        setFocusedIndex(null);
+      }
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [focusedIndex]);
+
+  useEffect(() => {
     return () => {
       if (secretResetTimerRef.current) clearTimeout(secretResetTimerRef.current);
     };
@@ -1403,7 +1459,7 @@ export default function Home() {
               >
                 <ScrollControls pages={2} damping={0.1}>
                   <Suspense fallback={null}>
-                    <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} />
+                    <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} cameraReturnLockRef={cameraReturnLockRef} />
                   </Suspense>
                   <Scroll html style={{ width: '100vw' }}>
                     <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
@@ -1432,7 +1488,7 @@ export default function Home() {
               </Canvas>
             </div>
             <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
-              <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
+              <FloatingCard focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
             </div>
 
             <div className="absolute inset-0 z-[20] pointer-events-none">

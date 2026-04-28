@@ -82,14 +82,14 @@ export default function Timeline() {
           <h1
             className={`${isMobile ? "text-2xl" : "text-4xl md:text-6xl"} font-bold text-[var(--text-primary)]`}
           >
-            Chronicle of Progress
+            Workflow Timeline
           </h1>
           <p className="mt-2 text-lg text-[var(--text-primary)]">
             Defining growth through enduring milestones
           </p>
         </div>
       </div>
-
+ 
       <div className="scene [filter:drop-shadow(0_40px_120px_rgba(56,189,248,0.25))] [transform-style:preserve-3d] origin-top relative">
         <CircuitTree activeCard={activeCard} flippedCards={flippedCards} branches={branches} isMobile={isMobile} />
 

@@ -140,7 +140,7 @@ const Footer = () => {
       {/* MAIN */}
       <div
         ref={refContent}
-        className="relative z-20 max-w-7xl mx-auto px-0 grid md:grid-cols-3 gap-8 items-start"
+        className="relative z-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-0 grid md:grid-cols-3 gap-8 items-start"
       >
         {/* LEFT */}
         <div className="space-y-5">
@@ -179,7 +179,7 @@ const Footer = () => {
         </div>
 
         {/* 🔥 MIDDLE COLUMN */}
-        <div className="space-y-4 text-white px-3 mt-6 md:mt-0">
+        <div className="hidden md:block space-y-4 text-white px-3 mt-6 md:mt-0">
           <h3 className="text-3xl mt-3 font-semibold text-center">
             Useful Links
           </h3>
@@ -216,7 +216,7 @@ const Footer = () => {
 
         {/* RIGHT (UNCHANGED) */}
         <div className="space-y-6">
-          <h3 className="text-3xl px-22 mt-3 font-semibold text-white">
+          <h3 className="text-xl md:text-3xl px-22 mt-3 font-semibold text-white">
             Get in Touch
           </h3>
 

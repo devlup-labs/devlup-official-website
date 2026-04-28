@@ -1214,6 +1214,7 @@ function DiscSidebar({ focusedIndex, setFocusedIndex, sidebarRef }) {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
   const rootRef = useRef(null);
   const sidebarRef = useRef(null);
   const aboutUsRef = useRef(null);
@@ -1222,10 +1223,56 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showSciFiHUD, setShowSciFiHUD] = useState(false);
   const discClickedRef = useRef(false);
+  const secretClickStateRef = useRef({ startTime: 0, count: 0, required: 0 });
+  const secretResetTimerRef = useRef(null);
   const [showLoader, setShowLoader] = useState(() => {
     if (typeof window === 'undefined') return true;
     return !(sessionStorage.getItem('loader_shown_this_session') === 'true');
   });
+
+  const getRequiredClicks = () => {
+    const minuteMod = new Date().getMinutes() % 5;
+    return minuteMod === 0 ? 5 : minuteMod;
+  };
+
+  const resetSecretWindow = () => {
+    if (secretResetTimerRef.current) {
+      clearTimeout(secretResetTimerRef.current);
+      secretResetTimerRef.current = null;
+    }
+    secretClickStateRef.current = { startTime: 0, count: 0, required: 0 };
+  };
+
+  const handleSecretCornerClick = () => {
+    const now = Date.now();
+    const current = secretClickStateRef.current;
+
+    const windowExpired = !current.startTime || now - current.startTime > 5000;
+
+    if (windowExpired) {
+      const required = getRequiredClicks();
+      secretClickStateRef.current = { startTime: now, count: 1, required };
+
+      if (secretResetTimerRef.current) clearTimeout(secretResetTimerRef.current);
+      secretResetTimerRef.current = setTimeout(() => {
+        resetSecretWindow();
+      }, 5000);
+
+      if (required <= 1) {
+        resetSecretWindow();
+        navigate('/login');
+      }
+      return;
+    }
+
+    const nextCount = current.count + 1;
+    secretClickStateRef.current = { ...current, count: nextCount };
+
+    if (nextCount >= current.required) {
+      resetSecretWindow();
+      navigate('/login');
+    }
+  };
 
   const handleLoaderComplete = () => {
     sessionStorage.setItem('loader_shown_this_session', 'true');
@@ -1251,6 +1298,12 @@ export default function Home() {
     rootEl.addEventListener("pointerdown", onPointerDown);
     return () => rootEl.removeEventListener("pointerdown", onPointerDown);
   }, [focusedIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (secretResetTimerRef.current) clearTimeout(secretResetTimerRef.current);
+    };
+  }, []);
 
   return (
     <>
@@ -1320,6 +1373,21 @@ export default function Home() {
             </div>
             <div className="absolute inset-0 pointer-events-none z-[10] overflow-hidden">
               <DiscSidebar focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} sidebarRef={sidebarRef} />
+            </div>
+
+            <div className="absolute inset-0 z-[20] pointer-events-none">
+              <button
+                type="button"
+                aria-label="Hidden login trigger left"
+                onClick={handleSecretCornerClick}
+                className="absolute top-2 left-2 w-9 h-9 pointer-events-auto opacity-0"
+              />
+              <button
+                type="button"
+                aria-label="Hidden login trigger right"
+                onClick={handleSecretCornerClick}
+                className="absolute top-2 right-2 w-9 h-9 pointer-events-auto opacity-0"
+              />
             </div>
           </div>
         </>

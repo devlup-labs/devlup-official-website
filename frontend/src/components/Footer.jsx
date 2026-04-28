@@ -140,16 +140,16 @@ const Footer = () => {
       {/* MAIN */}
       <div
         ref={refContent}
-        className="relative z-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-0 grid md:grid-cols-3 gap-8 items-start"
+        className="relative z-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-0 grid md:grid-cols-3 gap-12 items-start text-center md:text-left"
       >
         {/* LEFT */}
-        <div className="space-y-5">
-          <div>
-            <h2 className="text-4xl mt-1 md:text-5xl font-black text-white">
+        <div className="flex flex-col items-center md:items-start space-y-5">
+          <div className="flex flex-col items-center md:items-start w-full">
+            <h2 className="text-3xl md:text-5xl font-black text-white">
               DevlUp Labs
             </h2>
 
-            <p className="mt-9 text-white max-w-md text-sm leading-relaxed">
+            <p className="mt-6 text-white max-w-md text-sm leading-relaxed mx-auto md:mx-0">
               Building developers, shipping ideas, and creating an ecosystem
               where learning meets real-world impact. We empower individuals to
               turn concepts into scalable solutions and cultivate a community
@@ -158,8 +158,9 @@ const Footer = () => {
             </p>
           </div>
 
-          <div className="flex  space-x-4 text-white text-sm">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 text-white text-sm">
             <p>devlup.labs.official</p>
+            <p className="hidden sm:block opacity-50">|</p>
             <p>devluplabs@iitj.ac.in</p>
           </div>
 
@@ -215,8 +216,8 @@ const Footer = () => {
         </div>
 
         {/* RIGHT (UNCHANGED) */}
-        <div className="space-y-6">
-          <h3 className="text-xl md:text-3xl px-22 mt-3 font-semibold text-white">
+        <div className="flex flex-col items-center md:items-start space-y-6 w-full">
+          <h3 className="text-2xl md:text-3xl font-semibold text-white w-full">
             Get in Touch
           </h3>
 

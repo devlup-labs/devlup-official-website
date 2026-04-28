@@ -110,7 +110,11 @@ const loadPortfolio = (inputCode) => {
       const wrapper = card.querySelector(".content-wrapper");
 
       gsap.set([oldC, newC, wrapper, card], { clearProps: "all" });
-      gsap.set(newC, { opacity: 0, y: -20 });
+      if (card.dataset.index === "2") {
+        gsap.set(card, { display: "none", height: 0, opacity: 0, marginTop: 0 });
+      } else {
+        gsap.set(newC, { opacity: 0, y: -20 });
+      }
     });
   };
 
@@ -124,31 +128,49 @@ const loadPortfolio = (inputCode) => {
 
       gsap.to(scan, {
         y: 100,
-        duration: 4.5,
-        ease: "power2.inOut",
+        duration: 5.5,
+        ease: "none",
         onUpdate: () => {
           const y = scan.y;
+          const container = scanRef.current.parentElement;
+          const totalHeight = container.scrollHeight;
+          const currentYPos = (y / 100) * totalHeight;
 
           gsap.set(scanRef.current, {
-            top: `${y}%`,
+            top: `${currentYPos}px`,
             opacity: 1,
           });
 
-          cardsRef.current.forEach((card) => {
+          cardsRef.current.forEach((card, index) => {
             if (!card || card.dataset.done === "true") return;
 
-            const slot = card.querySelector(".reveal-slot");
-            const trigger =
-              (slot.getBoundingClientRect().top / window.innerHeight) * 100;
-
-            if (y >= trigger) {
+            // For the dynamic 4th box, we trigger when scan reaches the bottom of the 3rd box
+            // For others, we trigger at their top.
+            const triggerOffset = (card.dataset.index === "2") 
+              ? cardsRef.current[1].offsetTop + cardsRef.current[1].offsetHeight 
+              : card.offsetTop;
+            
+            if (currentYPos >= triggerOffset) {
               card.dataset.done = "true";
              
 
               const oldC = card.querySelector(".old-content");
               const newC = card.querySelector(".new-content");
               const wrapper = card.querySelector(".content-wrapper");
+
+              if (card.dataset.index === "2") {
+                // Dynamic expand for the 4th box
+                gsap.set(card, { display: "block", height: 0 });
+                gsap.to(card, {
+                  height: "auto",
+                  opacity: 1,
+                  duration: 0.8,
+                  ease: "power3.out",
+                  onComplete: () => gsap.set(card, { height: "auto" })
+                });
+              } else {
                 gsap.set(card, { opacity: 1 });
+              }
               gsap.fromTo(
                 card,
                 { boxShadow: GLOW_OFF },
@@ -368,111 +390,102 @@ const loadPortfolio = (inputCode) => {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="min-h-screen bg-[var(--bg-main-gradient)] text-[var(--text-primary)] p-6 flex flex-col items-center pt-20">
+      <div 
+        className="min-h-screen bg-[var(--bg-main-gradient)] text-[var(--text-primary)] p-4 sm:p-8 flex flex-col items-center relative"
+        style={{ paddingTop: '100px' }}
+      >
 
       {/* SCAN LINE */}
       <div
         ref={scanRef}
-        className="absolute left-0 right-0 h-[2px] opacity-0 bg-white shadow-[0_0_20px_#22d3ee]"
+        className="absolute left-0 right-0 h-[2px] opacity-0 bg-white shadow-[0_0_20px_#22d3ee] z-[900]"
       />
 
-      <div className="w-full max-w-6xl pt-10">
-
-        <div className="grid md:grid-cols-3 gap-8">
-
-          {/* LEFT SIDE */}
-          <div className="space-y-6">
-
-            {/* IMAGE (NO ANIMATION) */}
-            <div className="rounded-3xl overflow-hidden border border-[var(--border-subtle)]">
+      <div className="w-full max-w-6xl pt-6 md:pt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 items-start">
+          {/* LEFT SIDE (Column 1 on Desktop) */}
+          <div className="space-y-4 md:space-y-6">
+            {/* 1. IMAGE */}
+            <div className="rounded-2xl md:rounded-3xl overflow-hidden border border-[var(--border-subtle)] shadow-xl">
               <img
                 src={info?.profileImage}
-                className="w-full h-[300px] object-cover"
+                className="w-full h-[280px] md:h-[400px] object-cover"
+                alt="Profile"
               />
             </div>
 
-            {/* COMMENTS */}
-            
-              <div
-  ref={(el) => (cardsRef.current[2] = el)}
-  className="bg-[var(--bg-surface)] rounded-2xl p-5 border border-[var(--border-subtle)] overflow-hidden opacity-0"
->
-                <div className="content-wrapper">
-
-                  <div className="old-content text-[var(--text-muted)] text-sm">
-                    Comments
-                  </div>
-
-                  <div className="reveal-slot min-h-[60px]">
-                    <div className="new-content opacity-0 text-sm text-[var(--text-primary)]">
-                      @{info?.name} <br />
-                      {info?.secretData?.hiddencomments}
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-            
-
-          </div>
-
-          {/* RIGHT SIDE */}
-          <div className="md:col-span-2 space-y-6">
-
-            {/* HEADER */}
+            {/* 4. COMMENTS (Hidden before scan to avoid mobile gap) */}
             <div
-              ref={(el) => (cardsRef.current[0] = el)}
-              className="bg-[var(--bg-surface)] rounded-3xl p-6 border border-[var(--border-subtle)] overflow-hidden"
+              ref={(el) => (cardsRef.current[2] = el)}
+              data-index="2"
+              className="bg-[var(--bg-surface)] rounded-xl md:rounded-2xl p-4 md:p-5 border border-[var(--border-subtle)] overflow-hidden opacity-0 shadow-lg"
+              style={{ display: "none" }}
             >
               <div className="content-wrapper">
+                <div className="old-content text-[var(--text-muted)] text-xs md:text-sm uppercase tracking-wider">
+                  Identification / Comments
+                </div>
+                <div className="reveal-slot min-h-[50px] md:min-h-[60px] flex items-center">
+                  <div className="new-content opacity-0 text-sm md:text-base text-[var(--text-primary)]">
+                    <span className="text-cyan-400 font-bold">@{info?.name}</span> <br />
+                    <p className="mt-1 leading-relaxed italic">{info?.secretData?.hiddencomments}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          {/* RIGHT SIDE (Columns 2-3 on Desktop) */}
+          <div className="md:col-span-2 space-y-4 md:space-y-6">
+            {/* 2. HEADER */}
+            <div
+              ref={(el) => (cardsRef.current[0] = el)}
+              className="bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl p-5 md:p-6 border border-[var(--border-subtle)] overflow-hidden shadow-lg"
+            >
+              <div className="content-wrapper">
                 <div className="old-content space-y-1 text-[var(--text-primary)]">
-                  <h1 className="text-xl font-bold">{info?.name}</h1>
-                  <p>{info?.rollNumber}</p>
-                  <p>{info?.designation}</p>
-                  <p>#{info?.tag}</p>
+                  <h1 className="text-xl md:text-2xl font-bold">{info?.name}</h1>
+                  <p className="text-sm md:text-base opacity-70">{info?.rollNumber}</p>
+                  <p className="text-sm md:text-base font-medium text-cyan-500">{info?.designation}</p>
+                  <p className="text-xs md:text-sm text-[var(--text-muted)]">#{info?.tag}</p>
                 </div>
 
-                <div className="reveal-slot min-h-[80px]">
-                  <div className="new-content opacity-0 italic text-[var(--text-secondary)]">
+                <div className="reveal-slot min-h-[60px] md:min-h-[80px] flex items-center">
+                  <div className="new-content opacity-0 italic text-[var(--text-secondary)] text-base md:text-lg">
                     "{info?.secretData?.hiddenquote}"
                   </div>
                 </div>
-
               </div>
             </div>
 
-            {/* ABOUT + CONTRIBUTION */}
+            {/* 3. ABOUT */}
             <div
               ref={(el) => (cardsRef.current[1] = el)}
-              className="bg-[var(--bg-surface)] rounded-3xl p-6 border border-[var(--border-subtle)] overflow-hidden"
+              className="bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl p-5 md:p-6 border border-[var(--border-subtle)] overflow-hidden shadow-lg"
             >
               <div className="content-wrapper">
-
-                <div className="old-content text-[var(--text-secondary)] text-sm">
+                <div className="old-content text-[var(--text-secondary)] text-sm md:text-base leading-relaxed">
                   {info?.bio}
                 </div>
 
-                <div className="reveal-slot min-h-[120px]">
-                  <div className="new-content opacity-0 text-sm space-y-2">
-                    <p className="font-semibold text-[var(--text-primary)]">
+                <div className="reveal-slot min-h-[100px] md:min-h-[120px] flex items-center">
+                  <div className="new-content opacity-0 text-sm md:text-base space-y-3">
+                    <p className="font-bold text-[var(--text-primary)] border-l-4 border-cyan-500 pl-4 py-1">
                       {info?.secretData?.hiddencontribution?.title}
                     </p>
-                    <p className="text-[var(--text-muted)] text-xs">
+                    <p className="text-[var(--text-muted)] text-xs md:text-sm leading-relaxed">
                       {info?.secretData?.hiddencontribution?.description}
                     </p>
                   </div>
                 </div>
-
               </div>
             </div>
-
           </div>
         </div>
       </div>
 
       {/* CONTROLS */}
-      <div ref={controlsRef} className="mt-10 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
+      <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
 
         <input
           type="text"

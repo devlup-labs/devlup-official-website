@@ -3,7 +3,7 @@
   justify-content: center;
   align-items: center;
   gap: 14px;
-  padding: 20px 0;
+  padding: 0;
 
   /* smooth, premium glide */
   transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);

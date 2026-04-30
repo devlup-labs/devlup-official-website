@@ -8,7 +8,7 @@ const Videos = () => {
 
   return (
     <div>
-      <TimelineComponent/>
+      <TimelineComponent />
     </div>
   );
 };

@@ -47,11 +47,14 @@ function HeaderComponent() {
             href="/"
             className="bg-[var(--bg-surface)]
             border border-[var(--border-subtle)]
-            rounded-xl flex items-center gap-3 px-6 py-2 
+            rounded-xl flex items-center justify-center md:justify-start
+            gap-0 md:gap-3
+            p-0 md:px-6 md:py-2
+            w-14 h-14 md:w-auto md:h-auto
             transition hover:scale-110 cursor-pointer"
           >
             <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
-            <h1 className="text-[var(--text-primary)] text-lg font-semibold">
+            <h1 className="text-[var(--text-primary)] text-lg font-semibold hidden md:inline">
               DevlUp Labs
             </h1>
           </a>
@@ -137,17 +140,19 @@ function HeaderComponent() {
             </div>
 
             {/* MOBILE HAMBURGER */}
-            <button
-              onClick={handleHamburgerClick}
-              aria-label="Toggle navigation menu"
-              className="md:hidden z-50 relative m-[-6px] p-[6px]"
-            >
-              <span className="pointer-events-none flex flex-col gap-1.5 px-2 py-1">
-                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
-                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
-                <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
-              </span>
-            </button>
+            <div className="md:hidden bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl flex items-center justify-center z-50 transition hover:scale-110 w-14 h-14">
+              <button
+                onClick={handleHamburgerClick}
+                aria-label="Toggle navigation menu"
+                className="relative"
+              >
+                <span className="pointer-events-none flex flex-col gap-1.5 px-2 py-1">
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "rotate-45 translate-y-2" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "opacity-0" : ""}`} />
+                  <span className={`block h-0.5 w-6 bg-[var(--text-primary)] transition-all ${hamburgerOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                </span>
+              </button>
+            </div>
 
           </div>
         </div>
@@ -156,7 +161,7 @@ function HeaderComponent() {
       {/* MOBILE MENU */}
       <div
         className={`
-          fixed top-[72px] left-0 right-0 bottom-0
+          fixed top-0 left-0 right-0 bottom-0
           z-40 md:hidden
           bg-black/40 backdrop-blur-2xl
           flex flex-col items-center justify-center

@@ -535,8 +535,8 @@ function Team() {
     <section ref={sectionRef} className="relative h-[300vh]">
       {/* SEARCH AND FILTER CONTROLS - Fixed below header */}
       <div
-        className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full pointer-events-none"
-        style={{ top: isMobile ? "90px" : "100px", background: "transparent" }}
+        className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none"
+        style={{ top: "0", height: "88px", background: "transparent" }}
       >
         {/* SEARCH BAR */}
         <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>

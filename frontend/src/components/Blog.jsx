@@ -298,9 +298,9 @@ function Blog() {
   return (
     <>
       {/* SEARCH AND FILTER CONTROLS - Fixed below header */}
-      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center py-1 w-full bg-[var(--bg-main-gradient)] pointer-events-auto" style={{ top: "50px" }}>
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none" style={{ top: "0", height: "88px", background: "transparent" }}>
         {/* SEARCH BAR */}
-        <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center relative pointer-events-auto" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
           <div
             className={`
               flex items-center
@@ -310,7 +310,7 @@ function Blog() {
               transition-all duration-500 ease-out
               pointer-events-auto
               ${searchOpen
-                ? "w-[300px] h-10 px-4 justify-start"
+                ? (isMobile ? "w-[calc(100vw-80px)] h-10 px-4 justify-start" : "w-[300px] h-10 px-4 justify-start")
                 : "w-10 h-10 justify-center"
               }
             `}

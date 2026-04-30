@@ -24,22 +24,29 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
   const [selectedId, setSelectedId] = useState(null);
 
   const cards = useMemo(() => {
-    const TOPBAR_HEIGHT = 56;
-    const w = window.innerWidth - (CARD_WIDTH * 1.5) - SIDE_OFFSET * 2;
-    const h = window.innerHeight - TOPBAR_HEIGHT - (CARD_HEIGHT * 1.5) - BOTTOM_OFFSET;
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+    const cw = isMobile ? 140 : CARD_WIDTH;
+    const ch = isMobile ? 80 : CARD_HEIGHT;
+    const minDist = isMobile ? 100 : MIN_DIST;
+    const TOPBAR_HEIGHT = isMobile ? 40 : 56;
+
+    const w = Math.max(isMobile ? 150 : 0, window.innerWidth - (cw * 1.5) - SIDE_OFFSET * 2);
+    const h = Math.max(isMobile ? 300 : 0, window.innerHeight - TOPBAR_HEIGHT - (ch * 1.5) - BOTTOM_OFFSET);
 
     const result = [];
     let id = 0;
-    const count = Math.min(Math.floor((w * h) / (SIZE * SIZE * 0.45)), videoIds.length * 3); // cap count so not infinite loop if small array
+    const count = isMobile
+      ? Math.min(videoIds.length, 12)
+      : Math.min(Math.floor((w * h) / (SIZE * SIZE * 0.45)), videoIds.length * 3);
 
     while (result.length < count && videoIds.length > 0) {
       let attempts = 0;
       let placed = false;
       while (!placed && attempts < MAX_ATTEMPTS) {
-        const x = SIDE_OFFSET + (CARD_WIDTH / 2) + Math.random() * Math.max(0, w);
-        const y = START_OFFSET_Y + (CARD_HEIGHT / 2) + Math.random() * Math.max(0, h - START_OFFSET_Y);
+        const x = SIDE_OFFSET + (cw / 2) + Math.random() * w;
+        const y = START_OFFSET_Y + (ch / 2) + Math.random() * (h - START_OFFSET_Y);
 
-        if (result.every(c => Math.hypot(c.x - x, c.y - y) > MIN_DIST)) {
+        if (result.every(c => Math.hypot(c.x - x, c.y - y) > minDist)) {
           const vId = videoIds[id % videoIds.length];
           result.push({
             id,
@@ -48,6 +55,8 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
             x,
             y,
             baseScale: 0.75 + Math.random() * 0.5,
+            cw,
+            ch
           });
           id++;
           placed = true;
@@ -113,8 +122,8 @@ export default function Cards({ videoIds = ["56xFUD8O9yI", "00Nphhrxb0o", "-NIiX
                 ? "translate(-50%, -50%) scale(1)"
                 : `scale(${scale})`,
 
-              width: isSelected ? "min(90vw, 1200px)" : `${CARD_WIDTH}px`,
-              height: isSelected ? "min(50.6vw, 675px)" : `${CARD_HEIGHT}px`,
+              width: isSelected ? "min(90vw, 1200px)" : `${card.cw}px`,
+              height: isSelected ? "min(50.6vw, 675px)" : `${card.ch}px`,
 
               zIndex: isSelected ? 99999 : zIndex,
 

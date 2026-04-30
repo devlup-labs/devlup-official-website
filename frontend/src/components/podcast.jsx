@@ -364,20 +364,18 @@ export default function Podcast() {
 
   return (
     <div className="text-white">
-      {/* Desktop/Laptop controls remain fixed on top */}
-      {!isMobile && (
-        <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none">
-          <div className="pointer-events-auto">
-            <TopControls 
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              selectedTags={selectedTags}
-              setSelectedTags={setSelectedTags}
-              tags={allTags}
-            />
-          </div>
+      {/* FIXED CONTROLS - Aligned with Header */}
+      <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none" style={{ height: "88px" }}>
+        <div className="pointer-events-auto flex items-center justify-center">
+          <TopControls
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+            tags={allTags}
+          />
         </div>
-      )}
+      </div>
 
       {loading ? (
         <div className="h-screen flex items-center justify-center">
@@ -402,19 +400,8 @@ export default function Podcast() {
           />
 
           {isMobile ? (
-            <div className="min-h-screen pt-18 pb-8 px-4">
+            <div className="min-h-screen pt-24 pb-8 px-4">
               <div className="mx-auto w-full max-w-md flex flex-col gap-1">
-                <div className="flex justify-center mb-0">
-                  <div className="pointer-events-auto">
-                    <TopControls 
-                      searchTerm={searchTerm}
-                      setSearchTerm={setSearchTerm}
-                      selectedTags={selectedTags}
-                      setSelectedTags={setSelectedTags}
-                      tags={allTags}
-                    />
-                  </div>
-                </div>
 
                 {active && (
                   <>
@@ -571,226 +558,226 @@ export default function Podcast() {
               </div>
             </div>
           ) : (
-          <div className="h-screen flex items-center justify-center overflow-hidden">
-            <div className="relative w-full h-full flex items-center justify-center">
+            <div className="h-screen flex items-center justify-center overflow-hidden">
+              <div className="relative w-full h-full flex items-center justify-center">
 
-              {/* LEFT STACK */}
-              <div className="absolute left-[10%] top-1/2 -translate-y-1/2">
-                <div ref={containerRef} className="relative h-[650px] w-[520px] flex items-center justify-center">
-                  {items.map((item, index) => (
-                    <div
-                      key={item.id}
-                      onClick={() => {
-                        if (activeIndex === index) {
-                          if (clickedIndex === index) {
+                {/* LEFT STACK */}
+                <div className="absolute left-[10%] top-1/2 -translate-y-1/2">
+                  <div ref={containerRef} className="relative h-[650px] w-[520px] flex items-center justify-center">
+                    {items.map((item, index) => (
+                      <div
+                        key={item.id}
+                        onClick={() => {
+                          if (activeIndex === index) {
+                            if (clickedIndex === index) {
+                              setClickedIndex(null);
+                              clickedIndexRef.current = null;
+                              setIsPlaying(false);
+                              targetIndex.current = null;
+                            } else {
+                              setClickedIndex(index);
+                              clickedIndexRef.current = index;
+                              setIsPlaying(true);
+                            }
+                          } else {
+                            targetIndex.current = index;
+                            velocity.current = 0;
                             setClickedIndex(null);
                             clickedIndexRef.current = null;
                             setIsPlaying(false);
-                            targetIndex.current = null;
-                          } else {
-                            setClickedIndex(index);
-                            clickedIndexRef.current = index;
-                            setIsPlaying(true);
+
+                            // Ensure raf triggers
+                            if (raf.current) cancelAnimationFrame(raf.current);
+                            raf.current = requestAnimationFrame(animate);
                           }
-                        } else {
-                          targetIndex.current = index;
-                          velocity.current = 0;
-                          setClickedIndex(null);
-                          clickedIndexRef.current = null;
-                          setIsPlaying(false);
-
-                          // Ensure raf triggers
-                          if (raf.current) cancelAnimationFrame(raf.current);
-                          raf.current = requestAnimationFrame(animate);
-                        }
-                      }}
-                      className="absolute w-[520px] h-[320px] rounded-2xl shadow-xl cursor-pointer"
-                    >
-                      <div className="w-full h-full rounded-2xl overflow-hidden transition-transform duration-300 hover:scale-105">
-                        {!imageLoaded[item.id] && (
-                          <div className="flex h-full w-full items-center justify-center bg-gray-700">
-                            <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
-                          </div>
-                        )}
-                        <img
-                          src={item.img}
-                          className="h-full w-full object-cover"
-                          onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
-                          onError={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* RIGHT SIDE */}
-              <div className="absolute right-[2%] lg:right-[5%] xl:right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
-                <div className="flex flex-col gap-6 h-full">
-
-                  {active && (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm opacity-60">{active.date}</span>
-                        <span className="text-sm opacity-60">{active.author}</span>
-                      </div>
-
-                      <h1 className="text-3xl font-bold uppercase">
-                        {active.title}: {active.subtitle}
-                      </h1>
-
-                      <p className="text-sm opacity-60">{active.description}</p>
-                    </>
-                  )}
-
-                  {/* PLAYER */}
-                  <div className="flex-1 flex items-end justify-center">
-
-                    {clickedIndex === null ? (
-                      <button
-                        onClick={() => {
-                          setClickedIndex(activeIndex);
-                          setIsPlaying(true);
                         }}
-                        className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-xl"
+                        className="absolute w-[520px] h-[320px] rounded-2xl shadow-xl cursor-pointer"
                       >
-                        <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
-                      </button>
-                    ) : (
-                      <div className="flex flex-col items-center gap-6">
+                        <div className="w-full h-full rounded-2xl overflow-hidden transition-transform duration-300 hover:scale-105">
+                          {!imageLoaded[item.id] && (
+                            <div className="flex h-full w-full items-center justify-center bg-gray-700">
+                              <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-white"></div>
+                            </div>
+                          )}
+                          <img
+                            src={item.img}
+                            className="h-full w-full object-cover"
+                            onLoad={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                            onError={() => setImageLoaded(prev => ({ ...prev, [item.id]: true }))}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
-                        <div className="flex items-center gap-8">
+                {/* RIGHT SIDE */}
+                <div className="absolute right-[2%] lg:right-[5%] xl:right-[10%] top-1/2 -translate-y-1/2 w-[460px]">
+                  <div className="flex flex-col gap-6 h-full">
 
-                          {/* EXIT */}
-                          <button
-                            onClick={() => {
-                              setClickedIndex(null);
-                              setIsPlaying(false);
-                            }}
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                    {active && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm opacity-60">{active.date}</span>
+                          <span className="text-sm opacity-60">{active.author}</span>
+                        </div>
+
+                        <h1 className="text-3xl font-bold uppercase">
+                          {active.title}: {active.subtitle}
+                        </h1>
+
+                        <p className="text-sm opacity-60">{active.description}</p>
+                      </>
+                    )}
+
+                    {/* PLAYER */}
+                    <div className="flex-1 flex items-end justify-center">
+
+                      {clickedIndex === null ? (
+                        <button
+                          onClick={() => {
+                            setClickedIndex(activeIndex);
+                            setIsPlaying(true);
+                          }}
+                          className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-xl"
+                        >
+                          <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
+                        </button>
+                      ) : (
+                        <div className="flex flex-col items-center gap-6">
+
+                          <div className="flex items-center gap-8">
+
+                            {/* EXIT */}
+                            <button
+                              onClick={() => {
+                                setClickedIndex(null);
+                                setIsPlaying(false);
+                              }}
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center
                              bg-gradient-to-br from-blue-400 to-blue-600
                              shadow-md hover:scale-110 active:scale-95 transition"
-                          >
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="w-6 h-6 stroke-white"
-                              fill="none"
-                              strokeWidth="2.5"
                             >
-                              {/* door */}
-                              <path d="M14 3h5v18h-5" strokeLinecap="round" />
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="w-6 h-6 stroke-white"
+                                fill="none"
+                                strokeWidth="2.5"
+                              >
+                                {/* door */}
+                                <path d="M14 3h5v18h-5" strokeLinecap="round" />
 
-                              {/* arrow entering door */}
-                              <path d="M10 12H3" strokeLinecap="round" />
-                              <path d="M6 9l-3 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
+                                {/* arrow entering door */}
+                                <path d="M10 12H3" strokeLinecap="round" />
+                                <path d="M6 9l-3 3 3 3" strokeLinecap="round" strokeLinejoin="round" />
 
-                              {/* bracket feel (like your image) */}
-                              <path d="M10 6v3" strokeLinecap="round" />
-                              <path d="M10 15v3" strokeLinecap="round" />
-                            </svg>
-                          </button>
-                          {/* BACK */}
-                          <button
-                            onClick={() => skipTime(-5)}
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                                {/* bracket feel (like your image) */}
+                                <path d="M10 6v3" strokeLinecap="round" />
+                                <path d="M10 15v3" strokeLinecap="round" />
+                              </svg>
+                            </button>
+                            {/* BACK */}
+                            <button
+                              onClick={() => skipTime(-5)}
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center
                            bg-gradient-to-br from-blue-400 to-blue-600 shadow-md
                            text-white font-semibold text-sm hover:scale-110 active:scale-95 transition"
-                          >
-                            -5s
-                          </button>
+                            >
+                              -5s
+                            </button>
 
-                          {/* PLAY */}
-                          <button
-                            onClick={() => setIsPlaying(!isPlaying)}
-                            className="w-24 h-24 rounded-full flex items-center justify-center
+                            {/* PLAY */}
+                            <button
+                              onClick={() => setIsPlaying(!isPlaying)}
+                              className="w-24 h-24 rounded-full flex items-center justify-center
                        bg-gradient-to-br from-blue-400 to-blue-600
                        shadow-[0_12px_40px_rgba(0,0,0,0.35)]
                       hover:scale-110 transition"
-                          >
-                            {isPlaying ? (
-                              <div className="flex gap-[6px]">
-                                <div className="w-[6px] h-7 bg-white rounded-sm" />
-                                <div className="w-[6px] h-7 bg-white rounded-sm" />
-                              </div>
-                            ) : (
-                              <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
-                            )}
-                          </button>
-                          {/* FORWARD */}
-                          <button
-                            onClick={() => skipTime(5)}
-                            className="w-14 h-14 rounded-2xl flex items-center justify-center
+                            >
+                              {isPlaying ? (
+                                <div className="flex gap-[6px]">
+                                  <div className="w-[6px] h-7 bg-white rounded-sm" />
+                                  <div className="w-[6px] h-7 bg-white rounded-sm" />
+                                </div>
+                              ) : (
+                                <div className="w-0 h-0 border-l-[22px] border-l-white border-y-[12px] border-y-transparent ml-[6px]" />
+                              )}
+                            </button>
+                            {/* FORWARD */}
+                            <button
+                              onClick={() => skipTime(5)}
+                              className="w-14 h-14 rounded-2xl flex items-center justify-center
                            bg-gradient-to-br from-blue-400 to-blue-600 shadow-md
                            text-white font-semibold text-sm hover:scale-110 active:scale-95 transition"
-                          >
-                            +5s
-                          </button>
-
-
-                          {/* SPEED */}
-                          <div className="relative">
-
-                            {/* BUTTON */}
-                            <button
-                              onClick={() => setShowSpeedMenu((prev) => !prev)}
-                              className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white"
                             >
-                              {speed}x
+                              +5s
                             </button>
 
-                            {/* DROPDOWN */}
-                            {showSpeedMenu && (
-                              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
+
+                            {/* SPEED */}
+                            <div className="relative">
+
+                              {/* BUTTON */}
+                              <button
+                                onClick={() => setShowSpeedMenu((prev) => !prev)}
+                                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 text-white"
+                              >
+                                {speed}x
+                              </button>
+
+                              {/* DROPDOWN */}
+                              {showSpeedMenu && (
+                                <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 
                               bg-gradient-to-br from-blue-400 to-blue-600 backdrop-blur-md rounded-xl 
                               py-2 px-3 flex flex-col gap-1 text-sm text-white z-50 shadow-xl">
 
-                                {speeds.map((s) => (
-                                  <button
-                                    key={s}
-                                    onClick={() => {
-                                      setSpeed(s);
-                                      setShowSpeedMenu(false);
-                                    }}
-                                    className={`px-3 py-1 rounded-md transition 
+                                  {speeds.map((s) => (
+                                    <button
+                                      key={s}
+                                      onClick={() => {
+                                        setSpeed(s);
+                                        setShowSpeedMenu(false);
+                                      }}
+                                      className={`px-3 py-1 rounded-md transition 
             ${speed === s ? "bg-white/20" : "hover:bg-white/10"}`}
-                                  >
-                                    {s}x
-                                  </button>
-                                ))}
+                                    >
+                                      {s}x
+                                    </button>
+                                  ))}
 
-                              </div>
-                            )}
+                                </div>
+                              )}
+
+                            </div>
 
                           </div>
 
+                          {/* PROGRESS */}
+                          <div className="w-full flex items-center gap-3">
+                            <span className="text-xs w-10 text-right">{formatTime(progress)}</span>
+
+                            <input
+                              type="range"
+                              min="0"
+                              max={duration || 0}
+                              value={progress}
+                              onChange={handleSeek}
+                              className="w-full accent-blue-500"
+                            />
+
+                            <span className="text-xs w-10">{formatTime(duration)}</span>
+                          </div>
+
                         </div>
+                      )}
 
-                        {/* PROGRESS */}
-                        <div className="w-full flex items-center gap-3">
-                          <span className="text-xs w-10 text-right">{formatTime(progress)}</span>
-
-                          <input
-                            type="range"
-                            min="0"
-                            max={duration || 0}
-                            value={progress}
-                            onChange={handleSeek}
-                            className="w-full accent-blue-500"
-                          />
-
-                          <span className="text-xs w-10">{formatTime(duration)}</span>
-                        </div>
-
-                      </div>
-                    )}
+                    </div>
 
                   </div>
-
                 </div>
-              </div>
 
+              </div>
             </div>
-          </div>
           )}
         </>
       )}

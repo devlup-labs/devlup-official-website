@@ -1,6 +1,8 @@
 import { CiSearch } from "react-icons/ci";
 
 export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", setSearchTerm = () => { } }) {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
     <div className="flex items-center relative z-[2000]" onClick={(e) => e.stopPropagation()}>
 
@@ -13,7 +15,7 @@ export default function SearchBar({ searchOpen, setSearchOpen, searchTerm = "", 
           transition-all duration-500 ease-out
           pointer-events-auto
           ${searchOpen
-            ? "w-[300px] h-10 px-4 justify-start"
+            ? (isMobile ? "w-[calc(100vw-80px)] h-10 px-4 justify-start" : "w-[300px] h-10 px-4 justify-start")
             : "w-10 h-10 justify-center"
           }
         `}

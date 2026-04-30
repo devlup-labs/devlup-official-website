@@ -24,6 +24,7 @@ export const getTeam = () => api.get("/team");
 
 // VIDEOS
 export const getVideos = () => api.get("/videos");
+export const getVideoIds = () => api.get("/videos/ids");
 
 //PODCASTS
 export const getPodcasts = () => api.get("/podcasts");

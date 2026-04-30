@@ -7,7 +7,7 @@ import {
 
 import PodcastForm from './PodcastForm';
 import BlogForm from './BlogForm';
-import VideoForm from './VideoForm';
+import VideoManager from './VideoManager';
 import TeamForm from './TeamForm';
 import TimelineForm from './TimelineForm';
 
@@ -87,12 +87,13 @@ const getEndpoint = () => {
 
 const getTags = (item) =>
   activeTab === "team"
-    ? [item.member_designation] 
+    ? [item.member_designation]
+    : activeTab === "video"
+    ? [item.category]   //  ADD THIS
     : item.video_tags ||
       item.blog_tags ||
       item.podcast_tags ||
       [];
-
 
   // --- API LOGIC ---
   const fetchData = useCallback(async () => {
@@ -140,7 +141,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
 };
 
 endpoints.forEach((e, index) => {
-  newCounts[e.key] = results[index].data.data?.length || 0;
+  newCounts[e.key] = results[index].data.data?.length ||  results[index].data?.length || 0;
 });
 
     setCounts(newCounts);
@@ -218,7 +219,7 @@ const handleEdit = (item) => {
 
   //  FILTER LOGIC (SEARCH + TAG)
   const filteredItems = items.filter((item) => {
-    const tags = getTags(item).map(t => t.toLowerCase());
+    const tags = getTags(item).filter(Boolean).map(t => t.toLowerCase());
 
     const matchesTag =
       selectedTag === "all" ||
@@ -312,7 +313,14 @@ const handleEdit = (item) => {
         <StatCard title="Timeline Events" count={counts.timeline} icon={<Clock size={24} color="#14b8a6" />} color="bg-teal-100 text-teal-500" tabId="timeline" />
         <StatCard title="Contacts" count={counts.contact} icon={<FileText size={24} color="#ef4444" />} color="bg-red-100 text-red-500" tabId="contact" />
                     </div>
-          ) : (
+          ): activeTab === 'video' ? (
+  <VideoManager 
+    items={filteredItems} 
+    handleEdit={handleEdit} 
+    deleteItem={deleteItem}
+      onSync={fetchData} 
+  />
+) : (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800 uppercase tracking-tight">Manage {activeTab}</h3>
@@ -443,7 +451,6 @@ const handleEdit = (item) => {
 
             {activeTab === 'podcast' && <PodcastForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
             {activeTab === 'blog' && <BlogForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
-            {activeTab === 'video' && <VideoForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
             {activeTab === 'team' && <TeamForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
             {activeTab === 'timeline' && <TimelineForm token={token} initialData={editingItem} onSuccess={()=>{setShowModal(false);fetchData(); fetchCounts(); }} onCancel={()=>setShowModal(false)} />}
         

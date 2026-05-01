@@ -157,18 +157,25 @@ def get_videos():
     return videos
 
 
-# 🎯 GET video IDs
+#  GET video IDs
 @router.get("/ids")
 async def get_video_ids():
-    ids = []
-    
-    cursor = video_collection.find({}, {"videoId": 1, "_id": 0})
+    videos = []
+
+    cursor = video_collection.find(
+        {"hidden": {"$ne": True}},   # ignore hidden videos
+        {"videoId": 1, "category": 1, "title": 1, "_id": 0}
+    )
 
     for doc in cursor:
-        if "videoId" in doc:
-            ids.append(doc["videoId"])
+        if doc.get("videoId"):
+            videos.append({
+                "videoId": doc["videoId"],
+                "category": doc.get("category", ""),
+                "title": doc.get("title", "")
+            })
 
-    return ids
+    return videos
 
 @router.put("/category/{video_id}")
 def update_video_category(video_id: str, category: str):

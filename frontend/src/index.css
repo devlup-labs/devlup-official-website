@@ -4,43 +4,35 @@
    LIGHT THEME (DEFAULT) 
 ======================= */
 :root {
-  /* Background (main page) */
-  --bg-main-gradient: linear-gradient(120deg,
-      #75c5ff,
-      #8fb3e5,
-      #75bfff);
+  /* Background (main page) — light, airy but not washed out */
+  --bg-main-gradient: linear-gradient(120deg, #eef6ff 0%, #f8fbff 60%, #ffffff 100%);
+  --bg-fallback: #3376b8;
 
-  --bg-fallback: #e9ecef;
-
-  /* ✅ THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
+  /* Surface: cards, header */
   --bg-surface: #ffffff;
-  /* clean neutral grey */
 
-  --bg-muted: #e85d5d;
-  --bg-card: #ffff;
-  --bg-blog_card: #81cce6;
-  --bg-secondary: #0d1b2a;
-  --bg-main1: #81cce6;
-  --bg-port: linear-gradient(to bottom,
-      #8fa8d0 0%,
-      #a9bbd6 50%,
-      #d6dde6 100%);
-  --text-primary: #0f1e3a;
-  --text-secondary: #0d1b2a;
-  --text-muted: #7b8fb3;
+  /* Accent / muted usages */
+  --bg-muted: #eef2ff; /* subtle indigo tint for highlights */
+  --bg-card: #ffffff;
+  --bg-blog_card: #e6f2fb; /* soft blue card background */
+  --bg-secondary: #0f1724; /* deep slate for headings */
+  --bg-main1: linear-gradient(to bottom, #e6f2ff 0%, #f1f7ff 100%);
+  --bg-port: linear-gradient(to bottom, #e9f0fb 0%, #f3f7fb 50%, #ffffff 100%);
 
-  --border-subtle: #c3d3ec;
+  --text-primary: #0f1724; /* slate-900 */
+  --text-secondary: #334155; /* slate-700 */
+  --text-muted: #64748b; /* slate-500 */
 
-  --gradient-bg: linear-gradient(180deg,
-      #eaf1ff 0%,
-      #f5f8ff 60%,
-      #ffffff 100%);
+  --border-subtle: #e6eef8;
 
-  --gradient-primary: linear-gradient(135deg,
-      #6fa3ff,
-      #4f7dff);
+  --gradient-bg: linear-gradient(180deg, #f6fbff 0%, #f9fbff 60%, #ffffff 100%);
 
-  --shadow-soft: 0 8px 24px rgba(15, 30, 58, 0.08);
+  --gradient-primary: linear-gradient(135deg, #2563eb, #4f46e5);
+
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --devlups-blue: #2563eb;
+  --block-grey-light: #e6e9ee;
+  --block-grey-dark: #374151;
 }
 
 /* =======================

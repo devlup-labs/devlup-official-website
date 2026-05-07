@@ -23,7 +23,7 @@ import Forbidden from "./admin/components/Forbidden"; // adjust path
 export const ThemeContext = createContext();
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [token, setToken] = useState(localStorage.getItem("token")); // ✅ added
    const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -57,6 +57,9 @@ function App() {
       document.body.style.backgroundAttachment = "fixed";
       document.body.style.backgroundPosition = "center";
     }
+    // Ensure Tailwind's `dark:` variants also work by toggling the `dark` class
+    if (isDarkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
   }, [isDarkMode]);
 
   return (

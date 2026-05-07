@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ThemeContext } from "../App";
 
-function HeaderComponent() {
+function HeaderComponent({ onClose }) {
   const { isDarkMode, toggleTheme, hamburgerOpen, setHamburgerOpen, searchOpen, setSearchOpen, filterOpen, setFilterOpen } = useContext(ThemeContext);
 
   const navItems = [
@@ -33,6 +33,12 @@ function HeaderComponent() {
     }
   };
 
+  const handleLogoClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <>
       <header
@@ -43,21 +49,39 @@ function HeaderComponent() {
         <div className="flex items-center px-6 py-4">
 
           {/* LEFT */}
-          <a
-            href="/"
-            className="bg-[var(--bg-surface)]
-            border border-[var(--border-subtle)]
-            rounded-xl flex items-center justify-center md:justify-start
-            gap-0 md:gap-3
-            p-0 md:px-6 md:py-2
-            w-14 h-14 md:w-auto md:h-auto
-            transition hover:scale-110 cursor-pointer"
-          >
-            <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
-            <h1 className="text-[var(--text-primary)] text-lg font-semibold hidden md:inline">
-              DevlUp Labs
-            </h1>
-          </a>
+          {onClose ? (
+            <button
+              onClick={handleLogoClick}
+              className="bg-[var(--bg-surface)]
+              border border-[var(--border-subtle)]
+              rounded-xl flex items-center justify-center md:justify-start
+              gap-0 md:gap-3
+              p-0 md:px-6 md:py-2
+              w-14 h-14 md:w-auto md:h-auto
+              transition hover:scale-110 cursor-pointer"
+            >
+              <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
+              <h1 className="text-[var(--text-primary)] text-lg font-semibold hidden md:inline">
+                DevlUp Labs
+              </h1>
+            </button>
+          ) : (
+            <Link
+              to="/"
+              className="bg-[var(--bg-surface)]
+              border border-[var(--border-subtle)]
+              rounded-xl flex items-center justify-center md:justify-start
+              gap-0 md:gap-3
+              p-0 md:px-6 md:py-2
+              w-14 h-14 md:w-auto md:h-auto
+              transition hover:scale-110 cursor-pointer"
+            >
+              <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
+              <h1 className="text-[var(--text-primary)] text-lg font-semibold hidden md:inline">
+                DevlUp Labs
+              </h1>
+            </Link>
+          )}
 
           {/* RIGHT */}
           <div className="flex items-center ml-auto">

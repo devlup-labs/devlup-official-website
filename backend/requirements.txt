@@ -1,0 +1,38 @@
+# Requirements for Devlup Backend
+# FastAPI framework for building APIs
+fastapi>=0.104.0
+
+# MongoDB driver for synchronous operations
+pymongo>=4.6.0
+
+# Asynchronous MongoDB driver
+motor>=3.3.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Data validation and serialization
+pydantic>=2.5.0
+pydantic[email]  # For EmailStr support
+
+# JWT token handling
+python-jose[cryptography]>=3.3.0
+
+# Password hashing (specific versions to avoid compatibility issues)
+passlib==1.7.4
+bcrypt==4.0.1
+
+# Cloud image storage
+cloudinary>=1.36.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Background task scheduling
+apscheduler>=3.10.4
+
+# ASGI server for running FastAPI
+uvicorn[standard]>=0.24.0
+
+# Multipart form data support
+python-multipart>=0.0.6

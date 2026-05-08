@@ -255,7 +255,7 @@ const handleEdit = (item) => {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className=" admin-panel flex min-h-screen bg-[#f8fafc]">
       {/* Sidebar */}
       <div className={`bg-[#0f172a] text-white h-screen sticky top-0 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} flex flex-col border-r border-slate-800`}>
         <div className="p-6 flex items-center justify-between">
@@ -328,13 +328,13 @@ const handleEdit = (item) => {
 
   {/*  Search */}
   <div className="relative">
-    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 " />
     <input
       type="text"
       placeholder="Search..."
       value={searchQuery}
       onChange={(e) => setSearchQuery(e.target.value)}
-      className="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm"
+      className="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-slate-50"
     />
   </div>
 
@@ -343,7 +343,7 @@ const handleEdit = (item) => {
     <select
       value={selectedTag}
       onChange={(e) => setSelectedTag(e.target.value)}
-      className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+      className="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50"
     >
       {allTags.map(tag => (
         <option key={tag} value={tag}>
@@ -402,7 +402,7 @@ const handleEdit = (item) => {
 
         {/* QUERY ONLY FOR CONTACT */}
  {activeTab === "contact" && (
-  <td className="p-4 max-w-xs cursor-pointer" title={item.query || ""}>
+  <td className="p-4 max-w-xs cursor-pointer text-slate-400 " title={item.query || ""}>
     {item.query?.length > 60 
       ? item.query.slice(0, 60) + "..." 
       : (item.query || "No message")}

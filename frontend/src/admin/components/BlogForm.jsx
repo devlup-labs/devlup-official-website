@@ -83,17 +83,14 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       
       {/* ID + Author */}
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Blog ID</label>
-          <input
-            disabled={isEdit}
-            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none disabled:opacity-50"
-            value={formData.blog_id}
-            onChange={(e) => setFormData({ ...formData, blog_id: e.target.value })}
-            required
-            placeholder="e.g. blog-01"
-          />
-        </div>
+      {isEdit && (
+  <input
+    disabled
+    className="w-full p-3 bg-slate-100 border border-slate-200 rounded-xl outline-none disabled:opacity-50"
+    value={formData.blog_id}
+    placeholder="Blog ID"
+  />
+)}
 
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Author</label>

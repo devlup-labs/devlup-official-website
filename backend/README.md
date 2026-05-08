@@ -65,7 +65,7 @@ This project uses the following technologies:
 Install all required Python packages:
 
 ```bash
-pip install fastapi uvicorn pymongo motor python-dotenv python-jose passlib[bcrypt] python-multipart requests "pydantic[email]"
+pip install fastapi uvicorn pymongo motor python-dotenv python-jose passlib[bcrypt] python-multipart requests "pydantic[email]" apscheduler cloudinary
 ```
 extra:(if frontend_admin doesn't work)
 

@@ -12,7 +12,7 @@
 
   --bg-fallback: #e9ecef;
 
-  /* THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
+  /* ✅ THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
   --bg-surface: #ffffff;
   /* clean neutral grey */
 
@@ -94,14 +94,28 @@
   }
 
   body {
-    overscroll-behavior: none;
+     overscroll-behavior: none;
   }
 
-  .admin-panel input,
-  .admin-panel textarea,
-  .admin-panel select {
-    caret-color: black;
+    input,
+  textarea,
+  select {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
   }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+ .admin-panel input,
+.admin-panel textarea,
+.admin-panel select {
+  caret-color: black;
+  color: black;
+}
 }
 
 @layer utilities {

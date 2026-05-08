@@ -18,7 +18,7 @@ class Member(BaseModel):
     member_designation: str
     member_tag: str
     member_about: str
-    member_github_id: str
+    member_github_id: Optional[str] = None
     member_linkedin: Optional[str] = None
     member_email: Optional[str] = None
 

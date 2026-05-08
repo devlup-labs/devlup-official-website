@@ -363,7 +363,7 @@ export default function Podcast() {
   };
 
   return (
-    <div className="text-white">
+    <div >
       {/* FIXED CONTROLS - Aligned with Header */}
       <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none" style={{ height: "88px" }}>
         <div className="pointer-events-auto flex items-center justify-center">

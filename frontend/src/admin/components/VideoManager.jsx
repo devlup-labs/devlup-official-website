@@ -6,7 +6,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   const [syncing, setSyncing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
 
-  // 🔄 Sync videos from backend
+  //  Sync videos from backend
   const handleSync = async () => {
     try {
       setSyncing(true);
@@ -22,7 +22,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
     }
   };
 
-  // 🏷 Update category
+  //  Update category
   const updateCategory = async (videoId, category) => {
     try {
       await axios.put(
@@ -37,7 +37,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
     }
   };
 
-  // ✅ Normalize backend data
+  //  Normalize backend data
   const safeItems = items
     .map((v) => ({
       videoId: v.videoId || v.video_id || v.id,
@@ -48,10 +48,10 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
       link: v.link || v.video_url,
       category: v.category || "",
     }))
-    // 🚫 Remove invalid/duplicate entries
+    // Remove invalid/duplicate entries
     .filter((v) => v.videoId && v.title);
 
-  // 💤 Empty state
+  //  Empty state
   if (!safeItems.length) {
     return (
       <div className="text-center py-20 text-slate-500">
@@ -83,11 +83,11 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
 
      <div className="flex items-center gap-3 flex-wrap">
 
-        {/* 🔥 CATEGORY FILTER */}
+        {/*  CATEGORY FILTER */}
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
-          className="border rounded px-3 py-2 text-sm"
+          className="border rounded px-3 py-2 text-sm bg-slate-50"
         >
           <option value="all">All</option>
 
@@ -109,7 +109,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
         </button>
       </div>
 
-      {/* 🎬 Grid */}
+      {/*  Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVideos.map((video) => (
           <div
@@ -140,7 +140,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   <option value="ai">AI</option>
   <option value="system">System</option>
 
-  {/* 🔥 Inject custom category if not present */}
+  {/*  Inject custom category if not present */}
   {video.category &&
     !["web", "ai", "system", "other"].includes(video.category) && (
       <option value={video.category}>

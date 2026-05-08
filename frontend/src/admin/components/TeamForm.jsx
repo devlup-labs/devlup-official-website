@@ -135,20 +135,30 @@ useEffect(() => {
       {/* -------- PUBLIC DATA -------- */}
       <h3 className="font-bold text-lg">Public Info</h3>
 
-      <input required disabled={isEdit} placeholder="Member ID"
-        value={formData.member_id}
-        onChange={(e)=>setFormData({...formData, member_id:e.target.value})}
-        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+      {isEdit && (
+  <input
+    disabled
+    value={formData.member_id}
+    className="w-full p-3 bg-slate-100 border rounded-xl"
+  />
+)} 
 
       <input required placeholder="Name"
         value={formData.member_name}
         onChange={(e)=>setFormData({...formData, member_name:e.target.value})}
         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
-      <input  placeholder="Image URL"
-        value={formData.member_image}
-        onChange={(e)=>setFormData({...formData, member_image:e.target.value})}
-        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
+    <input
+  type="file"
+  accept="image/*"
+  onChange={(e)=>
+    setFormData({
+      ...formData,
+      image: e.target.files[0]
+    })
+  }
+  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+/>
 
       <input required placeholder="Roll Number"
         value={formData.member_roll_number}

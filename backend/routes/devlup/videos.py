@@ -15,7 +15,7 @@ RSS_URL = f"https://www.youtube.com/feeds/videos.xml?channel_id={CHANNEL_ID}"
 video_collection = db["videos"]
 
 
-# 🧠 RSS parser
+#  RSS parser
 def fetch_rss_videos():
     try:
         res = requests.get(RSS_URL, timeout=10)
@@ -92,7 +92,7 @@ def update_videos():
     for video in rss_videos:
         existing = video_collection.find_one({"videoId": video["videoId"]})
 
-        # 🆕 New video
+        #  New video
         if not existing:
             video_collection.update_one(
                 {"videoId": video["videoId"]},
@@ -100,10 +100,10 @@ def update_videos():
                 upsert=True
             )
             new_count += 1
-            print(f"🆕 New video added: {video['title']}")
+            print(f"New video added: {video['title']}")
             continue
 
-        # 🔍 Check if anything changed
+        # Check if anything changed
         changes = {}
         fields = ["title", "link", "published", "updated", "author", "thumbnail", "description"]
 
@@ -114,7 +114,7 @@ def update_videos():
                     "new": video.get(field)
                 }
 
-        # 🔄 If changes exist → update
+        #  If changes exist → update
         if changes:
             video_collection.update_one(
                 {"videoId": video["videoId"]},
@@ -148,7 +148,7 @@ def update_videos():
         "unchanged": unchanged_count
     }
 
-# 📥 GET all videos
+#  GET all videos
 @router.get("/")
 def get_videos():
     videos = list(
@@ -191,7 +191,7 @@ def update_video_category(video_id: str, category: str):
 
     return {"status": "success", "category": category}
 
-# 🔍 RSS preview
+# RSS preview
 @router.get("/rss-preview")
 def preview_rss():
     return fetch_rss_videos()
@@ -245,7 +245,7 @@ def restore_video(video_id: str):
         "status": "success",
         "message": "Video restored successfully"
     }
-# 🔁 Scheduler (simple + correct)
+#  Scheduler (simple + correct)
 def auto_update():
     try:
         print("Running video update...")

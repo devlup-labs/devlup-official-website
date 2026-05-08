@@ -74,6 +74,12 @@ pip uninstall bcrypt passlib -y
 pip install bcrypt==4.0.1
 pip install passlib==1.7.4
 ```
+- OR
+
+```bash
+pip install -r requirements.txt
+```
+
 ---
 
 ##  Environment Variables

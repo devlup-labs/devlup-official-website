@@ -190,7 +190,7 @@ function Team() {
           designation: item.member_designation,
           tag: item.member_tag,
           bio: item.member_about,
-          github: item.member_github_id, // already full URL ✅
+          github: item.member_github_id, // already full URL 
           linkedin: item.member_linkedin,
           email: item.member_email
         }));;
@@ -400,7 +400,7 @@ function Team() {
     const out = [];
     const angleStep = 360 / COLS;
 
-    // ⭐ Only use front half columns (visible initially)
+    // Only use front half columns (visible initially)
     const FRONT_COLS = Math.floor(COLS / 2); // 9
     const TOTAL_VISIBLE = ROWS * FRONT_COLS;
 
@@ -411,7 +411,7 @@ function Team() {
 
     for (let row = 0; row < ROWS; row++) {
       for (let i = 0; i < COLS; i++) {
-        const isFront = i < FRONT_COLS; // ⭐ front half
+        const isFront = i < FRONT_COLS; //  front half
 
         let member = null;
 
@@ -438,7 +438,7 @@ function Team() {
     return out;
   }, [filteredMembers]);
 
-  // 4. ⭐ ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
+  // 4.  ADD YOUR ROTATION FIX HERE (RIGHT AFTER tilesData)
   useEffect(() => {
     if (members.length === 0) return;
 

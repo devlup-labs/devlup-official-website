@@ -17,7 +17,7 @@ export default function App() {
           const formatted = data.map(v => ({
             id: v.videoId || "",
             title: v.title || "Untitled Video",
-            tag: (v.category || "general").toLowerCase(), // ✅ FIX
+            tag: (v.category || "general").toLowerCase(), 
             description: v.description || ""
           }));
 
@@ -48,7 +48,7 @@ const tags = useMemo(() => {
   return ["general", ...filtered];
 }, [videoData]);
 
-  // ✅ FILTER (SAFE)
+  //  FILTER (SAFE)
   const filteredVideoData = useMemo(() => {
     const searchLower = (searchTerm || "").toLowerCase();
 

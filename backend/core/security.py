@@ -8,15 +8,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 
-# 🔐 hash password
+#  hash password
 def hash_password(password: str):
     return pwd_context.hash(password)
 
-# 🔐 verify password
+#  verify password
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
-# 🔐 create token
+#  create token
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(hours=2)

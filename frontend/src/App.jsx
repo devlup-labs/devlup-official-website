@@ -14,7 +14,7 @@ import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
 import Portfolio from "./components/Portfolio.jsx";
 
-// ✅ Admin components
+//  Admin components
 import Login from "./admin/components/Login";
 import Dashboard from "./admin/components/Dashboard";
 import ProtectedRoute from "./admin/components/ProtectedRoute";
@@ -24,7 +24,7 @@ export const ThemeContext = createContext();
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem("token")); // ✅ added
+  const [token, setToken] = useState(localStorage.getItem("token")); 
    const [hamburgerOpen, setHamburgerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -69,7 +69,7 @@ function App() {
 
           <Routes>
 
-            {/* 🌐 PUBLIC ROUTES */}
+            {/* PUBLIC ROUTES */}
             <Route path="/" element={<Home />} />
 
             <Route element={<><Header /><Outlet /><Footer /></>}>
@@ -83,7 +83,7 @@ function App() {
 
             <Route path="/portfolio/:username" element={<Portfolio />} />
 
-            {/* 🔐 ADMIN ROUTES (NO /admin) */}
+            {/* ADMIN ROUTES (NO /admin) */}
             <Route path="/login" element={<Login setToken={setToken} />} />
 
             <Route

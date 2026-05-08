@@ -230,12 +230,12 @@ function Blog() {
     return () => window.removeEventListener("keydown", handleEsc);
   }, []);
   useEffect(() => {
-    console.log("🚀 Starting to fetch blogs from admin panel...");
+    console.log(" Starting to fetch blogs from admin panel...");
     console.log("API baseURL check:", window.location.href);
 
     getBlogs()
       .then((res) => {
-        console.log("📨 Full response object:", res);
+        console.log(" Full response object:", res);
         console.log("Response status:", res.status);
         console.log("Response headers:", res.headers);
         console.log("Response data:", res.data);
@@ -245,12 +245,12 @@ function Blog() {
         let blogData = res.data?.data;
 
         if (!blogData) {
-          console.warn("⚠️ data.data not found, trying data");
+          console.warn(" data.data not found, trying data");
           blogData = res.data;
         }
 
         if (!Array.isArray(blogData)) {
-          console.error("❌ blogData is not an array:", typeof blogData, blogData);
+          console.error(" blogData is not an array:", typeof blogData, blogData);
           blogData = [];
         }
 
@@ -258,15 +258,15 @@ function Blog() {
         console.log("Number of blogs:", blogData.length);
 
         if (blogData.length > 0) {
-          console.log("✅ Successfully loaded", blogData.length, "blogs from admin panel");
+          console.log(" Successfully loaded", blogData.length, "blogs from admin panel");
           setBlogs(blogData);
         } else {
-          console.warn("⚠️ No blogs in admin panel (empty array)");
+          console.warn(" No blogs in admin panel (empty array)");
           setBlogs([]);
         }
       })
       .catch((err) => {
-        console.error("❌ ERROR FETCHING BLOGS:", err);
+        console.error("ERROR FETCHING BLOGS:", err);
         console.error("Error type:", err.constructor.name);
         console.error("Error message:", err.message);
         console.error("Error request config:", err.config);
@@ -485,12 +485,12 @@ function Blog() {
               {activeCard !== i ? (
                 <div className="w-full h-full flex flex-col">
 
-                  {/* 🔷 TOP IMAGE (SMALLER) */}
+                  {/*  TOP IMAGE (SMALLER) */}
                   <div className="h-[25%] overflow-hidden">
                     <img src={layer.image} className="w-full h-full object-cover" alt={layer.title} />
                   </div>
 
-                  {/* 🔻 TEXT AREA (BIGGER) */}
+                  {/*  TEXT AREA (BIGGER) */}
                   <div className="h-[50%] flex flex-col items-center justify-center bg-[var(--bg-blog_card)] border-y border-white/10 px-3">
 
                     <p className="font-heading text-base font-bold text-center line-clamp-2 mb-2">
@@ -503,7 +503,7 @@ function Blog() {
 
                   </div>
 
-                  {/* 🔷 BOTTOM IMAGE (SMALLER) */}
+                  {/*  BOTTOM IMAGE (SMALLER) */}
                   <div className="h-[25%] overflow-hidden">
                     <img
                       src={layer.image}
@@ -571,10 +571,10 @@ function Blog() {
 
                     </div>
 
-                    {/* 🔥 VIEW BUTTON (NEW) */}
+                    {/*  VIEW BUTTON (NEW) */}
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // 🔥 prevents animation break
+                        e.stopPropagation(); //  prevents animation break
                         navigate(`/blogs/${layer.blog_id}`);
                       }}
                       className="mt-auto w-full py-1.5 text-[11px] rounded-full border border-white/20 

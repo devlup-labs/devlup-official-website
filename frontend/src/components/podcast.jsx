@@ -345,7 +345,7 @@ export default function Podcast() {
     }
     let newTime = audioRef.current.currentTime + sec;
     newTime = Math.max(0, Math.min(duration, newTime));
-    console.log("✅ Setting time to:", newTime, "from:", audioRef.current.currentTime);
+    console.log(" Setting time to:", newTime, "from:", audioRef.current.currentTime);
     audioRef.current.currentTime = newTime;
     setProgress(newTime);
   };

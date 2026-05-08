@@ -44,11 +44,11 @@ const loadPortfolio = (inputCode) => {
       let member, hidden;
 
       if (code) {
-        // 🔥 hidden route response
+        //  hidden route response
         member = data.member;
         hidden = data.hidden;
       } else {
-        // 🔥 public route response
+        //  public route response
         member = data.data;
         hidden = null;
       }

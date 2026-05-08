@@ -2,14 +2,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 
-# 🔹 Contribution Model
+#  Contribution Model
 class Contribution(BaseModel):
     contribution_id: str
     contribution_title: str
     contribution_description: str
 
 
-# 🔹 Member (Public Data)
+#  Member (Public Data)
 class Member(BaseModel):
     member_id: str
     member_name: str
@@ -23,7 +23,7 @@ class Member(BaseModel):
     member_email: Optional[str] = None
 
 
-# 🔹 Hidden Member Data (protected via code)
+#  Hidden Member Data (protected via code)
 class MemberHidden(BaseModel):
     member_hidden_code: str
     member_hidden_avatar: Optional[str] = None
@@ -32,13 +32,13 @@ class MemberHidden(BaseModel):
     member_hidden_comments: Optional[List[str]] = None
 
 
-# 🔹 Member Details (for /team/{member_id, code})
+#  Member Details (for /team/{member_id, code})
 class MemberDetails(BaseModel):
     member_id: str
     member_hidden_contributions: List[Contribution]
 
 
-# 🔹 Combined Response Model
+#  Combined Response Model
 class MemberFull(BaseModel):
     member: Member
     hidden: Optional[MemberHidden] = None

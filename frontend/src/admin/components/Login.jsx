@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'; // ✅ added useEffect
+import React, { useState, useEffect } from 'react'; //  added useEffect
 import axios from 'axios';
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ added useLocation
+import { useNavigate, useLocation } from "react-router-dom"; //  added useLocation
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState('');
@@ -39,7 +39,7 @@ const Login = ({ setToken }) => {
       <form onSubmit={handleSubmit} className="p-8 bg-slate-800 rounded-xl shadow-2xl w-96 border border-slate-700">
 
         <input 
-          type="text"   // ✅ FIXED
+          type="text"  
           placeholder="UserId"
           required
           className="block w-full mb-4 p-3 rounded bg-slate-700"

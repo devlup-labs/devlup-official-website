@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 
-# 🔹 Event Model
+#  Event Model
 class Event(BaseModel):
     event_id: str
     event_title: str
@@ -12,6 +12,6 @@ class Event(BaseModel):
     event_photos: List[str]
 
 
-# 🔹 Timeline Response (optional but useful)
+#  Timeline Response (optional but useful)
 class Timeline(BaseModel):
     events: List[Event]

@@ -211,7 +211,7 @@ export default function CircularTimeline() {
               {activeEvent.event_title}
             </h2>
 
-            {/* 📅 DATE */}
+            {/*  DATE */}
             <p className="text-xs text-gray-400 mb-4 tracking-wider uppercase">
               {activeEvent.event_date ? new Date(activeEvent.event_date).toDateString() : ""}
             </p>

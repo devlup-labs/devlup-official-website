@@ -9,7 +9,7 @@ router = APIRouter(
     tags=["Contact"]
 )
 
-# ✅ POST - Submit contact form
+#  POST - Submit contact form
 @router.post("/", response_model=ContactResponse)
 async def submit_contact(data: ContactCreate):
     try:
@@ -27,7 +27,7 @@ async def submit_contact(data: ContactCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ✅ GET - Get all contacts
+#  GET - Get all contacts
 @router.get("/")
 async def get_all_contacts():
     try:
@@ -45,7 +45,7 @@ async def get_all_contacts():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ✅ DELETE - Delete contact by ID
+#  DELETE - Delete contact by ID
 @router.delete("/{contact_id}")
 async def delete_contact(contact_id: str):
     try:

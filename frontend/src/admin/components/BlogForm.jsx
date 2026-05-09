@@ -12,7 +12,9 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
   blog_date: new Date().toISOString().split('T')[0],
   blog_type:'internal',
   blog_content: '',
-  blog_url: ''
+  blog_external_url: '',
+  thumbnail: null,
+  blog_media: null
 });
 
   const isEdit = !!initialData;
@@ -39,9 +41,11 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
         blog_author: initialData.blog_author || '',
         blog_date: initialData.blog_date || new Date().toISOString().split('T')[0],
         blog_content: initialData.blog_content || '',
-        blog_url: initialData.blog_url || '',
+        blog_external_url: initialData.blog_external_url || '',
         blog_tags: tagsString,
-        blog_type: initialData.blog_type || 'internal'
+        blog_type: initialData.blog_type || 'internal',
+        thumbnail: null,
+        blog_media: null
       });
     }
   }, [initialData]);
@@ -49,17 +53,39 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = {
-      ...formData,
-      blog_tags: formData.blog_tags
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(tag => tag !== "")
-    };
-
     try {
+
+      const payload = new FormData();
+
+      payload.append("blog_title", formData.blog_title);
+      payload.append("blog_subtitle", formData.blog_subtitle);
+      payload.append("blog_author", formData.blog_author);
+      payload.append("blog_date", formData.blog_date);
+      payload.append("blog_type", formData.blog_type);
+
+      payload.append("blog_tags", formData.blog_tags);
+
+      if (formData.blog_content) {
+        payload.append("blog_content", formData.blog_content);
+      }
+
+      if (formData.blog_external_url) {
+        payload.append("blog_external_url", formData.blog_external_url);
+      }
+
+      if (formData.thumbnail) {
+        payload.append("thumbnail", formData.thumbnail);
+      }
+
+      if (formData.blog_media) {
+        payload.append("blog_media", formData.blog_media);
+      }
+
       const config = {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
+        }
       };
 
       if (isEdit) {
@@ -69,12 +95,19 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       }
 
       onSuccess();
+
     } catch (err) {
       console.error("Full error:", err);
       console.error("Response data:", err.response?.data);
       console.error("Status:", err.response?.status);
       console.error("Message:", err.message);
-      alert(`Error: ${err.response?.data?.detail || err.response?.data?.message || err.message || "Error saving blog."}`);
+
+      alert(
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        err.message ||
+        "Error saving blog."
+      );
     }
   };
 
@@ -168,17 +201,24 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
 
       {/* Thumbnail */}
       <div>
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thumbnail URL</label>
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Thumbnail</label>
+
         <input
+          type="file"
+          accept="image/*"
           className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
-          value={formData.blog_thumbnail}
-          onChange={(e) => setFormData({ ...formData, blog_thumbnail: e.target.value })}
-          required
-          placeholder="https://..."
+          onChange={(e) =>
+            setFormData({
+              ...formData,
+              thumbnail: e.target.files[0]
+            })
+          }
+          required={!isEdit}
         />
       </div>
 
       {/* Content */}
+    
       <div>
         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Content</label>
         <textarea
@@ -190,17 +230,48 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
           placeholder="Write your blog content here..."
         />
       </div>
+    
 
-      {/* URL */}
-      <div>
-        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Blog URL (Optional)</label>
-        <input
-          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
-          value={formData.blog_url}
-          onChange={(e) => setFormData({ ...formData, blog_url: e.target.value })}
-          placeholder="External link (optional)"
-        />
-      </div>
+      {/* Blog Media */}
+      {formData.blog_type === "internal" && (
+        <div>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Blog Media (Optional)
+          </label>
+
+          <input
+            type="file"
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                blog_media: e.target.files[0]
+              })
+            }
+          />
+        </div>
+      )}
+
+      {/* External URL */}
+      {formData.blog_type === "external" && (
+        <div>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            External Blog URL
+          </label>
+
+          <input
+            className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+            value={formData.blog_external_url}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                blog_external_url: e.target.value
+              })
+            }
+            placeholder="https://..."
+          />
+        </div>
+      )}
 
       {/* Buttons */}
       <div className="flex gap-3 mt-6">

@@ -30,13 +30,19 @@ async def create_member(
 
     generated_id = str(uuid.uuid4())
 
+    tags_list = [
+        tag.strip()
+        for tag in member_tag.split(",")
+        if tag.strip()
+    ]
+
     member = Member(
         member_id=generated_id,
         member_name=member_name,
         member_image=image_url,
         member_roll_number=member_roll_number,
         member_designation=member_designation,
-        member_tag=member_tag,
+        member_tag=tags_list,
         member_about=member_about,
         member_github_id=member_github_id,
         member_linkedin=member_linkedin,

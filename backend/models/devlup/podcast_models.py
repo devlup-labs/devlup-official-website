@@ -12,4 +12,5 @@ class PodcastPreview(BaseModel):
 
 
 class Podcast(PodcastPreview):
-    podcast_url: Optional[str] = None
+    podcast_media_url: Optional[str] = None
+    podcast_external_url: Optional[str] = None

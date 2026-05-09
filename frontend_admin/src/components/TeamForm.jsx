@@ -55,7 +55,7 @@ useEffect(() => {
   });
 
 }, [initialData]);
-  // 🔹 Add Contribution
+  //  Add Contribution
   const addContribution = () => {
     setFormData({
       ...formData,
@@ -70,7 +70,7 @@ useEffect(() => {
     });
   };
 
-  // 🔹 Handle Contribution Change
+  //  Handle Contribution Change
   const handleContributionChange = (index, field, value) => {
     const updated = [...formData.member_hidden_contributions];
     updated[index][field] = value;
@@ -80,18 +80,23 @@ useEffect(() => {
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const memberPayload = {
-    member_id: formData.member_id,
-    member_name: formData.member_name,
-    member_image: formData.member_image,
-    member_roll_number: formData.member_roll_number,
-    member_designation: formData.member_designation,
-    member_tag: formData.member_tag,
-    member_about: formData.member_about,
-    member_github_id: formData.member_github_id,
-    member_linkedin: formData.member_linkedin,
-    member_email: formData.member_email
-  };
+  const memberId = formData.member_id;
+  if (isEdit && !memberId) {
+    alert("Member ID missing!");
+    return;
+  }
+
+  const payload = new FormData();
+  payload.append('member_id', formData.member_id);
+  payload.append('member_name', formData.member_name);
+  payload.append('member_image', formData.member_image);
+  payload.append('member_roll_number', formData.member_roll_number);
+  payload.append('member_designation', formData.member_designation);
+  payload.append('member_tag', formData.member_tag);
+  payload.append('member_about', formData.member_about);
+  payload.append('member_github_id', formData.member_github_id);
+  payload.append('member_linkedin', formData.member_linkedin);
+  payload.append('member_email', formData.member_email);
 
   const hiddenPayload = formData.member_hidden_code ? {
     member_id: formData.member_id,
@@ -107,21 +112,18 @@ useEffect(() => {
 
   try {
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const memberId = formData.member_id;
+    let targetMemberId = memberId;
 
     if (isEdit) {
-      if (!memberId) {
-        alert("Member ID missing!");
-        return;
-      }
-      await axios.put(`/api/team/${memberId}`, memberPayload, config);
+      await axios.put(`/api/team/${targetMemberId}`, payload, config);
     } else {
-      await axios.post(`/api/team`, memberPayload, config);
+      const response = await axios.post(`/api/team`, payload, config);
+      targetMemberId = response.data.member_id || targetMemberId;
     }
 
-    // Now save hidden data if it exists
     if (hiddenPayload) {
-      await axios.post(`/api/team/hidden/${memberId}`, hiddenPayload, config);
+      hiddenPayload.member_id = targetMemberId;
+      await axios.post(`/api/team/hidden/${targetMemberId}`, hiddenPayload, config);
     }
 
     onSuccess();

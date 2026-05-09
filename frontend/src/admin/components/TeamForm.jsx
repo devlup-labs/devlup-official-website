@@ -7,6 +7,7 @@ const TeamForm = ({ token, initialData, onSuccess, onCancel }) => {
     member_id: '',
     member_name: '',
     member_image: '',
+    member_image_file: null,
     member_roll_number: '',
     member_designation: '',
     member_tag: '',
@@ -78,18 +79,23 @@ useEffect(() => {
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const memberPayload = {
-    member_id: formData.member_id,
-    member_name: formData.member_name,
-    member_image: formData.member_image,
-    member_roll_number: formData.member_roll_number,
-    member_designation: formData.member_designation.trim().toLowerCase(),
-    member_tag: formData.member_tag,
-    member_about: formData.member_about,
-    member_github_id: formData.member_github_id,
-    member_linkedin: formData.member_linkedin,
-    member_email: formData.member_email
-  };
+  const memberId = formData.member_id;
+
+  const form = new FormData();
+  form.append('member_id', formData.member_id);
+  form.append('member_name', formData.member_name);
+  form.append('member_image', formData.member_image);
+  form.append('member_roll_number', formData.member_roll_number);
+  form.append('member_designation', formData.member_designation.trim().toLowerCase());
+  form.append('member_tag', formData.member_tag);
+  form.append('member_about', formData.member_about);
+  form.append('member_github_id', formData.member_github_id);
+  form.append('member_linkedin', formData.member_linkedin);
+  form.append('member_email', formData.member_email);
+
+  if (formData.member_image_file) {
+    form.append('image', formData.member_image_file);
+  }
 
   const hiddenPayload = formData.member_hidden_code ? {
     member_id: formData.member_id,
@@ -104,22 +110,28 @@ useEffect(() => {
   } : null;
 
   try {
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-    const memberId = formData.member_id;
+    const config = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
+
+    let targetMemberId = memberId;
 
     if (isEdit) {
-      if (!memberId) {
+      if (!targetMemberId) {
         alert("Member ID missing!");
         return;
       }
-      await axios.put(`/api/team/${memberId}`, memberPayload, config);
+      await axios.put(`/api/team/${targetMemberId}`, form, config);
     } else {
-      await axios.post(`/api/team`, memberPayload, config);
+      const response = await axios.post(`/api/team`, form, config);
+      targetMemberId = response.data.member_id || targetMemberId;
     }
 
-    // Now save hidden data if it exists
     if (hiddenPayload) {
-      await axios.post(`/api/team/hidden/${memberId}`, hiddenPayload, config);
+      hiddenPayload.member_id = targetMemberId;
+      await axios.post(`/api/team/hidden/${targetMemberId}`, hiddenPayload, config);
     }
 
     onSuccess();
@@ -148,17 +160,21 @@ useEffect(() => {
         onChange={(e)=>setFormData({...formData, member_name:e.target.value})}
         className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none" />
 
-    <input
-  type="file"
-  accept="image/*"
-  onChange={(e)=>
-    setFormData({
-      ...formData,
-      image: e.target.files[0]
-    })
-  }
-  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
-/>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e)=>
+          setFormData({
+            ...formData,
+            member_image_file: e.target.files[0]
+          })
+        }
+        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none"
+      />
+
+      {formData.member_image && !formData.member_image_file && (
+        <div className="text-sm text-slate-500">Current image URL: {formData.member_image}</div>
+      )}
 
       <input required placeholder="Roll Number"
         value={formData.member_roll_number}

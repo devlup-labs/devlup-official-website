@@ -21,12 +21,15 @@ async def create_member(
     member_github_id: str = Form(None),
     member_linkedin: str = Form(None),
     member_email: str = Form(None),
+    member_image: str = Form(None),
 
-    image: UploadFile = File(...)
+    image: UploadFile = File(None)
 
 ):
 
-    image_url = upload_image(image)
+    image_url = member_image or ""
+    if image is not None:
+        image_url = upload_image(image)
 
     generated_id = str(uuid.uuid4())
 
@@ -53,7 +56,8 @@ async def create_member(
 
     return {
         "success": True,
-        "message": "Member created"
+        "message": "Member created",
+        "member_id": generated_id
     }
 
 # GET all members (public only)
@@ -124,6 +128,7 @@ async def update_member(
     member_github_id: str = Form(None),
     member_linkedin: str = Form(None),
     member_email: str = Form(None),
+    member_image: str = Form(None),
 
     image: UploadFile = File(None)
 
@@ -152,7 +157,11 @@ async def update_member(
         update_data["member_designation"] = member_designation
 
     if member_tag is not None:
-        update_data["member_tag"] = member_tag
+        update_data["member_tag"] = [
+            tag.strip()
+            for tag in member_tag.split(",")
+            if tag.strip()
+        ]
 
     if member_about is not None:
         update_data["member_about"] = member_about
@@ -166,11 +175,12 @@ async def update_member(
     if member_email is not None:
         update_data["member_email"] = member_email
 
+    if member_image is not None:
+        update_data["member_image"] = member_image
+
     # Upload new image if provided
     if image is not None:
-
         image_url = upload_image(image)
-
         update_data["member_image"] = image_url
 
     db.team.update_one(

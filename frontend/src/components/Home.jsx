@@ -431,7 +431,11 @@ export function FlowingGrid({ showHologram }) {
         ref={meshRef}
         args={[null, null, count * count]}
         position={[0, -0.1, 0]}
-        onPointerMove={(e) => { e.stopPropagation(); if (scroll && scroll.offset > 0.15 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId; }}
+        onPointerMove={(e) => {
+          e.stopPropagation();
+          // Only allow hover highlighting when not scrolled down (pre-activation)
+          if (scroll && scroll.offset < 0 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId;
+        }}
         onPointerOut={() => { hoveredIdRef.current = null; }}
       >
         <boxGeometry args={[1, 1, 1]} />
@@ -1437,9 +1441,11 @@ export default function Home() {
             ref={rootRef}
             className="relative w-screen h-screen overflow-hidden"
             style={{
-              opacity: showLoader ? 0 : 1,
+              // Keep underlying content visible while the loader fades out
+              opacity: 1,
               transform: showLoader ? 'scale(1.03)' : 'scale(1)',
-              transition: 'opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transition: 'transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              pointerEvents: showLoader ? 'none' : 'auto'
             }}
           >
             <button
@@ -1625,7 +1631,7 @@ body::-webkit-scrollbar {
 /* â”€â”€â”€ Faint Grid Lines â”€â”€â”€ */
 .museum-grid-lines {
   position: absolute;
-  inset: 0;
+  inset: -1;
   display: flex;
   justify-content: space-evenly;
   pointer-events: none;
@@ -1717,7 +1723,7 @@ body::-webkit-scrollbar {
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-top: 30px;
+  margin-top: 100px;
   padding-top: 100px;
 }
 
@@ -1870,15 +1876,15 @@ function GlowRing({ scrollRef, isDarkMode }) {
 
     // Move left
     // Using the same translation amount as the penguin
-    ringRef.current.position.x = THREE.MathUtils.lerp(-1.25, -1.25 - 2, hinge)
+    ringRef.current.position.x = THREE.MathUtils.lerp(-1.10, -1.10 - 2, hinge)
   })
 
   return (
-    <mesh ref={ringRef} position={[-1.25, -0.2, -1.3]} scale={[1, 1, 1]}>
+    <mesh ref={ringRef} position={[-1.10, -0.2, -2.3]} scale={[1, 1, 1]}>
       <torusGeometry args={[3.2, 0.06, 32, 128]} />
       <meshStandardMaterial
-        color={isDarkMode ? "#ffffff" : "#00aaff"}
-        emissive={isDarkMode ? "#ffffff" : "#0055ff"}
+        color={isDarkMode ? "#ffffff" : "#000000"}
+        emissive={isDarkMode ? "#ffffff" : "#000000"}
         emissiveIntensity={1.8}
         toneMapped={false}
         transparent
@@ -2222,7 +2228,15 @@ export function SciFiHUD({ onClose }) {
   return (
     <>
       <style>{CSS_STYLES}</style>
-      <div className={`museum-layout w-screen min-h-screen relative overflow-x-hidden ${isDarkMode ? 'bg-[#050814]' : 'bg-[#00BFFF]'}`}>
+      <div
+        className={`museum-layout w-screen min-h-screen relative ${isDarkMode ? 'bg-[#050814]' : ''}`}
+        style={!isDarkMode ? {
+          backgroundImage: "url('/bgweb3.jpeg')",
+          backgroundSize: 'cover',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center',
+        } : undefined}
+      >
         <Header onClose={onClose} />
 
         <div className="museum-page" style={{ height: '100vh', position: 'relative', background: 'transparent' }}>
@@ -2232,12 +2246,19 @@ export function SciFiHUD({ onClose }) {
             camera={{ position: [0, 0, 0], fov: 45 }}
             gl={{
               antialias: true,
+              alpha: true,
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.0,
             }}
           >
-            <color attach="background" args={[isDarkMode ? '#000000' : '#87CEEB']} />
-            <fog attach="fog" args={[isDarkMode ? '#000000' : '#87CEEB', 10, 22]} />
+            {isDarkMode ? (
+              <>
+                <color attach="background" args={['#000000']} />
+                <fog attach="fog" args={['#000000', 10, 22]} />
+              </>
+            ) : (
+              <fog attach="fog" args={['#cfdcf2', 10, 22]} />
+            )}
 
             <ScrollControls pages={2} damping={0.1}>
               <SceneContent isDarkMode={isDarkMode} />

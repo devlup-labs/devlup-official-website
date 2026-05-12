@@ -181,13 +181,14 @@
   @keyframes loaderCursorBlink {
 
     0%,
+    50% {
+      opacity: 1;
+    }
     100% {
       opacity: 1;
     }
 
-    50% {
-      opacity: 0.15;
-    }
+    
   }
 
   @keyframes loaderCursorFade {
@@ -197,7 +198,7 @@
     }
 
     60% {
-      opacity: 0.3;
+      opacity: 0.6;
       transform: translateY(0.5px) scaleX(0.21);
     }
 

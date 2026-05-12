@@ -84,7 +84,7 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
     <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar">
       
       {/* ID + Author */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Blog ID</label>
           <input
@@ -134,7 +134,7 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       </div>
 
       {/* Date + Tags */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date</label>
           <input

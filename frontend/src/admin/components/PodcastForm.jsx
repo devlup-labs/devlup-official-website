@@ -113,7 +113,7 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
       className="space-y-4 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar"
     >
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         {isEdit && (
           <div>
@@ -188,7 +188,7 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <div>
           <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">

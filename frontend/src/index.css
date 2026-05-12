@@ -12,7 +12,7 @@
 
   --bg-fallback: #e9ecef;
 
-  /* ✅ THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
+  /* THIS CONTROLS HEADER + CARDS (SOLID, NO TRANSPARENCY) */
   --bg-surface: #ffffff;
   /* clean neutral grey */
 
@@ -54,7 +54,7 @@
 
   --bg-fallback: #0b122a;
 
-  /* ✅ SAME VARIABLE → CHANGES HEADER COLOR */
+  /*  SAME VARIABLE → CHANGES HEADER COLOR */
   --bg-surface: #1f2937;
   /* dark grey (NOT transparent) */
 
@@ -137,12 +137,14 @@
     letter-spacing: 0;
     perspective: 900px;
     transform-style: preserve-3d;
+    
   }
 
   .loader-path-dot,
   .loader-path-slash {
     display: inline-block;
     line-height: 1;
+    color:#000;
   }
 
   .loader-path-dot {
@@ -173,40 +175,25 @@
     line-height: 1;
     font-weight: 100;
     display: inline-block;
-    opacity: 0.45;
+    opacity: 1; 
+    color: #000;
     transform: translateY(0.02em) scaleX(0.21);
     transform-origin: center;
   }
 
   @keyframes loaderCursorBlink {
-
-    0%,
-    50% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 1;
-    }
-
-    
+  0%, 49% {
+    opacity: 1;
   }
-
-  @keyframes loaderCursorFade {
-    0% {
-      opacity: 1;
-      transform: translateY(0.02em) scaleX(0.21);
-    }
-
-    60% {
-      opacity: 0.6;
-      transform: translateY(0.5px) scaleX(0.21);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translateY(1px) scaleX(0.21);
-    }
+  50%, 99% {
+    opacity: 0;
   }
+  100% {
+    opacity: 1;
+  }
+}
+
+
 
   @keyframes loaderPathMorph {
     0% {

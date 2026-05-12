@@ -377,31 +377,44 @@ function Team() {
     };
   }, [activeTile, HORIZONTAL_TOUCH_FACTOR, HORIZONTAL_WHEEL_FACTOR]);
 
-  const filteredMembers = useMemo(() => {
-    return members.filter((m) => {
-      let tags = m.designation || m.tag || "";
-      if (typeof tags === 'string') {
-        tags = [tags.trim()];
-      }
-      return selectedTags.length === 0 || tags.some(tag => selectedTags.includes(tag));
-    });
-  }, [members, selectedTags]);
+const filteredMembers = useMemo(() => {
+  return members.filter((m) => {
+    let tags = m.designation || m.tag || "";
 
-  const allTags = useMemo(() => {
-    const tagSet = new Set();
-    members.forEach((m) => {
-      if (m.designation) tagSet.add(m.designation.trim());
-      else if (m.tag) tagSet.add(m.tag.trim());
-    });
-    return Array.from(tagSet);
-  }, [members]);
+    if (typeof tags === "string") {
+      tags = [tags.trim().toLowerCase()];
+    }
+
+    return (
+      selectedTags.length === 0 ||
+      tags.some((tag) => selectedTags.includes(tag))
+    );
+  });
+}, [members, selectedTags]);
+
+const allTags = useMemo(() => {
+  const tagSet = new Set();
+
+  members.forEach((m) => {
+    if (m.designation) {
+      tagSet.add(m.designation.trim().toLowerCase());
+    } else if (m.tag) {
+      tagSet.add(m.tag.trim().toLowerCase());
+    }
+  });
+
+  return Array.from(tagSet);
+}, [members]);
 
   const tilesData = useMemo(() => {
     const out = [];
     const angleStep = 360 / COLS;
 
-    // Only use front half columns (visible initially)
-    const FRONT_COLS = Math.floor(COLS / 2); // 9
+    
+const FRONT_COLS = Math.min(
+  Math.floor(COLS / 2),
+  Math.max(4, Math.ceil(filteredMembers.length * 1.5))
+);
     const TOTAL_VISIBLE = ROWS * FRONT_COLS;
 
     // center within visible tiles

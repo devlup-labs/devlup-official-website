@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useContext } from "react";
-import { FaYoutube } from "react-icons/fa";
+import { IoLogoYoutube } from "react-icons/io5"; // Recommended for the solid look
 import { getVideoIds } from "../../api/services";
 import { ThemeContext } from "../../App";
 
@@ -223,17 +223,23 @@ export default function Cards({ videos: propVideos }) {
                   />
                 </div>
               ) : (
-                <div className="relative w-full h-full">
-                  <img
-                    src={card.thumbnail}
-                    alt="thumbnail"
-                    className="w-full h-full object-cover pointer-events-none transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
-                    <FaYoutube className="text-red-600 w-16 h-16" />
-                  </div>
-                </div>
-              )}
+      <div className="relative w-full h-full">
+    <img
+      src={card.thumbnail}
+      alt="thumbnail"
+      className="w-full h-full object-cover pointer-events-none transition-transform duration-700 group-hover:scale-110"
+    />
+    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
+      <div className="relative flex items-center justify-center">
+        {/* 1. This white box creates the white triangle effect */}
+        <div className="absolute w-10 h-10 bg-white rounded-sm" />
+        
+        {/* 2. The icon is placed on top with the YouTube red color */}
+        <IoLogoYoutube className="relative text-[#FF0000] w-20 h-20 drop-shadow-xl" />
+      </div>
+    </div>
+  </div>
+)}
             </div>
           </div>
         );

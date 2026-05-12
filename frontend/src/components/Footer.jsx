@@ -3,8 +3,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
-import { postContact } from "../api/services"; // adjust path
-
+import { postContact } from "../api/services";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -15,9 +14,7 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
-
 const Footer = () => {
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -102,7 +99,6 @@ const Footer = () => {
     });
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -111,8 +107,11 @@ const Footer = () => {
 
       alert(res.data.message);
 
-      setFormData({ name: "", email: "", query: "" });
-
+      setFormData({
+        name: "",
+        email: "",
+        query: "",
+      });
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
@@ -163,65 +162,98 @@ const Footer = () => {
             <p className="hidden sm:block opacity-50">|</p>
             <p>devluplabs@iitj.ac.in</p>
           </div>
-
-          {/* <div className="flex gap-5 pt-2 px-29 text-2xl text-white">
-            <a href="https://github.com/YOUR_GITHUB" target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faGithub} />
-            </a>
-
-            <a href="https://linkedin.com/in/YOUR_LINKEDIN" target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faLinkedin} />
-            </a>
-
-            <a href="https://instagram.com/YOUR_INSTAGRAM" target="_blank" rel="noopener noreferrer">
-              <FontAwesomeIcon icon={faInstagram} />
-            </a>
-          </div> */}
         </div>
 
-        {/* 🔥 MIDDLE COLUMN */}
+        {/* MIDDLE */}
         <div className="hidden md:block space-y-4 text-white px-3 mt-6 md:mt-0">
           <h3 className="text-3xl mt-3 font-semibold text-center">
             Useful Links
           </h3>
 
-          {/* LINKS + SOCIALS SIDE BY SIDE */}
           <div className="flex justify-center gap-10 mt-8">
-
             {/* LINKS */}
-            <div className="flex flex-col  gap-3 px-5 text-lg">
-              <Link to="/blog" className="transition duration-200 hover:scale-110 origin-left">Blog</Link>
-              <Link to="/podcast" className="transition duration-200 hover:scale-110 origin-left">Podcast</Link>
-              <Link to="/team" className="transition duration-200 hover:scale-110 origin-left">Team</Link>
-              <Link to="/video" className="transition duration-200 hover:scale-110 origin-left">Videos</Link>
-              <Link to="/timeline" className="transition duration-200 hover:scale-110 origin-left">Timeline</Link>
+            <div className="flex flex-col gap-3 px-5 text-lg">
+              <Link
+                to="/blog"
+                className="transition duration-200 hover:scale-110 origin-left"
+              >
+                Blog
+              </Link>
+
+              <Link
+                to="/podcast"
+                className="transition duration-200 hover:scale-110 origin-left"
+              >
+                Podcast
+              </Link>
+
+              <Link
+                to="/team"
+                className="transition duration-200 hover:scale-110 origin-left"
+              >
+                Team
+              </Link>
+
+              <Link
+                to="/video"
+                className="transition duration-200 hover:scale-110 origin-left"
+              >
+                Videos
+              </Link>
+
+              <Link
+                to="/timeline"
+                className="transition duration-200 hover:scale-110 origin-left"
+              >
+                Timeline
+              </Link>
             </div>
 
-            {/* SOCIALS (VERTICAL, ALIGNED) */}
+            {/* SOCIALS */}
             <div className="flex flex-col gap-3 mt-7 px-10 text-2xl items-center justify-start pt-[2px]">
-              <a href="https://github.com/devlup-labs" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faGithub} className="hover:scale-110 transition" />
+              <a
+                href="https://github.com/devlup-labs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FontAwesomeIcon
+                  icon={faGithub}
+                  className="hover:scale-110 transition"
+                />
               </a>
 
-              <a href="https://www.linkedin.com/company/devlup-labs/" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faLinkedin} className="hover:scale-110 transition" />
+              <a
+                href="https://www.linkedin.com/company/devlup-labs/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FontAwesomeIcon
+                  icon={faLinkedin}
+                  className="hover:scale-110 transition"
+                />
               </a>
 
-              <a href="https://www.instagram.com/devluplabs" target="_blank" rel="noopener noreferrer">
-                <FontAwesomeIcon icon={faInstagram} className="hover:scale-110 transition" />
+              <a
+                href="https://www.instagram.com/devluplabs"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FontAwesomeIcon
+                  icon={faInstagram}
+                  className="hover:scale-110 transition"
+                />
               </a>
             </div>
-
           </div>
         </div>
 
-        {/* RIGHT (UNCHANGED) */}
+        {/* RIGHT */}
         <div className="flex flex-col items-center md:items-start space-y-6 w-full">
           <h3 className="text-2xl md:text-3xl font-semibold text-white w-full">
             Get in Touch
           </h3>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6 w-full" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <input
                 type="text"
@@ -229,7 +261,7 @@ const Footer = () => {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Name"
-                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+                className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition"
               />
 
               <input
@@ -238,7 +270,7 @@ const Footer = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full bg-transparent border-b border-white py-1.5 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition"
+                className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition"
               />
             </div>
 
@@ -248,7 +280,7 @@ const Footer = () => {
               value={formData.query}
               onChange={handleChange}
               placeholder="Your message"
-              className="w-full bg-transparent border-b border-white py-2 text-[var(--text-primary)] placeholder:text-white focus:outline-none focus:border-blue-400 transition resize-none"
+              className="w-full bg-transparent border-0 border-b border-white py-2 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition resize-none"
             />
 
             <button

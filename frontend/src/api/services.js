@@ -22,6 +22,13 @@ export const getAllComments = () => api.get("/comments/admin/all");
 // TEAM
 export const getTeam = () => api.get("/team");
 
+// TEAM ADMIN
+export const getAdminTeamMember = (id) =>
+  api.get(`/team/admin/${id}`);
+
+export const updateHiddenMember = (id, data) =>
+  api.put(`/team/hidden/${id}`, data);
+
 // VIDEOS
 export const getVideos = () => api.get("/videos");
 export const getVideoIds = () => api.get("/videos/ids");

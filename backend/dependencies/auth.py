@@ -11,7 +11,11 @@ ALGORITHM = "HS256"
 
 def admin_required(token: str = Depends(oauth2_scheme)):
     try:
+        print("TOKEN:", token)
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        print("PAYLOAD:", payload)
 
         if payload.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Not authorized")
@@ -19,5 +23,5 @@ def admin_required(token: str = Depends(oauth2_scheme)):
         return payload
 
     except Exception as e:
-        print("JWT ERROR:", e)  # ADD THIS
+        print("JWT ERROR:", e)
         raise HTTPException(status_code=401, detail="Invalid token")

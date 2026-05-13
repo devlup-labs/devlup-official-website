@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form
+
+from fastapi import APIRouter, HTTPException, status, UploadFile, File, Form, Depends
+from dependencies.auth import admin_required
 from database import db
 from models.devlup.team_models import Member, MemberHidden
 from services.image import upload_image
@@ -7,11 +9,11 @@ import uuid
 router = APIRouter(prefix="/team", tags=["Team"])
 
 
-
 # CREATE member
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_member(
+
+    admin=Depends(admin_required),
 
     member_name: str = Form(...),
     member_roll_number: str = Form(...),
@@ -28,6 +30,7 @@ async def create_member(
 ):
 
     image_url = member_image or ""
+
     if image is not None:
         image_url = upload_image(image)
 
@@ -60,9 +63,11 @@ async def create_member(
         "member_id": generated_id
     }
 
+
 # GET all members (public only)
 @router.get("/")
 def get_members():
+
     members = list(db.team.find({}, {"_id": 0}))
 
     return {
@@ -72,13 +77,53 @@ def get_members():
     }
 
 
+# GET admin member with hidden data
+@router.get("/admin/{member_id}")
+def get_member_admin(
+
+    member_id: str,
+
+    admin=Depends(admin_required)
+
+):
+
+    member = db.team.find_one(
+        {"member_id": member_id},
+        {"_id": 0}
+    )
+
+    hidden = db.team_hidden.find_one(
+        {"member_id": member_id},
+        {"_id": 0}
+    )
+
+    if not member:
+        raise HTTPException(
+            status_code=404,
+            detail="Member not found"
+        )
+
+    return {
+        "success": True,
+        "member": member,
+        "hidden": hidden
+    }
+
+
 # GET single member (public)
 @router.get("/{member_id}")
 def get_member(member_id: str):
-    member = db.team.find_one({"member_id": member_id}, {"_id": 0})
+
+    member = db.team.find_one(
+        {"member_id": member_id},
+        {"_id": 0}
+    )
 
     if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Member not found"
+        )
 
     return {
         "success": True,
@@ -87,38 +132,70 @@ def get_member(member_id: str):
     }
 
 
-#  GET member WITH hidden data (special route)
+# GET member WITH hidden data using code
 @router.get("/{member_id}/{code}")
 def get_member_with_hidden(member_id: str, code: str):
-    member = db.team.find_one({"member_id": member_id}, {"_id": 0})
-    hidden = db.team_hidden.find_one({"member_id": member_id}, {"_id": 0})
+
+    member = db.team.find_one(
+        {"member_id": member_id},
+        {"_id": 0}
+    )
+
+    hidden = db.team_hidden.find_one(
+        {"member_id": member_id},
+        {"_id": 0}
+    )
 
     if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Member not found"
+        )
 
-    # check code
+    # Check code
     if not hidden or hidden.get("member_hidden_code") != code:
+
         return {
             "success": True,
-                "member": member,
-                "hidden": None
-            ,
+            "member": member,
+            "hidden": None,
             "message": "Invalid code, hidden data not accessible"
         }
 
     return {
         "success": True,
-            "member": member,
-            "hidden": hidden,
+        "member": member,
+        "hidden": hidden,
         "message": "Member full data fetched"
     }
 
 
-# UPDATE member (public fields)
+# CREATE hidden data
+@router.post("/hidden/{member_id}")
+def create_hidden(
+
+    member_id: str,
+    hidden: MemberHidden,
+
+    admin=Depends(admin_required)
+
+):
+
+    db.team_hidden.insert_one(hidden.model_dump())
+
+    return {
+        "success": True,
+        "message": "Hidden data created"
+    }
+
+
+# UPDATE member
 @router.put("/{member_id}")
 async def update_member(
 
     member_id: str,
+
+    admin=Depends(admin_required),
 
     member_name: str = Form(None),
     member_roll_number: str = Form(None),
@@ -180,7 +257,9 @@ async def update_member(
 
     # Upload new image if provided
     if image is not None:
+
         image_url = upload_image(image)
+
         update_data["member_image"] = image_url
 
     db.team.update_one(
@@ -200,8 +279,10 @@ async def update_member(
     }
 
 
+# CLEANUP empty records
 @router.delete("/cleanup-empty")
 def cleanup_empty():
+
     result = db.team.delete_many({
         "$or": [
             {"member_id": ""},
@@ -213,14 +294,27 @@ def cleanup_empty():
         "deleted": result.deleted_count
     }
 
+
 # DELETE member
 @router.delete("/{member_id}")
-def delete_member(member_id: str):
+def delete_member(
+
+    member_id: str,
+
+    admin=Depends(admin_required)
+
+):
+
     result = db.team.delete_one({"member_id": member_id})
-    db.team_hidden.delete_one({"member_id": member_id})  # also delete hidden
+
+    # Also delete hidden data
+    db.team_hidden.delete_one({"member_id": member_id})
 
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Member not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Member not found"
+        )
 
     return {
         "success": True,
@@ -228,10 +322,17 @@ def delete_member(member_id: str):
     }
 
 
+# CREATE / UPDATE hidden data
+@router.put("/hidden/{member_id}")
+def save_hidden(
 
-#  CREATE / UPDATE hidden data
-@router.post("/hidden/{member_id}")
-def create_hidden(member_id: str, hidden: MemberHidden):
+    member_id: str,
+    hidden: MemberHidden,
+
+    admin=Depends(admin_required)
+
+):
+
     db.team_hidden.update_one(
         {"member_id": member_id},
         {"$set": hidden.model_dump()},
@@ -240,5 +341,6 @@ def create_hidden(member_id: str, hidden: MemberHidden):
 
     return {
         "success": True,
-        "message": "Hidden data saved"
+        "message": "Hidden data succesfully updated"
     }
+

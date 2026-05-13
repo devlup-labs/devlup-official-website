@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
+import { Trash2 } from "lucide-react";
 import gsap from "gsap";
 
 
@@ -15,6 +16,7 @@ export default function Portfolio() {
   const [reveal, setReveal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scanComplete, setScanComplete] = useState(false);
+  const [newComment, setNewComment] = useState("");
  
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function Portfolio() {
   const scanRef = useRef(null);
   const controlsRef = useRef(null);
   const inputRef = useRef(null);
+  const hasScannedRef = useRef(false);
 
   const navItems = [
     { name: "Blog", path: "/blog" },
@@ -95,7 +98,7 @@ const loadPortfolio = (inputCode) => {
         secretData: hidden
           ? {
               hiddenquote: hidden.member_hidden_quote,
-              hiddencomments: hidden.member_hidden_comments?.join(", "),
+             hiddencomments: hidden.member_hidden_comments || [],
               hiddencontribution: hidden.member_hidden_contributions?.[0]
                 ? {
                     title:
@@ -149,7 +152,9 @@ const loadPortfolio = (inputCode) => {
 }, [username]);
 
   useEffect(() => {
-    if (reveal && info) {
+     if (reveal && info && !hasScannedRef.current){
+
+    hasScannedRef.current = true;
       const scan = { y: 0 };
 
       gsap.to(scan, {
@@ -225,6 +230,101 @@ const loadPortfolio = (inputCode) => {
       });
     }
   }, [reveal, info]);
+
+
+  const submitComment = async () => {
+  if (!newComment.trim()) return;
+
+  try {
+    await fetch(`http://localhost:8000/team/comment/${username}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        comment: newComment,
+      }),
+    });
+
+ setInfo((prev) => {
+  const updated = {
+    ...prev,
+    secretData: {
+      ...prev.secretData,
+      hiddencomments: [
+        ...(prev.secretData?.hiddencomments || []),
+        newComment,
+      ],
+    },
+  };
+
+  return updated;
+});
+
+gsap.set(cardsRef.current[2]?.querySelector(".new-content"), {
+  clearProps: "transform",
+});
+
+    setNewComment("");
+
+    gsap.fromTo(
+      cardsRef.current[2],
+      { boxShadow: "0 0 0 rgba(34,211,238,0)" },
+      {
+        boxShadow: "0 0 35px rgba(34,211,238,0.8)",
+        duration: 0.3,
+        yoyo: true,
+        repeat: 1,
+      }
+    );
+  } catch {
+    gsap.fromTo(
+      controlsRef.current,
+      { x: 0 },
+      {
+        x: 10,
+        duration: 0.08,
+        repeat: 4,
+        yoyo: true,
+      }
+    );
+  }
+};
+
+const deleteComment = async (index) => {
+  try {
+    await fetch(
+      `http://localhost:8000/team/comment/${username}/${index}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    setInfo((prev) => ({
+      ...prev,
+      secretData: {
+        ...prev.secretData,
+        hiddencomments: prev.secretData.hiddencomments.filter(
+          (_, i) => i !== index
+        ),
+      },
+    }));
+
+    gsap.fromTo(
+      cardsRef.current[2],
+      { boxShadow: "0 0 0 rgba(239,68,68,0)" },
+      {
+        boxShadow: "0 0 35px rgba(239,68,68,0.8)",
+        duration: 0.3,
+        yoyo: true,
+        repeat: 1,
+      }
+    );
+
+  } catch (err) {
+    console.log(err);
+  }
+};
 
   return (
     <>
@@ -458,25 +558,24 @@ const loadPortfolio = (inputCode) => {
               />
             </div>
 
-            {/* 4. COMMENTS (Hidden before scan to avoid mobile gap) */}
-            <div
-              ref={(el) => (cardsRef.current[2] = el)}
-              data-index="2"
-              className="bg-[var(--bg-surface)] rounded-xl md:rounded-2xl p-4 md:p-5 border border-[var(--border-subtle)] overflow-hidden opacity-0 shadow-lg"
-              style={{ display: "none" }}
-            >
-              <div className="content-wrapper">
-                <div className="old-content text-[var(--text-muted)] text-xs md:text-sm uppercase tracking-wider">
-                  Identification / Comments
-                </div>
-                <div className="reveal-slot min-h-[50px] md:min-h-[60px] flex items-center">
-                  <div className="new-content opacity-0 text-sm md:text-base text-[var(--text-primary)]">
-                    <span className="text-cyan-400 font-bold">@{info?.name}</span> <br />
-                    <p className="mt-1 leading-relaxed italic">{info?.secretData?.hiddencomments}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+     {/* CONTROLS */}
+      {!scanComplete && (
+      <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
+
+        <input
+          ref={inputRef}
+          type="text"
+          value={searchKey}
+          onChange={(e) => setSearchKey(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && loadPortfolio(searchKey)}
+          placeholder=""
+          className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] cursor-text"
+        />
+
+        
+      </div>
+      )}
+            
           </div>
 
           {/* RIGHT SIDE (Columns 2-3 on Desktop) */}
@@ -525,27 +624,110 @@ const loadPortfolio = (inputCode) => {
               </div>
             </div>
           </div>
+             </div>
+
+        {/* COMMENTS SECTION */}
+       <div
+  ref={(el) => (cardsRef.current[2] = el)}
+  data-index="2"
+  className="
+    mt-8
+    w-full
+    bg-[var(--bg-surface)]
+    rounded-2xl md:rounded-3xl
+    p-5 md:p-6
+    border border-[var(--border-subtle)]
+    overflow-hidden
+    opacity-0
+    shadow-lg
+  "
+  style={{ display: "none" }}
+>
+  <div className="content-wrapper">
+
+    <div className="old-content text-[var(--text-muted)] text-sm uppercase tracking-wider">
+      Hidden Comments
+    </div>
+
+    <div className="reveal-slot min-h-[120px] flex items-center">
+      <div className="new-content opacity-0 w-full">
+
+        {/* COMMENTS */}
+        <div className="space-y-3">
+          {info?.secretData?.hiddencomments?.map((comment, index) => (
+            <div
+              key={index}
+              className="
+                rounded-xl
+                border border-cyan-500/20
+                bg-black/20
+                px-4 py-3
+                backdrop-blur-md
+                flex items-start justify-between gap-4
+              "
+            >
+              <p className="italic leading-relaxed flex-1 break-words">
+                {comment}
+              </p>
+
+              <button
+  onClick={() => deleteComment(index)}
+  className="
+    shrink-0
+    text-red-400
+    hover:text-red-300
+    transition
+    hover:scale-110
+    cursor-pointer
+  "
+>
+  <Trash2 size={18} />
+</button>
+            </div>
+          ))}
         </div>
-      </div>
 
-      {/* CONTROLS */}
-      {!scanComplete && (
-      <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
+        {/* INPUT */}
+        <div className="mt-5 flex gap-3">
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Leave anonymous comment..."
+            className="
+              flex-1
+              rounded-xl
+              border border-cyan-500/20
+              bg-black/20
+              px-4 py-3
+              text-sm
+              outline-none
+            "
+          />
 
-        <input
-          ref={inputRef}
-          type="text"
-          value={searchKey}
-          onChange={(e) => setSearchKey(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && loadPortfolio(searchKey)}
-          placeholder=""
-          className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] cursor-text"
-        />
+          <button
+            onClick={submitComment}
+            className="
+              rounded-xl
+              bg-cyan-400
+              px-6 py-3
+              font-semibold
+              text-black
+              transition
+              hover:scale-105
+            "
+          >
+            Send
+          </button>
+        </div>
 
-        
       </div>
-      )}
+    </div>
+  </div>
+</div>
       </div>
+      </div>
+      
     </>
   );
 }

@@ -188,6 +188,60 @@ def create_hidden(
         "message": "Hidden data created"
     }
 
+@router.post("/comment/{member_id}")
+def add_comment(member_id: str, data: dict):
+
+    db.team_hidden.update_one(
+        {"member_id": member_id},
+        {
+            "$push": {
+                "member_hidden_comments": data["comment"]
+            }
+        }
+    )
+
+    return {
+        "success": True
+    }
+
+
+@router.delete("/comment/{member_id}/{index}")
+def delete_comment(member_id: str, index: int):
+
+    hidden = db.team_hidden.find_one(
+        {"member_id": member_id}
+    )
+
+    if not hidden:
+        raise HTTPException(
+            status_code=404,
+            detail="Hidden data not found"
+        )
+
+    comments = hidden.get("member_hidden_comments", [])
+
+    if index < 0 or index >= len(comments):
+        raise HTTPException(
+            status_code=404,
+            detail="Comment index invalid"
+        )
+
+    comments.pop(index)
+
+    db.team_hidden.update_one(
+        {"member_id": member_id},
+        {
+            "$set": {
+                "member_hidden_comments": comments
+            }
+        }
+    )
+
+    return {
+        "success": True,
+        "message": "Comment deleted"
+    }
+
 
 # UPDATE member
 @router.put("/{member_id}")

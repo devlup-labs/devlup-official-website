@@ -1503,7 +1503,6 @@ export default function Home() {
                   <Scroll html style={{ width: '100vw' }}>
                     <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
                       <div className={`w-full h-full flex flex-col items-center justify-center p-20 text-center ${isDarkMode ? 'bg-gradient-to-t from-black/80 to-transparent' : 'bg-gradient-to-t from-gray-300/60 to-transparent'}`}>
-                        <div className={`inline-block px-5 py-2 rounded-full border text-sm font-bold tracking-widest uppercase mb-6 backdrop-blur-sm ${isDarkMode ? 'border-cyan-400/40 bg-cyan-900/30 text-cyan-300' : 'border-blue-400/40 bg-blue-100/40 text-blue-600'}`}>Phase II</div>
                         <h2 className={isDarkMode ? `text-8xl font-black text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF]` : `text-8xl font-black max-w-5xl mb-8 text-slate-900`}>
                           DevlUp Labs
                         </h2>
@@ -1603,7 +1602,7 @@ body::-webkit-scrollbar {
   overflow: hidden;
   overflow-x: hidden;
   overflow-y: hidden;
-  background: #000000;
+  background: transparent;
 }
 
 /* â”€â”€â”€ Canvas â”€â”€â”€ */
@@ -1898,29 +1897,33 @@ function SceneLighting({ isDarkMode }) {
     <>
       <ambientLight intensity={isDarkMode ? 0.15 : 0.8} color={isDarkMode ? "#b0c4de" : "#ffffff"} />
       <directionalLight
-        position={[5, 8, 3]}
-        intensity={isDarkMode ? 1.2 : 2.0}
+        position={[1.5, 4, 6]}
+        intensity={isDarkMode ? 2.0 : 2.6}
         color={isDarkMode ? "#ffeedd" : "#ffffff"}
         castShadow
       />
       <directionalLight
-        position={[-4, 3, -5]}
-        intensity={isDarkMode ? 0.8 : 1.2}
+        position={[-2.5, 2.5, 5.5]}
+        intensity={isDarkMode ? 1.2 : 1.6}
         color={isDarkMode ? "#4488ff" : "#88aaff"}
       />
       <directionalLight
-        position={[0, -3, 2]}
-        intensity={isDarkMode ? 0.3 : 0.6}
+        position={[0, 1.5, 4.5]}
+        intensity={isDarkMode ? 0.8 : 1.0}
         color="#aabbcc"
       />
       <spotLight
-        position={[0, 10, 2]}
+        position={[0, 6, 7]}
         angle={0.35}
         penumbra={0.8}
-        intensity={isDarkMode ? 1.5 : 2.5}
+        intensity={isDarkMode ? 2.2 : 3.0}
         color="#ffffff"
         castShadow
       />
+      {/* Extra fill lights in positive Z towards the penguin */}
+      <pointLight position={[0, 1, 8]} intensity={isDarkMode ? 1.2 : 1.2} color="#ffffff" distance={20} />
+      <pointLight position={[2.2, 1.2, 7]} intensity={isDarkMode ? 0.8 : 0.8} color="#ffeedd" distance={18} />
+      <pointLight position={[-2.2, 1.2, 7]} intensity={isDarkMode ? 0.8 : 0.8} color="#ffeedd" distance={18} />
     </>
   )
 }
@@ -2102,9 +2105,89 @@ function ScrollHTML({ isDarkMode }) {
   const block1Ref = useRef()
   const block2Ref = useRef()
   const block3Ref = useRef()
+  const autoScrolledRef = useRef(false)
+  const autoBackedRef = useRef(false)
+  const prevOffsetRef = useRef(0)
 
   useFrame(() => {
     const offset = scroll.offset
+
+    // Auto full-scroll when crossing threshold (downward only)
+    const THRESHOLD = 0.1
+    const BACK_THRESHOLD = 0.9
+
+    // Back-scroll: when user scrolls up past BACK_THRESHOLD, snap back to top
+    if (!autoBackedRef.current && prevOffsetRef.current > BACK_THRESHOLD && offset <= BACK_THRESHOLD) {
+      if (typeof scroll.scrollTo === 'function') {
+        scroll.scrollTo(0)
+        autoBackedRef.current = true
+        // eslint-disable-next-line no-console
+        console.log('[ScrollHTML] auto back-scroll: used scroll.scrollTo')
+      } else if (scroll && scroll.el && typeof scroll.el.scrollTo === 'function') {
+        try {
+          scroll.el.scrollTo({ top: 0, behavior: 'smooth' })
+          autoBackedRef.current = true
+          // eslint-disable-next-line no-console
+          console.log('[ScrollHTML] auto back-scroll: used scroll.el.scrollTo fallback')
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[ScrollHTML] auto back-scroll fallback failed', e)
+        }
+      } else {
+        try {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+          autoBackedRef.current = true
+          // eslint-disable-next-line no-console
+          console.log('[ScrollHTML] auto back-scroll: used window.scrollTo fallback')
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[ScrollHTML] no scrollTo available for back-scroll', scroll)
+        }
+      }
+    }
+
+    // reset back-scroll allow if user scrolls down above a small hysteresis
+    if (autoBackedRef.current && offset > BACK_THRESHOLD + 0.05) {
+      autoBackedRef.current = false
+    }
+
+    if (!autoScrolledRef.current && prevOffsetRef.current < THRESHOLD && offset >= THRESHOLD) {
+      // Primary API (react-three/drei)
+      if (typeof scroll.scrollTo === 'function') {
+        scroll.scrollTo(1)
+        autoScrolledRef.current = true
+        // debug
+        // eslint-disable-next-line no-console
+        console.log('[ScrollHTML] auto scroll: used scroll.scrollTo')
+      } else if (scroll && scroll.el && typeof scroll.el.scrollTo === 'function') {
+        // fallback: attempt to scroll the element directly
+        try {
+          scroll.el.scrollTo({ top: scroll.el.scrollHeight, behavior: 'smooth' })
+          autoScrolledRef.current = true
+          // eslint-disable-next-line no-console
+          console.log('[ScrollHTML] auto scroll: used scroll.el.scrollTo fallback')
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[ScrollHTML] auto scroll fallback failed', e)
+        }
+      } else {
+        // final fallback: window scroll
+        try {
+          window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
+          autoScrolledRef.current = true
+          // eslint-disable-next-line no-console
+          console.log('[ScrollHTML] auto scroll: used window.scrollTo fallback')
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.warn('[ScrollHTML] no scrollTo available', scroll)
+        }
+      }
+    }
+    // Allow re-trigger if user scrolls back up past hysteresis
+    if (autoScrolledRef.current && offset < THRESHOLD - 0.05) {
+      autoScrolledRef.current = false
+    }
+    prevOffsetRef.current = offset
 
     if (heroRef.current && leftTextRef.current && rightTextRef.current) {
       heroRef.current.style.perspective = '1200px'
@@ -2229,13 +2312,13 @@ export function SciFiHUD({ onClose }) {
     <>
       <style>{CSS_STYLES}</style>
       <div
-        className={`museum-layout w-screen min-h-screen relative ${isDarkMode ? 'bg-[#050814]' : ''}`}
-        style={!isDarkMode ? {
-          backgroundImage: "url('/bgweb3.jpeg')",
+        className={`museum-layout w-screen min-h-screen relative`}
+        style={{
+          backgroundImage: `url('${isDarkMode ? '/bgweb4.jpeg' : '/bgweb3.jpeg'}')`,
           backgroundSize: 'cover',
           backgroundAttachment: 'fixed',
           backgroundPosition: 'center',
-        } : undefined}
+        }}
       >
         <Header onClose={onClose} />
 
@@ -2253,7 +2336,6 @@ export function SciFiHUD({ onClose }) {
           >
             {isDarkMode ? (
               <>
-                <color attach="background" args={['#000000']} />
                 <fog attach="fog" args={['#000000', 10, 22]} />
               </>
             ) : (

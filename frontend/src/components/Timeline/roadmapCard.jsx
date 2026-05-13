@@ -150,18 +150,7 @@ export default function RoadmapCard({
             </p>
           </div>
 
-          {/* Bottom Footer (DevUp Labs Branding Restored) */}
-          {/* <div className="flex justify-between items-end mt-2 pt-2 border-t border-slate-200/60">
-            <div className="flex items-center gap-2"> */}
-              {/* Pseudo Logo (Overlapping colored shapes) */}
-              {/* <div className="relative w-4 h-4 flex-shrink-0">
-                <div className="absolute left-0 w-2.5 h-4 bg-[#3b82f6] rounded-full"></div>
-                <div className="absolute right-0 w-2.5 h-4 bg-[#f43f5e] rounded-full opacity-90"></div>
-              </div>
-              <span className="text-[11px] font-bold text-[#2d3748] tracking-tight">DevUp Labs</span>
-            </div>
-            <span className="text-[10px] text-[#718096] font-semibold tracking-wide">Our Learning Timeline</span>
-          </div> */}
+          
         </div>
       </div>
     </div>

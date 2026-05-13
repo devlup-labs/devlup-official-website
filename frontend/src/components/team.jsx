@@ -85,8 +85,8 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
             }}
           >
             {showProfileUI && (<div className="flex flex-col items-center w-full px-8 animate-in fade-in zoom-in duration-300">
-              <div className="flex flex-row items-center gap-4 mb-4">
-                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg">
+              <div className="flex flex-row items-center gap-4 mb-4 w-full">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-white/40 overflow-hidden shadow-lg shrink-0 self-start">
                   {!profileImageLoaded && (
                     <div className="w-full h-full flex items-center justify-center bg-gray-700">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -100,7 +100,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
                     onError={() => setProfileImageLoaded(true)}
                   />
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col pt-1">
                   <h2 className="text-xl md:text-2xl font-black uppercase leading-tight">{tile.name}</h2>
                   <p className="text-[10px] font-bold opacity-70 uppercase">{tile.designation}</p>
                   <div className="flex gap-3 mt-2 text-lg">

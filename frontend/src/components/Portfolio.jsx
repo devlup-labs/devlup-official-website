@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useContext } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ThemeContext } from "../App";
 import gsap from "gsap";
 
@@ -14,12 +14,15 @@ export default function Portfolio() {
   const [searchKey, setSearchKey] = useState("");
   const [reveal, setReveal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scanComplete, setScanComplete] = useState(false);
  
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const navigate = useNavigate();
 
   const cardsRef = useRef([]);
   const scanRef = useRef(null);
   const controlsRef = useRef(null);
+  const inputRef = useRef(null);
 
   const navItems = [
     { name: "Blog", path: "/blog" },
@@ -130,6 +133,10 @@ const loadPortfolio = (inputCode) => {
         y: 100,
         duration: 5.5,
         ease: "none",
+        onComplete: () => {
+          inputRef.current?.blur();
+          setScanComplete(true);
+        },
         onUpdate: () => {
           const y = scan.y;
           const container = scanRef.current.parentElement;
@@ -207,18 +214,32 @@ const loadPortfolio = (inputCode) => {
         <div className="flex items-center px-6 py-4">
 
           {/* LEFT */}
-          <Link
-            to="/"
-            className="bg-[var(--bg-surface)]
-            border border-[var(--border-subtle)]
-            rounded-xl flex items-center gap-3 px-6 py-2 
-            transition hover:scale-110 cursor-pointer"
-          >
-            <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
-            <h1 className="text-[var(--text-primary)] text-lg font-semibold">
-              DevlUp Labs
-            </h1>
-          </Link>
+          <div className="relative flex items-center gap-2">
+            <Link
+              to="/"
+              className="bg-[var(--bg-surface)]
+              border border-[var(--border-subtle)]
+              rounded-xl flex items-center gap-3 px-6 py-2 
+              transition hover:scale-110 cursor-pointer"
+            >
+              <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
+              <h1 className="text-[var(--text-primary)] text-lg font-semibold">
+                DevlUp Labs
+              </h1>
+            </Link>
+
+            {/* Back button absolutely positioned beneath the logo so it doesn't affect vertical alignment */}
+            <button
+              onClick={() => navigate(-1)}
+              className={`absolute left-0 top-20 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 flex items-center gap-2 hover:scale-105 transition`}
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-[var(--text-primary)] text-sm">Back</span>
+            </button>
+          </div>
 
           {/* RIGHT */}
           <div className="flex items-center ml-auto">
@@ -485,9 +506,11 @@ const loadPortfolio = (inputCode) => {
       </div>
 
       {/* CONTROLS */}
+      {!scanComplete && (
       <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
 
         <input
+          ref={inputRef}
           type="text"
           value={searchKey}
           onChange={(e) => setSearchKey(e.target.value)}
@@ -498,6 +521,7 @@ const loadPortfolio = (inputCode) => {
 
         
       </div>
+      )}
       </div>
     </>
   );

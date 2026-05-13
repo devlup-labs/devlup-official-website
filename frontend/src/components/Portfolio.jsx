@@ -56,10 +56,33 @@ const loadPortfolio = (inputCode) => {
         hidden = null;
       }
 
-      if (!member) {
-        console.error("Member not found");
-        return;
-      }
+     if (!member || (code && !hidden)) {
+  gsap.fromTo(
+    inputRef.current,
+    { x: 0 },
+    {
+      x: 12,
+      duration: 0.08,
+      repeat: 5,
+      yoyo: true,
+      ease: "power1.inOut",
+    }
+  );
+
+  // optional red glow effect
+  gsap.fromTo(
+    inputRef.current,
+    { boxShadow: "0 0 0px rgba(239,68,68,0)" },
+    {
+      boxShadow: "0 0 18px rgba(239,68,68,0.8)",
+      duration: 0.25,
+      yoyo: true,
+      repeat: 1,
+    }
+  );
+
+  return;
+}
 
       const formatted = {
         name: member.member_name,

@@ -163,7 +163,11 @@ const loadPortfolio = (inputCode) => {
         ease: "none",
         onComplete: () => {
           inputRef.current?.blur();
-          setScanComplete(true);
+          gsap.to(scanRef.current, { 
+            opacity: 0, 
+            duration: 0.5, 
+            onComplete: () => setScanComplete(true) 
+          });
         },
         onUpdate: () => {
           const y = scan.y;
@@ -179,10 +183,9 @@ const loadPortfolio = (inputCode) => {
           cardsRef.current.forEach((card, index) => {
             if (!card || card.dataset.done === "true") return;
 
-            // For the dynamic 4th box, we trigger when scan reaches the bottom of the 3rd box
-            // For others, we trigger at their top.
+            // Trigger the dynamic box (comments) earlier so it expands while scanning
             const triggerOffset = (card.dataset.index === "2") 
-              ? cardsRef.current[1].offsetTop + cardsRef.current[1].offsetHeight 
+              ? cardsRef.current[1].offsetTop 
               : card.offsetTop;
             
             if (currentYPos >= triggerOffset) {
@@ -354,7 +357,7 @@ const deleteComment = async (index) => {
             {/* Back button absolutely positioned beneath the logo so it doesn't affect vertical alignment */}
             <button
               onClick={() => navigate(-1)}
-              className={`absolute left-0 top-20 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2 flex items-center gap-2 hover:scale-105 transition`}
+              className="absolute left-0 top-[60px] md:top-[80px] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg px-2 py-1.5 md:px-3 md:py-2 flex items-center gap-2 hover:scale-105 transition shadow-md z-40"
               aria-label="Go back"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -558,9 +561,9 @@ const deleteComment = async (index) => {
               />
             </div>
 
-     {/* CONTROLS */}
+      {/* CONTROLS */}
       {!scanComplete && (
-      <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300">
+      <div ref={controlsRef} className="mt-6 flex gap-4 opacity-0 focus-within:opacity-100 transition-opacity duration-300 w-full">
 
         <input
           ref={inputRef}
@@ -569,7 +572,7 @@ const deleteComment = async (index) => {
           onChange={(e) => setSearchKey(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && loadPortfolio(searchKey)}
           placeholder=""
-          className="px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] cursor-text"
+          className="w-full px-6 py-3 rounded-full border border-red-500 bg-[var(--bg-surface)] text-[var(--text-primary)] placeholder-[var(--text-muted)] cursor-text"
         />
 
         
@@ -688,7 +691,7 @@ const deleteComment = async (index) => {
         </div>
 
         {/* INPUT */}
-        <div className="mt-5 flex gap-3">
+        <div className="mt-5 flex flex-col sm:flex-row gap-3">
           <input
             type="text"
             value={newComment}
@@ -708,6 +711,7 @@ const deleteComment = async (index) => {
           <button
             onClick={submitComment}
             className="
+              w-full sm:w-auto
               rounded-xl
               bg-cyan-400
               px-6 py-3

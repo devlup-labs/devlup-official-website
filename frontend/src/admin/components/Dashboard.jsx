@@ -10,7 +10,8 @@ import BlogForm from './BlogForm';
 import VideoManager from './VideoManager';
 import TeamForm from './TeamForm';
 import TimelineForm from './TimelineForm';
-
+import api from "../../api/axios";
+import { getAdminTeamMember } from "../../api/services";
 import { useNavigate } from "react-router-dom";
 
 
@@ -104,7 +105,7 @@ const getTags = (item) =>
     try {
       const endpoint = getEndpoint();
 
-      const response = await axios.get(`/api/${endpoint}`, {
+      const response = await api.get(`/${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -131,7 +132,7 @@ const fetchCounts = useCallback(async () => {  //  Separate function to fetch co
 
     const results = await Promise.all(
       endpoints.map(e =>
-        axios.get(`/api/${e.url}`, {
+        api.get(`/${e.url}`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       )
@@ -166,7 +167,7 @@ endpoints.forEach((e, index) => {
     try {
       const endpoint = getEndpoint();
 
-      await axios.delete(`/api/${endpoint}/${id}`, {
+      await api.delete(`/${endpoint}/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -176,10 +177,35 @@ endpoints.forEach((e, index) => {
       alert("Failed to delete item.");
     }
   };
-const handleEdit = (item) => {
-  if (activeTab === "contact") return; // block
-  setEditingItem(item);
-  setShowModal(true);
+const handleEdit = async (item) => {
+
+  if (activeTab === "contact") return;
+
+  try {
+
+    // ONLY TEAM NEEDS FULL ADMIN FETCH
+  if (activeTab === "team") {
+      const response = await getAdminTeamMember(item.member_id, token);
+
+      const member = response?.data?.member;
+
+      if (!member) {
+        throw new Error("Invalid response from server");
+      }
+
+      setEditingItem({
+        ...member,
+        hidden: response.data.hidden,
+      });
+    } else {
+      setEditingItem(item);
+    }
+
+    setShowModal(true);
+  } catch (err) {
+    console.error(err);
+    alert(`failed`);
+  }
 };
   const handleAddNew = () => {
   if (activeTab === "contact") return; // block

@@ -1476,6 +1476,18 @@ export default function Home() {
               <span className="text-sm font-semibold">{isDarkMode ? 'Dark' : 'Light'}</span>
             </button>
 
+            <div className="absolute top-5 left-5 z-30">
+              <div
+                className="bg-[var(--bg-surface)] border border-[var(--border-subtle)]
+                rounded-xl flex items-center justify-center px-6 py-2 h-14
+                transition hover:scale-110"
+              >
+                <h1 className="text-[var(--text-primary)] text-lg font-semibold whitespace-nowrap">
+                  DevlUp Labs
+                </h1>
+              </div>
+            </div>
+
             <div className="absolute inset-0 z-[1]">
               <Canvas
                 dpr={[1, 1.1]}
@@ -2321,6 +2333,18 @@ export function SciFiHUD({ onClose }) {
         }}
       >
         <Header onClose={onClose} />
+
+        <div className="fixed top-24 left-6 z-[950]">
+          <div
+            className="bg-[var(--bg-surface)] border border-[var(--border-subtle)]
+            rounded-xl flex items-center justify-center px-6 py-2 h-14
+            transition hover:scale-110"
+          >
+            <h1 className="text-[var(--text-primary)] text-lg font-semibold whitespace-nowrap">
+              DevlUp Labs
+            </h1>
+          </div>
+        </div>
 
         <div className="museum-page" style={{ height: '100vh', position: 'relative', background: 'transparent' }}>
           <Canvas

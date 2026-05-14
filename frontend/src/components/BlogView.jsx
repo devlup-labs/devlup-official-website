@@ -108,12 +108,20 @@ export default function BlogView() {
       <div className="absolute inset-0 bg-black/60 pointer-events-none" />
 
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <h1 className="text-3xl md:text-4xl font-bold">
-            {blog.blog_title}
-          </h1>
-          <p className="text-sm opacity-80 mt-2">
-            {blog.blog_subtitle}
-          </p>
+          <div
+            className={`max-w-[92vw] rounded-2xl border px-6 py-4 md:px-8 md:py-5 shadow-2xl backdrop-blur-xl ${
+              isDarkMode
+                ? 'bg-black/45 border-white/10 text-white'
+                : 'bg-white/70 border-white/60 text-slate-900'
+            }`}
+          >
+            <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+              {blog.blog_title}
+            </h1>
+            <p className="text-sm md:text-base opacity-90 mt-2">
+              {blog.blog_subtitle}
+            </p>
+          </div>
         </div>
       </div>
 

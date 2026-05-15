@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
-import BlogView from "./components/BlogView";
+import BlogView from "./components/BlogView_component";
 
 import Home from "./pages/Home.jsx";
 import Blog from "./pages/Blog.jsx";
@@ -12,7 +12,7 @@ import Podcast from "./pages/Podcast.jsx";
 
 import Header from "./components/Header.jsx";
 import Footer from "./components/Footer.jsx";
-import Portfolio from "./components/Portfolio.jsx";
+import Portfolio from "./components/Portfolio_component.jsx";
 
 //  Admin components
 import Login from "./admin/components/Login";
@@ -64,7 +64,7 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, toggleTheme, hamburgerOpen, setHamburgerOpen, searchOpen, setSearchOpen, filterOpen, setFilterOpen }}>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="w-full min-h-screen text-[var(--text-primary)] transition-all duration-500">
 
           <Routes>

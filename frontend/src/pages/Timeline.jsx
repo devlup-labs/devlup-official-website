@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import TimelineComponent from "../components/Timeline_Tree/";
+import TimelineComponent from "../components/Timeline_Tree.jsx";
 import { ThemeContext } from "../App";
 const Timeline = () => {
   useEffect(() => {

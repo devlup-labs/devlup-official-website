@@ -2,7 +2,6 @@ import { useState, useContext, useEffect } from "react";
 import SearchBar from "./SearchBar";
 import FilterButton from "./FilterButton";
 import { ThemeContext } from "../../App";
-import "./TopControls.css";
 
 export default function TopControls({
   searchTerm = "",
@@ -33,11 +32,11 @@ export default function TopControls({
   let glideClass = "";
 
   if (searchOpen && !filterOpen) {
-    glideClass = "glide-search";
+    glideClass = "";
   } else if (!searchOpen && filterOpen) {
-    glideClass = "glide-filter";
+    glideClass = "";
   } else if (searchOpen && filterOpen) {
-    glideClass = "glide-both";
+    glideClass = "";
   }
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -53,7 +52,9 @@ export default function TopControls({
   };
 
   return (
-    <div className={`topControls relative z-[50000] pointer-events-none ${glideClass}`}>
+    <div
+      className={`relative z-[50000] pointer-events-none ${glideClass} flex justify-center items-center gap-[14px] p-0 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]`}
+    >
       <SearchBar
         searchOpen={searchOpen}
         setSearchOpen={handleSetSearchOpen}

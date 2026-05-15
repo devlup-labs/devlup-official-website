@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import TeamComponent from "../components/team/";
+import TeamComponent from "../components/Team_component";
 
 const Team = () => {
   useEffect(() => {

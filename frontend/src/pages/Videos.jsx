@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import TimelineComponent from "../components/Videos/";
+import VideosComponent from "../components/Videos_component.jsx";
 import { ThemeContext } from "../App";
 const Videos = () => {
   useEffect(() => {
@@ -8,7 +8,7 @@ const Videos = () => {
 
   return (
     <div>
-      <TimelineComponent />
+      <VideosComponent />
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import React from "react";
-import PodcastComponent from "../components/podcast";
-import Footer from "../components/Footer";
+import PodcastComponent from "../components/Podcast_component";
 
 const Podcast = () => {
   return (

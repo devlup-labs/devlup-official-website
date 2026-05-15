@@ -6,39 +6,34 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header.jsx";
-import { ThemeContext } from "../App";
+import { ThemeContext } from "../App.jsx";
+import { FiMoon, FiSun } from "react-icons/fi";
 
-/* ==================== DISC COMPONENTS ==================== */
+/* Disc Components */
 
 function UniformDisc() {
-  // Create a 2D shape with a hole, then we will extrude it into 3D
+  const { isDarkMode } = useContext(ThemeContext);
   const shape = useMemo(() => {
     const s = new THREE.Shape();
-    s.absarc(0, 0, 8, 0, Math.PI * 2, false); // Outer radius
+    s.absarc(0, 0, 8, 0, Math.PI * 2, false);
     const hole = new THREE.Path();
-    hole.absarc(0, 0, 5.1, 0, Math.PI * 2, true); // Inner radius (hole)
+    hole.absarc(0, 0, 5.1, 0, Math.PI * 2, true);
     s.holes.push(hole);
     return s;
   }, []);
 
   return (
-    // Positioned slightly down so the extrusion (which goes "up") centers around Y=0
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.3, 0]}>
-      {/* ExtrudeGeometry gives the flat shape thickness (depth) along what becomes the Y axis */}
-      <extrudeGeometry args={[shape, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }]} />
-      <meshStandardMaterial color="#1565C0" emissive="#0D47A1" emissiveIntensity={0.08} metalness={0} roughness={1} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.65, 0]}>
+      <extrudeGeometry args={[shape, {depth: 0.05, bevelEnabled: false, curveSegments: 48}]} />
+      <meshStandardMaterial color={isDarkMode ? "#000000" : "#aaaaaa"} metalness={0} roughness={1} />
     </mesh>
   );
 }
 
 export function Disc() {
   return (
-    <div className="w-screen h-screen bg-[#070b16]">
+    <div className="w-screen h-screen">
       <Canvas camera={{ position: [0, 4, 8], fov: 50 }} dpr={[1, 1.2]}>
-        <color attach="background" args={["#070b16"]} />
-        <ambientLight intensity={0.45} />
-        <directionalLight position={[6, 8, 4]} intensity={1.1} />
-        <pointLight position={[-5, 3, -4]} intensity={0.6} color="#2ea8ff" />
         <UniformDisc />
         <OrbitControls enablePan={false} />
       </Canvas>
@@ -46,7 +41,26 @@ export function Disc() {
   );
 }
 
-/* ==================== EFFECTS COMPONENTS ==================== */
+/* Effects Components */
+
+function FaceCamera({ children, lockY = true }) {
+  const ref = useRef();
+  const { camera } = useThree();
+  useFrame(() => {
+    if (!ref.current) return;
+    // Align the group's forward to face the camera. If lockY, keep rotation only around Y axis.
+    const worldPos = new THREE.Vector3();
+    ref.current.getWorldPosition(worldPos);
+    if (lockY) {
+      const camPos = camera.position.clone();
+      camPos.y = worldPos.y; // constrain to horizontal plane
+      ref.current.lookAt(camPos);
+    } else {
+      ref.current.lookAt(camera.position);
+    }
+  });
+  return <group ref={ref}>{children}</group>;
+}
 
 export function AnimatedBlock({ visible, popped = false, children }) {
   const groupRef = useRef();
@@ -58,7 +72,6 @@ export function AnimatedBlock({ visible, popped = false, children }) {
     if (groupRef.current) {
       groupRef.current.scale.setScalar(currentScale.current);
 
-      // Calculate angle from the model's absolute position to the camera's position
       const worldPos = new THREE.Vector3();
       groupRef.current.getWorldPosition(worldPos);
 
@@ -73,8 +86,6 @@ export function AnimatedBlock({ visible, popped = false, children }) {
         5 * delta
       );
     }
-    
-    // Apply pitch to the inner group so it tilts consistently up and down
     if (innerRef.current) {
       innerRef.current.rotation.x = THREE.MathUtils.lerp(
         innerRef.current.rotation.x,
@@ -86,7 +97,7 @@ export function AnimatedBlock({ visible, popped = false, children }) {
   return (
     <group ref={groupRef} scale={0}>
       <group ref={innerRef}>
-        {children}
+        <FaceCamera lockY>{children}</FaceCamera>
       </group>
     </group>
   );
@@ -95,6 +106,7 @@ export function AnimatedBlock({ visible, popped = false, children }) {
 export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn = true, allowHoverScale = true, onClick, softness = 2.0 }) {
   const meshRef = useRef(), caseMatRef = useRef();
   const [hovered, setHovered] = useState(false);
+  const { isDarkMode } = useContext(ThemeContext);
   const targetScale = useRef(scale);
 
   useFrame((_, delta) => {
@@ -114,10 +126,15 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
 
   const discUniforms = useMemo(() => ({
     uTime: { value: 0 },
-    uColorInner: { value: new THREE.Color('#ffffff') },
-    uColorOuter: { value: new THREE.Color('#00E5FF') },
+    uColorInner: { value: new THREE.Color(isDarkMode ? '#eeeeee' : '#000000') },
+    uColorOuter: { value: new THREE.Color('#000000') },
     uGlobalOpacity: { value: 1.2 }
   }), []);
+
+  useEffect(() => {
+    if (!caseMatRef.current) return;
+    caseMatRef.current.uniforms.uColorInner.value.set(isDarkMode ? '#eeeeee' : '#000000');
+  }, [isDarkMode]);
 
   const dotsCount = 16;
   const dots = useMemo(() => {
@@ -129,77 +146,94 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
 
   return (
     <group ref={meshRef} position={position} onClick={(e) => { if (e.intersections.length > 0 && e.intersections[0].eventObject !== e.eventObject) return; onClick(e); }} onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}>
-      <pointLight color={color || "#00D2FF"} distance={10} intensity={isLightOn ? 8 : 0} position={[0, 2, 0]} />
+      <pointLight color={color || (isDarkMode ? "#00D2FF" : "#9CA3AF")} distance={10} intensity={isLightOn ? 8 : 0} position={[0, 2, 0]} />
 
-      <mesh><cylinderGeometry args={[1.45, 1.5, 0.4, 32]} /><meshStandardMaterial color="#020408" roughness={0.6} metalness={0.4} /></mesh>
+      <mesh><cylinderGeometry args={[1.45, 1.5, 0.4, 32]} /><meshStandardMaterial color={isDarkMode ? "#000000" : "#aaaaaa"} roughness={0.6} metalness={0.4} /></mesh>
 
-      {isLightOn && (
-        <>
-          <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[1.1, 1.15, 36]} /><meshBasicMaterial color="#00E5FF" transparent opacity={0.8} /></mesh>
-          <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.9, 0.92, 36]} /><meshBasicMaterial color="#0044FF" transparent opacity={0.4} /></mesh>
+      <>
+        <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[1.1, 1.15, 36]} />
+          <meshBasicMaterial
+            color={isDarkMode ? "#cfd2f7" : "#636d94"}
+            opacity={0.4}
+          />
+        </mesh>
+        <mesh position={[0, 0.201, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.9, 0.92, 36]} />
+          <meshBasicMaterial
+            color={isDarkMode ? "#eeeeee" : "#000000"}
+            transparent
+            opacity={0.2}
+          />
+        </mesh>
 
-          {dots.map((pos, i) => (
-            <mesh key={i} position={pos} rotation={[-Math.PI / 2, 0, 0]}>
-              <circleGeometry args={[0.04, 16]} />
-              <meshBasicMaterial color="#00E5FF" transparent opacity={0.9} blending={THREE.AdditiveBlending} />
-            </mesh>
-          ))}
-
-          <mesh position={[0, 4.0, 0]}>
-            <cylinderGeometry args={[0.2, 1.15, 8.0, 32, 1, true]} />
-            <shaderMaterial
-              ref={caseMatRef}
-              transparent
-              depthWrite={false}
-              blending={THREE.AdditiveBlending}
-              side={THREE.DoubleSide}
-              uniforms={discUniforms}
-              vertexShader={`
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vViewPosition;
-                void main() {
-                  vUv = uv;
-                  vNormal = normalize(normalMatrix * normal);
-                  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                  vViewPosition = -mvPosition.xyz;
-                  gl_Position = projectionMatrix * mvPosition;
-                }
-              `}
-              fragmentShader={`
-                precision mediump float;
-                varying vec2 vUv;
-                varying vec3 vNormal;
-                varying vec3 vViewPosition;
-                uniform float uTime;
-                uniform vec3 uColorInner;
-                uniform vec3 uColorOuter;
-                uniform float uGlobalOpacity;
-                
-                void main() {
-                  vec3 normal = normalize(vNormal);
-                  vec3 viewDir = normalize(vViewPosition);
-                  float viewDot = abs(dot(normal, viewDir));
-                  float coreGlow = pow(viewDot, 1.8); 
-                  float hotCore = pow(viewDot, 2.0); 
-                  float verticalFade = pow(1.0 - vUv.y, 3.0); 
-                  float bottomFade = smoothstep(0.0, 0.02, vUv.y);
-                  float intensity = (coreGlow * 0.1 + hotCore * 0.9) * verticalFade * bottomFade * uGlobalOpacity;
-                  float pulse = sin(uTime * 2.0 - vUv.y * 10.0) * 0.05 + 0.95;
-                  intensity *= pulse;
-                  vec3 finalColor = mix(uColorOuter, uColorInner, hotCore * 0.8);
-                  gl_FragColor = vec4(finalColor * intensity * 2.0, intensity);
-                }
-              `}
+        {dots.map((pos, i) => (
+          <mesh key={i} position={pos} rotation={[-Math.PI / 2, 0, 0]}>
+            <circleGeometry args={[0.04, 16]} />
+            <meshBasicMaterial
+              color={isDarkMode ? "#eeeeee" : "#98b0ff"}
+              opacity={0.4}
             />
           </mesh>
-        </>
-      )}
+        ))}
+
+        <mesh position={[0, 4.0, 0]}>
+          <cylinderGeometry args={[0.2, 1.15, 8.0, 32, 1, true]} />
+          <shaderMaterial
+            ref={caseMatRef}
+            transparent
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            side={THREE.DoubleSide}
+            uniforms={discUniforms}
+            vertexShader={`
+              varying vec2 vUv;
+              varying vec3 vNormal;
+              varying vec3 vViewPosition;
+              void main() {
+                vUv = uv;
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz;
+                gl_Position = projectionMatrix * mvPosition;
+              }
+            `}
+            fragmentShader={`
+              precision mediump float;
+              varying vec2 vUv;
+              varying vec3 vNormal;
+              varying vec3 vViewPosition;
+              uniform float uTime;
+              uniform vec3 uColorInner;
+              uniform vec3 uColorOuter;
+              uniform float uGlobalOpacity;
+              
+              void main() {
+                vec3 normal = normalize(vNormal);
+                vec3 viewDir = normalize(vViewPosition);
+                float viewDot = abs(dot(normal, viewDir));
+                float viewDist = length(vViewPosition);
+                float coreGlow = pow(viewDot, 1.8); 
+                float hotCore = pow(viewDot, 2.0); 
+                float verticalFade = pow(1.0 - vUv.y, 3.0); 
+                float bottomFade = smoothstep(0.0, 0.02, vUv.y);
+                float intensity = (coreGlow * 0.1 + hotCore * 0.9) * verticalFade * bottomFade * uGlobalOpacity;
+                float pulse = sin(uTime * 2.0 - vUv.y * 10.0) * 0.05 + 0.95;
+                intensity *= pulse;
+                vec3 finalColor = mix(uColorOuter, uColorInner, hotCore * 0.8);
+                gl_FragColor = vec4(finalColor * intensity * 2.0, intensity);
+              }
+            `}
+          />
+        </mesh>
+      </>
     </group>
   );
 }
 
-export function FloatingBlocks({ count = 30 }) {
+export function FloatingBlocks({ count = 30, showFloor = true }) {
+  if (!showFloor) return null;
+
   const { isDarkMode } = useContext(ThemeContext);
   const meshRef = useRef();
   const scroll = useScroll();
@@ -252,7 +286,7 @@ export function FloatingBlocks({ count = 30 }) {
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={isDarkMode ? "#ffffff" : "#9CA3AF"} roughness={0.2} metalness={0.1} transparent opacity={0.35} envMapIntensity={1.5} />
+      <meshStandardMaterial color={isDarkMode ? "#ffffff" : "#9CA3AF"} roughness={0.2} metalness={0.1} transparent opacity={1} envMapIntensity={1.5} />
     </instancedMesh>
   );
 }
@@ -263,7 +297,7 @@ export function CameraAnimator({ focusedIndex, isTransitioning, cameraReturnLock
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const targetLookAt = useRef(new THREE.Vector3());
   const outDir = useRef(new THREE.Vector3());
-  const savedPos = useRef(new THREE.Vector3(0, 3, 10));
+  const savedPos = useRef(new THREE.Vector3(0, 0.2, 0.5));
   const savedLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const isAnimatingBack = useRef(false);
   const prevFocused = useRef(null);
@@ -282,7 +316,6 @@ export function CameraAnimator({ focusedIndex, isTransitioning, cameraReturnLock
     }
 
     if (targetSet && previousFocused !== null && focusedIndex !== previousFocused) {
-      // When switching between discs, save current camera state as new saved state
       savedPos.current.copy(camera.position);
       savedLookAt.current.copy(currentLookAt.current);
       isAnimatingBack.current = false;
@@ -337,18 +370,19 @@ export function ParallaxRig({ children, enabled }) {
   return <group ref={groupRef}>{children}</group>;
 }
 
-export function FlowingGrid({ showHologram }) {
+export function FlowingGrid({ showHologram, showFloor = true }) {
   const { isDarkMode } = useContext(ThemeContext);
   const meshRef = useRef();
   const scroll = useScroll();
   const count = 16, size = 65 / count;
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const color = useMemo(() => new THREE.Color(), []);
-  const baseColor = useMemo(() => new THREE.Color(isDarkMode ? "#050505" : "#9CA3AF"), [isDarkMode]);
-  const accentColor = useMemo(() => new THREE.Color("#00E5FF"), []);
+  const baseColor = useMemo(() => new THREE.Color(isDarkMode ? "#000000" : "#eeeeee"), [isDarkMode]);
+  const accentColor = useMemo(() => new THREE.Color("#eeeeee"), []);
   const hoveredIdRef = useRef(null);
   const prevHoveredIdRef = useRef(null);
   const prevActivationRef = useRef(0);
+  const prevThemeRef = useRef(isDarkMode);
   const staticPoseAppliedRef = useRef(false);
   const holoAnim = useRef(0);
   const waveTime = useRef(0);
@@ -371,8 +405,6 @@ export function FlowingGrid({ showHologram }) {
   useFrame((state, delta) => {
     if (!meshRef.current) return;
     const offset = scroll ? scroll.offset : 0;
-    
-    // The buildings will only animate (wave up and down) when we scroll past 0.35
     if (offset > 0.35) {
       waveTime.current += delta;
     }
@@ -384,9 +416,10 @@ export function FlowingGrid({ showHologram }) {
     const activation = scrollActivation * (1 - holoAnim.current);
     const hoveredChanged = hoveredIdRef.current !== prevHoveredIdRef.current;
     const activationChanged = Math.abs(activation - prevActivationRef.current) > 0.001;
+    const themeChanged = prevThemeRef.current !== isDarkMode;
     const isStatic = activation < 0.001;
 
-    if (isStatic && staticPoseAppliedRef.current && !hoveredChanged) return;
+    if (isStatic && staticPoseAppliedRef.current && !hoveredChanged && !themeChanged) return;
 
     let matrixChanged = false;
     let colorChanged = false;
@@ -402,7 +435,7 @@ export function FlowingGrid({ showHologram }) {
         matrixChanged = true;
       }
 
-      if (hoveredChanged || !staticPoseAppliedRef.current) {
+      if (hoveredChanged || !staticPoseAppliedRef.current || themeChanged) {
         if (hoveredIdRef.current === i) {
           color.lerpColors(baseColor, accentColor, 1.2);
           meshRef.current.setColorAt(i, color);
@@ -418,14 +451,17 @@ export function FlowingGrid({ showHologram }) {
 
     prevHoveredIdRef.current = hoveredIdRef.current;
     prevActivationRef.current = activation;
+    prevThemeRef.current = isDarkMode;
     staticPoseAppliedRef.current = isStatic;
   });
+
+  if (!showFloor) return null;
 
   return (
     <group>
       <mesh position={[0, -0.11, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[65, 65]} />
-        <meshBasicMaterial color={isDarkMode ? "#ffffff" : "#D1D5DB"} transparent opacity={0.15} />
+        <meshBasicMaterial color={isDarkMode ? "#ffffff" : "#D1D5DB"} opacity={0.15} />
       </mesh>
       <instancedMesh
         ref={meshRef}
@@ -433,7 +469,6 @@ export function FlowingGrid({ showHologram }) {
         position={[0, -0.1, 0]}
         onPointerMove={(e) => {
           e.stopPropagation();
-          // Only allow hover highlighting when not scrolled down (pre-activation)
           if (scroll && scroll.offset < 0 && hoveredIdRef.current !== e.instanceId) hoveredIdRef.current = e.instanceId;
         }}
         onPointerOut={() => { hoveredIdRef.current = null; }}
@@ -446,10 +481,13 @@ export function FlowingGrid({ showHologram }) {
 }
 
 const HoloCard = ({ position, rotation, title, opacity, isMain }) => {
+  const { isDarkMode } = useContext(ThemeContext);
+  const mainColor = isDarkMode ? "#00E5FF" : "#D1D5DB";
+  const otherColor = isDarkMode ? "#0044FF" : "#9CA3AF";
   return (
     <mesh position={position} rotation={rotation}>
       <planeGeometry args={[isMain ? 4 : 3, isMain ? 6 : 4.5]} />
-      <meshBasicMaterial color={isMain ? "#00E5FF" : "#0044FF"} transparent opacity={opacity * 0.5} wireframe />
+      <meshBasicMaterial color={isMain ? mainColor : otherColor} transparent opacity={opacity * 0.5} wireframe />
     </mesh>
   );
 };
@@ -605,17 +643,38 @@ export function WormholeTransition({ active }) {
 /* ==================== MODELS COMPONENTS ==================== */
 
 export function HomeModel() {
-  const { scene } = useGLTF("/mod.glb");
-  return <primitive object={scene} scale={0.8} position={[0, 0.50, 0.2]} rotation={[Math.PI / 2, 0, 0]} />;
+  const { scene } = useGLTF("/logo.glb");
+  return <primitive object={scene} scale={0.9} position={[0, 0.55, 0.2]} rotation={[Math.PI / 2, 0, 0]} />;
 }
 
 export function MicModel() {
   const { scene } = useGLTF("/mic.glb");
-  if (!scene) return null;
+  const { isDarkMode } = useContext(ThemeContext);
+  const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
+
+  useEffect(() => {
+    if (!clone) return;
+    const color = new THREE.Color(isDarkMode ? "#969696" : "#949494");
+
+    clone.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        n.frustumCulled = false;
+        if (n.material) {
+          n.material.side = THREE.DoubleSide;
+          n.material.metalness = 1;
+          if (n.material.color) n.material.color.set(color);
+        }
+      }
+    });
+  }, [clone, isDarkMode]);
+
+  if (!clone) return null;
   return (
     <primitive
-      object={scene}
-      scale={0.001}
+      object={clone}
+      scale={0.00125}
       position={[0.05, 0.2, -0.1]}
       rotation={[0, -Math.PI / 3, 0]}
     />
@@ -624,10 +683,13 @@ export function MicModel() {
 
 export function VideoButtonModel() {
   const { scene } = useGLTF("/MOVIE%20-%20Copy.glb");
+  const { isDarkMode } = useContext(ThemeContext);
   const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
 
   useEffect(() => {
     if (!clone) return;
+    const color = new THREE.Color(isDarkMode ? "#eeeeee" : "#9b9b9b");
+
     clone.traverse((n) => {
       if (n.isMesh) {
         n.castShadow = true;
@@ -635,17 +697,16 @@ export function VideoButtonModel() {
         n.frustumCulled = false;
         if (n.material) {
           n.material.side = THREE.DoubleSide;
+          n.material.metalness = 0.2;
+          if (n.material.color) n.material.color.set(color);
         }
       }
     });
-  }, [clone]);
+  }, [clone, isDarkMode]);
 
   if (!clone) return null;
-
   return (
-    <group position={[-0.091, -0.55, -0.66]} rotation={[Math.PI / 2, 0, Math.PI / 3]} scale={0.009}>
-      <primitive object={clone} />
-    </group>
+    <primitive object={clone} position={[-0.35, -0.7, -0.9]} rotation={[Math.PI / 2, 0, Math.PI / 3]} scale={0.011} />
   );
 }
 
@@ -668,7 +729,7 @@ export function TimelineModel() {
   if (!clone) return null;
 
   return (
-    <group position={[0, 0.2, 0]} rotation={[0, Math.PI / 2, 0]} scale={0.1}>
+    <group position={[0, 0.45, 0]} rotation={[0, -Math.PI/2, -Math.PI/4]} scale={0.15}>
       <primitive object={clone} />
     </group>
   );
@@ -685,25 +746,45 @@ export function DocumentModel() {
 
   return (
     <group>
-      <primitive object={clones[0]} scale={2.1} position={[-0.3, 0.2, -0.2]} rotation={[0, -Math.PI / 1.5, 0]} />
-      <primitive object={clones[1]} scale={2.1} position={[-0.2, 0.2, -0.1]} rotation={[0, -Math.PI / 1.5, 0]} />
-      <primitive object={clones[2]} scale={2.1} position={[-0.1, 0.2, -0]} rotation={[0, -Math.PI / 1.5, 0]} />
+      <primitive object={clones[0]} scale={2.15} position={[0.2, 0.2, 0]} rotation={[0, 2 * Math.PI, 0]} />
+      <primitive object={clones[1]} scale={2.15} position={[0, 0.2, -0.1]} rotation={[0, 2 * Math.PI, 0]} />
+      <primitive object={clones[2]} scale={2.15} position={[-0.2, 0.2, -0.2]} rotation={[0, 2 * Math.PI, 0]} />
     </group>
   );
 }
 
 export function StickmanModel() {
   const { scene } = useGLTF("/stickman2f.glb");
+  const { isDarkMode } = useContext(ThemeContext);
   const groupRef = useRef();
-  const NUM_CLONES = 10;
-  const RADIUS = -0.01;
+  const NUM_CLONES = 16;
+  const RADIUS = 0;
   const HEIGHT = 0.12;
   const CENTER_X = 0.001;
   const CENTER_Z = 0.02;
   const clones = useMemo(() => {
     if (!scene) return [];
-    return Array.from({ length: NUM_CLONES }, () => scene.clone());
+    return Array.from({ length: NUM_CLONES }, () => scene.clone(true));
   }, [scene]);
+
+  useEffect(() => {
+    if (!clones.length) return;
+    const color = new THREE.Color(isDarkMode ? "#eeeeee" : "#929292");
+
+    clones.forEach((c) =>
+      c.traverse((n) => {
+        if (n.isMesh) {
+          n.castShadow = true;
+          n.receiveShadow = true;
+          n.frustumCulled = false;
+          if (n.material) {
+            n.material.side = THREE.DoubleSide;
+            if (n.material.color) n.material.color.set(color);
+          }
+        }
+      })
+    );
+  }, [clones, isDarkMode]);
 
   const positionsAndRotations = useMemo(() => {
     const data = [];
@@ -721,14 +802,14 @@ export function StickmanModel() {
     <group ref={groupRef}>
       {positionsAndRotations.map((data, idx) => (
         <group key={idx} position={data.pos} rotation={[0, data.rot, 0]}>
-          <primitive object={clones[idx]} scale={0.12} />
+          <primitive object={clones[idx]} scale={0.1} />
         </group>
       ))}
     </group>
   );
 }
 
-export const BLOCK_CONFIGS = [
+const BLOCK_CONFIGS = [
   { render: () => <HomeModel /> },
   { render: () => <TimelineModel /> },
   { render: () => <VideoButtonModel /> },
@@ -737,7 +818,7 @@ export const BLOCK_CONFIGS = [
   { render: () => <StickmanModel /> },
 ];
 
-useGLTF.preload("/mod.glb");
+useGLTF.preload("/logo.glb");
 useGLTF.preload("/stickman2f.glb");
 useGLTF.preload("/mic.glb");
 useGLTF.preload("/MOVIE%20-%20Copy.glb");
@@ -763,7 +844,6 @@ function LoaderModel() {
       meshEntries.push({ mesh: obj, centerX: meshCenter.x });
     });
 
-    // Assign left-most mesh as dot and right-side mesh(es) as slash.
     const orderedEntries = [...meshEntries].sort((a, b) => a.centerX - b.centerX);
     const meshColorMap = new Map();
     orderedEntries.forEach((entry, idx) => {
@@ -814,7 +894,6 @@ function LoaderModel() {
       obj.add(edgeCore);
     });
 
-    // Center the logo so text and model share the same visual anchor.
     const box = new THREE.Box3().setFromObject(clonedScene);
     const center = new THREE.Vector3();
     box.getCenter(center);
@@ -870,7 +949,6 @@ export const Loader = ({ onComplete }) => {
     const morphDurationMs = 1200;
     const modelShowDuration = 2600;
 
-    // Keep cursor visible while CSS handles 3 smooth blink cycles.
     setText('');
     setShowModel(false);
     setMorphPath(false);
@@ -884,16 +962,15 @@ export const Loader = ({ onComplete }) => {
     const hideCursorAndTypeTimer = setTimeout(() => {
       setShowCursor(false);
 
-      // Start typing "./" after cursor has faded out.
+      
       const typeNext = () => {
         typedIndex += 1;
         setText(pathPrefix.slice(0, typedIndex));
 
         if (typedIndex < pathPrefix.length) {
-          // Keep a deliberate pace so '.' appears first, then '/'.
           typingTimer = setTimeout(typeNext, typeCharDelayMs);
         } else {
-          // Morph path into model: path scales/fades out while model fades/scales in.
+          
           typingTimer = setTimeout(() => {
             setMorphPath(true);
             setShowModel(true);
@@ -907,7 +984,6 @@ export const Loader = ({ onComplete }) => {
       typeNext();
     }, blinkDuration + cursorFadeMs);
 
-    // Fire onComplete after the fade-out animation fully finishes
     const fadeOutMs = 1500;
     const completeTimer = setTimeout(() => {
       if (onComplete) onComplete();
@@ -1012,24 +1088,23 @@ const SECTIONS = [
   { name: "Team", tagline: "The Minds Behind the Vision", description: "Meet the passionate individuals who bring DevlUp Labs to life. Our team is a blend of creativity, skill, and dedication. Each member contributes uniquely to building impactful projects. Together, we strive to innovate, collaborate, and shape the future." },
 ];
 
-const BLOCK_COLORS = ["#00E5FF", "#00A1FF", "#0044FF", "#00D2FF", "#0077FF", "#00BAFF"];
 const X_RADIUS = 6.5, Z_RADIUS = 6.5;
 
 const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
   const angle = (i * Math.PI * 2) / 6;
   return {
-    position: [Math.sin(angle) * X_RADIUS, 1.2, Math.cos(angle) * Z_RADIUS],
-    color: BLOCK_COLORS[i],
+    position: [Math.sin(angle) * X_RADIUS, 0.3, Math.cos(angle) * Z_RADIUS],
     speed: [0.8, 1.1, 0.6, 0.9, 1.3, 0.7][i],
     rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i],
-    scale: [1.15, 1.1, 0.9, 0.9, 1.1, 1.0][i],
+    scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0][i],
   };
 });
 
 function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, isTransitioning, discClickedRef, cameraReturnLockRef }) {
   const { isDarkMode } = useContext(ThemeContext);
-  const floorUniforms = useMemo(() => ({ color: { value: new THREE.Color("#ffffff") } }), []);
+  const floorUniforms = useMemo(() => ({ color: { value: new THREE.Color("#eeeeee") } }), []);
   const ringGroupRef = useRef();
+  const [showFloor, setShowFloor] = useState(true);
   const { gl } = useThree();
   const [hoveredModelIndex, setHoveredModelIndex] = useState(null);
   const isDragging = useRef(false);
@@ -1037,6 +1112,19 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
   const targetRotationY = useRef(0);
   const scroll = useScroll();
   const lastOffset = useRef(0);
+
+  useEffect(() => {
+    if (isTransitioning) {
+      setShowFloor(false);
+      return;
+    }
+
+    const restoreFloor = requestAnimationFrame(() => {
+      setShowFloor(true);
+    });
+
+    return () => cancelAnimationFrame(restoreFloor);
+  }, [isTransitioning]);
 
   useFrame((_, delta) => {
     const offset = scroll ? scroll.offset : 0;
@@ -1070,13 +1158,13 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
     const change = target - start;
     if (change <= 0) return;
     
-    const duration = 2500; // 2.5 seconds (very slow and smooth)
+    const duration = 2500;
     const startTime = performance.now();
     
     const animateScroll = (time) => {
       const elapsed = time - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // Ease In Out Cubic for super smooth deceleration
+      
       const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       scroll.el.scrollTop = start + change * ease;
       
@@ -1115,19 +1203,19 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 
   return (
     <>
-      <color attach="background" args={[isDarkMode ? '#050814' : '#DFE3EB']} />
+      <color attach="background" args={[isDarkMode ? '#050814' : '#cfd5e7']} />
       <fog attach="fog" args={[isDarkMode ? '#050814' : '#CED5E8', 8, 30]} />
-      <ambientLight intensity={0.8} />
-      <spotLight position={[0, 15, 0]} angle={0.6} penumbra={1} intensity={1.5} castShadow={false} />
+      {/* <ambientLight intensity={1} /> */}
+      {/* <spotLight position={[0, 15, 0]} angle={0.6} penumbra={1} intensity={1.5} castShadow={false} />
       <spotLight position={[5, 12, 5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#00E5FF" castShadow={false} />
-      <spotLight position={[-5, 12, -5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#0044FF" castShadow={false} />
-      <pointLight position={[0, 3, 0]} intensity={1.5} distance={15} castShadow={false} />
-      <Environment preset="city" background={false} frames={1} />
+      <spotLight position={[-5, 12, -5]} angle={0.4} penumbra={0.8} intensity={3.0} color="#0044FF" castShadow={false} /> */}
+      {/* <pointLight position={[0, 3, 0]} intensity={1.5} distance={15} castShadow={false} /> */}
+      <Environment preset="dawn" background={false} frames={1} />
 
       <CameraAnimator focusedIndex={focusedIndex} isTransitioning={isTransitioning} cameraReturnLockRef={cameraReturnLockRef} />
       <WormholeTransition active={isTransitioning} />
 
-      <FlowingGrid showHologram={showHologram} />
+      <FlowingGrid showHologram={showHologram} showFloor={showFloor} />
 
       <group ref={ringGroupRef} visible={!isTransitioning}>
         <ParallaxRig enabled={focusedIndex === null}>
@@ -1144,20 +1232,17 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 onClick={(e) => {
                   e.stopPropagation();
                   if (discClickedRef) discClickedRef.current = true;
-                  
-                  // For the first model (Home), slide down to "Explore Further" slowly
+
                   if (i === 0) {
                     handleSmoothScrollDown();
                     return;
                   }
 
                   if (focusedIndex === i) {
-                    // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
                     navigate(routeMap[i]);
                     setFocusedIndex(null);
                   } else {
-                    // First click - open panel
                     setFocusedIndex(i);
                   }
                 }}
@@ -1170,20 +1255,17 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 onClick={(e) => {
                   e.stopPropagation();
                   if (discClickedRef) discClickedRef.current = true;
-                  
-                  // For the first model (Home), slide down to "Explore Further" slowly
+
                   if (i === 0) {
                     handleSmoothScrollDown();
                     return;
                   }
 
                   if (focusedIndex === i) {
-                    // Second click - navigate
                     const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
                     navigate(routeMap[i]);
                     setFocusedIndex(null);
                   } else {
-                    // First click - open panel
                     setFocusedIndex(i);
                   }
                 }}
@@ -1197,58 +1279,48 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
         </ParallaxRig>
       </group>
 
-      <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]} visible={!isTransitioning}>
-        <planeGeometry args={[60, 60]} />
-        <shaderMaterial
-          transparent
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          uniforms={floorUniforms}
-          vertexShader={`
-            varying vec3 vWorldPos;
-            void main() {
-              vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-              vWorldPos = worldPosition.xyz;
-              gl_Position = projectionMatrix * viewMatrix * worldPosition;
-            }
-          `}
-          fragmentShader={`
-            varying vec3 vWorldPos;
-            uniform vec3 color;
+      {showFloor && (
+        <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[60, 60]} />
+          <shaderMaterial
+            depthWrite={false}
+            uniforms={floorUniforms}
+            vertexShader={`
+              varying vec3 vWorldPos;
+              void main() {
+                vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                vWorldPos = worldPosition.xyz;
+                gl_Position = projectionMatrix * viewMatrix * worldPosition;
+              }
+            `}
+            fragmentShader={`
+              varying vec3 vWorldPos;
+              uniform vec3 color;
 
-            void main() {
-              vec2 grid = fract(vWorldPos.xz);
-              float lineDistX = min(grid.x, 1.0 - grid.x);
-              float lineDistZ = min(grid.y, 1.0 - grid.y);
-              float coreX = smoothstep(0.8, 0.0, lineDistX);
-              float coreZ = smoothstep(0.8, 0.0, lineDistZ);
-              float core = max(coreX, coreZ);
-              float glowX = 0.015 / max(lineDistX, 0.005) - 0.03;
-              float glowZ = 0.015 / max(lineDistZ, 0.005) - 0.03;
-              float glow = max(glowX, glowZ);
-              float alpha = max(core, glow);
-              float dist = length(vWorldPos.xz);
-              float fade = smoothstep(30.0, 5.0, dist);
-              vec3 colorDeepBlue = vec3(0.0, 0.08, 0.32);
-              vec3 colorBrightBlue = vec3(0.0, 0.52, 0.82);
-              float gradFactor = smoothstep(-15.0, 15.0, vWorldPos.z);
-              vec3 gridColor = mix(colorDeepBlue, colorBrightBlue, gradFactor);
-              gl_FragColor = vec4(gridColor * (1.0 + core * 1.5), clamp(alpha * fade, 0.0, 1.0));
-            }
-          `}
-        />
-      </mesh>
-      <mesh position={[0, 30, -30]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d4d7e4" roughness={0.8} metalness={1} /></mesh>
-      <mesh position={[-30, 30, 0]} rotation={[0, Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#d6dae8" roughness={0.8} metalness={0} /></mesh>
-      <mesh position={[30, 30, 0]} rotation={[0, -Math.PI / 2, 0]} visible={!isTransitioning}><planeGeometry args={[60, 60]} /><meshStandardMaterial color="#050814" roughness={0.8} metalness={0} /></mesh>
+              void main() {
+                float coreX = smoothstep(0.8, 0.0, lineDistX);
+                float coreZ = smoothstep(0.8, 0.0, lineDistZ);
+                float core = max(coreX, coreZ);
+                float glowX = 0.015 / max(lineDistX, 0.005) - 0.03;
+                float glowZ = 0.015 / max(lineDistZ, 0.005) - 0.03;
+                float glow = max(glowX, glowZ);
+                float alpha = max(core, glow);
+                float dist = length(vWorldPos.xz);
+                float fade = smoothstep(30.0, 5.0, dist);
+                gl_FragColor = vec4(color, clamp(alpha * fade, 0.0, 1.0));
+              }
+            `}
+          />
+        </mesh>
+      )}
     </>
   );
 }
 
 function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
   const navigate = useNavigate();
+  const { isDarkMode } = useContext(ThemeContext);
 
-  // Map section index to routes
   const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
 
   const handleNavigate = () => {
@@ -1263,30 +1335,23 @@ function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
       {focusedIndex !== null && (
         <motion.div
           ref={sidebarRef}
-          initial={{ x: 140, y: 20, opacity: 0, scale: 0.97 }}
-          animate={{ x: 0, y: [0, -18, 0, 14, 0], rotate: [0, -1.2, 0, 1.2, 0], opacity: 1, scale: 1.01 }}
-          exit={{ x: 140, y: 20, opacity: 0, scale: 0.97 }}
+          initial={{ x: 140, opacity: 0}}
+          animate={{ x: 0, opacity: 1}}
+          exit={{ x: 140, opacity: 0}}
           transition={{
             duration: 0.7,
             ease: [0.16, 1, 0.3, 1],
-            y: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
-            rotate: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
-            scale: { duration: 0.7 },
           }}
-          onClick={handleNavigate}
-          className="fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] bg-black/55 backdrop-blur-3xl border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.45),0_0_60px_rgba(0,229,255,0.14)] z-50 flex flex-col overflow-hidden pointer-events-auto cursor-pointer hover:bg-black/65 transition-all"
+          className={`fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] backdrop-blur-xl z-50 flex flex-col overflow-hidden pointer-events-auto transition-all border shadow-lg ${isDarkMode ? 'bg-black/55 border-white/15 hover:bg-black/65 text-white' : 'bg-white/55 border-gray-300 hover:bg-white/65 text-slate-900'}`}
           style={{ willChange: "transform" }}
         >
           <div className="flex-1 p-6 md:p-8 flex flex-col gap-4 overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="inline-flex items-center px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-900/20 text-cyan-300 text-[11px] font-bold tracking-[0.28em] uppercase mb-4">
-                  {focusedIndex === 0 ? "Home" : "Section"}
-                </div>
-                <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-[#00E5FF] tracking-tight">
+                <h2 className={`text-3xl md:text-4xl font-black text-transparent bg-clip-text tracking-tight ${isDarkMode ? 'bg-gradient-to-br from-white to-[#00E5FF]' : 'bg-gradient-to-br from-slate-950 to-slate-600'}`}>
                   {SECTIONS[focusedIndex].name}
                 </h2>
-                <h3 className="text-sm md:text-lg font-bold text-cyan-300 uppercase tracking-[0.25em] mt-2">
+                <h3 className={`text-sm md:text-lg font-bold uppercase tracking-[0.25em] mt-2 ${isDarkMode ? 'text-cyan-300' : 'text-slate-600'}`}>
                   {SECTIONS[focusedIndex].tagline}
                 </h3>
               </div>
@@ -1298,20 +1363,18 @@ function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
                   e.stopPropagation();
                   setFocusedIndex(null);
                 }}
-                className="shrink-0 w-10 h-10 rounded-full border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition flex items-center justify-center"
+                className={`shrink-0 w-10 h-10 rounded-full transition flex items-center justify-center ${isDarkMode ? 'border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10' : 'border border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
               >
                 ×
               </button>
             </div>
 
-            <div className="w-14 h-1 bg-gradient-to-r from-[#00E5FF] to-blue-500 rounded-full" />
-
-            <p className="text-slate-300 text-sm md:text-base leading-relaxed font-light">
+            <p className={`text-sm md:text-base leading-relaxed font-light ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
               {SECTIONS[focusedIndex].description}
             </p>
 
             {focusedIndex !== 0 && (
-              <button className="mt-auto px-5 py-3 bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-400 text-cyan-300 rounded-xl transition-all text-sm md:text-base">
+              <button className={`mt-auto px-5 py-3 rounded-xl transition-all text-sm md:text-base cursor-pointer border ${isDarkMode ? 'bg-cyan-500/20 hover:bg-cyan-500/40 border-cyan-400 text-cyan-300' : 'bg-slate-900/5 hover:bg-slate-900/10 border-slate-400 text-slate-800'}`} onClick={handleNavigate}>
                 Go to {SECTIONS[focusedIndex].name}
               </button>
             )}
@@ -1441,7 +1504,6 @@ export default function Home() {
             ref={rootRef}
             className="relative w-screen h-screen overflow-hidden"
             style={{
-              // Keep underlying content visible while the loader fades out
               opacity: 1,
               transform: showLoader ? 'scale(1.03)' : 'scale(1)',
               transition: 'transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -1449,47 +1511,26 @@ export default function Home() {
             }}
           >
             <button
-              type="button"
-              aria-label="Toggle theme"
               onClick={toggleTheme}
               className={`absolute top-5 right-5 z-30 flex items-center gap-3 rounded-full px-4 py-3 shadow-lg backdrop-blur-xl transition-all hover:scale-105 ${isDarkMode ? 'bg-black/55 border border-white/15 text-white' : 'bg-white/85 border border-gray-300 text-gray-900'}`}
             >
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
-                {isDarkMode ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <circle cx="12" cy="12" r="5" />
-                    <line x1="12" y1="1" x2="12" y2="3" />
-                    <line x1="12" y1="21" x2="12" y2="23" />
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                    <line x1="1" y1="12" x2="3" y2="12" />
-                    <line x1="21" y1="12" x2="23" y2="12" />
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                  </svg>
-                )}
+              <span>
+                {isDarkMode ? <FiMoon className="h-4 w-4" /> : <FiSun className="h-4 w-4" />}
               </span>
               <span className="text-sm font-semibold">{isDarkMode ? 'Dark' : 'Light'}</span>
             </button>
-
-            <div className="absolute top-5 left-5 z-30">
-              <div
-                className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-xl flex items-center justify-center px-6 py-2 h-14 transition hover:scale-110"
-              >
-                <h1 className="text-[var(--text-primary)] text-lg font-semibold whitespace-nowrap">
-                  DevlUp Labs
-                </h1>
-              </div>
-            </div>
+            
+            <button className={`absolute top-5 left-5 z-30 flex items-center gap-3 rounded-full px-4 py-3 shadow-lg backdrop-blur-xl transition-all hover:scale-105 pointer-events-auto ${isDarkMode ? 'bg-black/55 border border-white/15 text-white' : 'bg-white/85 border border-gray-300 text-gray-900'}`}
+            >
+              <h1 className="text-sm font-semibold whitespace-nowrap">
+                DevlUp Labs
+              </h1>
+            </button>
 
             <div className="absolute inset-0 z-[1]">
               <Canvas
                 dpr={[1, 1.1]}
-                camera={{ position: [0, 5, 15], fov: 55 }}
+                camera={{ position: [0, 0.2, 0.5], fov: 45 }}
                 onPointerMissed={() => {
                   if (discClickedRef.current) {
                     discClickedRef.current = false;
@@ -1512,12 +1553,12 @@ export default function Home() {
                   </Suspense>
                   <Scroll html style={{ width: '100vw' }}>
                     <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
-                      <div className={`w-full h-full flex flex-col items-center justify-center p-20 text-center ${isDarkMode ? 'bg-gradient-to-t from-black/80 to-transparent' : 'bg-gradient-to-t from-gray-300/60 to-transparent'}`}>
-                        <h2 className={isDarkMode ? `text-8xl font-black text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF]` : `text-8xl font-black max-w-5xl mb-8 text-slate-900`}>
+                      <div className={`w-full h-full flex flex-col items-center justify-center p-20 text-center overflow-visible ${isDarkMode ? 'bg-gradient-to-t from-black/80 to-transparent' : 'bg-gradient-to-t from-gray-300/60 to-transparent'}`}>
+                        <h2 className={isDarkMode ? `text-8xl font-black leading-tight text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF]` : `text-8xl font-black leading-tight text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-500`}>
                           DevlUp Labs
                         </h2>
                         <p className={`text-2xl max-w-3xl font-light leading-relaxed ${isDarkMode ? 'text-slate-300' : 'text-slate-900'}`}>
-                          You've reached the second chapter. This is the perfect space to introduce new case studies, interactive articles, or showcase immersive 3D content.
+                          Welcome to DevlUp Labs, the Open Source Enthusiast Community of IIT Jodhpur.
                         </p>
                         <button onClick={() => {
                           setIsTransitioning(true);
@@ -1525,9 +1566,10 @@ export default function Home() {
                             setShowSciFiHUD(true);
                             setIsTransitioning(false);
                           }, 3200);
-                        }} className={`mt-14 px-12 py-5 rounded-full font-bold tracking-[0.2em] uppercase transition-all backdrop-blur-md ${isDarkMode ? 'bg-white/10 text-white border border-white/30 hover:bg-white/20 hover:shadow-[0_0_40px_rgba(0,229,255,0.3)]' : 'bg-blue-400/20 text-slate-900 border border-blue-900/10 hover:bg-blue-400/40 hover:shadow-[0_0_40px_rgba(59,130,246,0.3)]'} hover:scale-[1.03]`}>
+                        }} className={`mt-14 px-12 py-5 rounded-full font-bold tracking-[0.2em] uppercase transition-all backdrop-blur-md ${isDarkMode ? 'bg-white/10 text-white border border-white/30 hover:bg-white/20 hover:shadow-[0_0_40px_rgba(0,229,255,0.3)]' : 'bg-slate-900/5 text-slate-900 border border-slate-300 hover:bg-slate-900/10'} hover:scale-[1.03]`}>
                           Explore Further
                         </button>
+                        
                       </div>
                     </div>
 
@@ -1562,301 +1604,6 @@ export default function Home() {
 
 
 
-const CSS_STYLES = `
-
-html,
-body {
-  overflow: hidden;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  width: 100%;
-  height: 100%;
-}
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;
-}
-
-::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-::-webkit-scrollbar-track {
-  display: none;
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  display: none;
-  background: transparent;
-}
-
-* {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overflow: hidden;
-  overflow-x: hidden;
-  overflow-y: hidden;
-}
-
-/* â”€â”€â”€ Page Container â”€â”€â”€ */
-.museum-page {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  background: transparent;
-}
-
-/* â”€â”€â”€ Canvas â”€â”€â”€ */
-.museum-canvas {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  z-index: 1;
-}
-
-.museum-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.museum-overlay a,
-.museum-overlay button {
-  pointer-events: auto;
-}
-
-/* â”€â”€â”€ Faint Grid Lines â”€â”€â”€ */
-.museum-grid-lines {
-  position: absolute;
-  inset: -1;
-  display: flex;
-  justify-content: space-evenly;
-  pointer-events: none;
-}
-
-.museum-grid-line {
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(255, 255, 255, 0.04) 20%,
-    rgba(255, 255, 255, 0.04) 80%,
-    transparent 100%
-  );
-}
-
-
-
-/* â”€â”€ Section 1 â€” Hero â”€â”€ */
-.hero-section {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding: 0 48px 10% 48px;
-}
-
-.hero-text-group {
-  max-width: 600px;
-  margin-top: 80px;
-}
-
-.hero-title {
-  font-family: 'sans-serif';
-  font-weight: 300;
-  font-size: clamp(3rem, 7vw, 6.5rem);
-  line-height: 1.05;
-  margin: 0;
-  color: #ffffff;
-  background: none;
-  -webkit-background-clip: unset;
-  -webkit-text-fill-color: unset;
-  background-clip: unset;
-  filter: none;
-}
-
-.hero-line {
-  display: block;
-  margin-top: 10px;
-}
-
-.hero-line:first-child {
-  margin-top: 0;
-}
-
-.hero-indent {
-  padding-left: 0.6em;
-}
-
-.hero-indent-2 {
-  padding-left: 1.6em;
-}
-
-.hero-description-wrap {
-  max-width: 320px;
-  align-self: center;
-  margin-top: 130px;
-  margin-bottom: 2%;
-  text-align: center;
-}
-
-.hero-description {
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 300;
-  line-height: 1.75;
-  margin: 0;
-}
-
-/* â”€â”€ Section 2 â€” Detail Cards â”€â”€ */
-.detail-section {
-  display: flex;
-  align-items: center;
-  padding: 0 0 0 80px;
-}
-
-.detail-content {
-  max-width: 620px;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 100px;
-  padding-top: 100px;
-}
-
-.detail-block {
-  padding: 24px 0;
-  will-change: transform, opacity;
-}
-
-.detail-heading {
-  font-family: 'Cormorant Garamond', 'Georgia', serif;
-  font-weight: 300;
-  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-  line-height: 1.15;
-  color: inherit;
-  margin: 0 0 12px 0;
-  text-shadow: none;
-}
-
-.detail-heading-large {
-  font-size: clamp(2rem, 4vw, 3.2rem);
-  font-weight: 200;
-}
-
-.detail-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  font-weight: 300;
-  line-height: 1.75;
-  color: inherit;
-  margin: 0;
-  max-width: 360px;
-}
-
-.detail-separator {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.12),
-    rgba(255, 255, 255, 0.04) 80%,
-    transparent
-  );
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@media (max-width: 768px) {
-  .museum-header {
-    padding: 20px 24px;
-  }
-
-  .museum-nav {
-    display: none;
-  }
-
-  .museum-logo {
-    font-size: 1rem;
-  }
-
-  .hero-section {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 0 24px 15% 24px;
-    gap: 24px;
-  }
-
-  .hero-title {
-    font-size: clamp(2.2rem, 10vw, 3.5rem);
-  }
-
-  .hero-description-wrap {
-    max-width: 200px;
-    align-self: flex-start;
-  }
-
-  .hero-description {
-    font-size: 0.6rem;
-  }
-
-  .detail-section {
-    padding: 0 0 0 24px;
-  }
-
-  .detail-content {
-    max-width: 260px;
-  }
-
-  .detail-heading {
-    font-size: clamp(1.4rem, 6vw, 2rem);
-  }
-
-  .detail-heading-large {
-    font-size: clamp(1.6rem, 7vw, 2.4rem);
-  }
-
-  .detail-text {
-    font-size: 0.6rem;
-  }
-
-  .museum-pagination {
-    left: 20px;
-  }
-
-  .museum-bottom-line {
-    left: 24px;
-    right: 24px;
-  }
-}
-`
-
 useGLTF.preload('/penguin3l.glb')
 
 /** Map a scroll offset range [start, end] â†’ [0, 1] */
@@ -1877,14 +1624,10 @@ function GlowRing({ scrollRef, isDarkMode }) {
     const t = state.clock.getElapsedTime()
     const offset = scrollRef.current
 
-    // Breathing pulse
     ringRef.current.material.emissiveIntensity = 1.5 + Math.sin(t * 0.8) * 0.3
 
-    // Match text hinge direction (negative Y)
     const hinge = easeInOutCubic(scrollRange(offset, 0.05, 0.35))
 
-    // Move left
-    // Using the same translation amount as the penguin
     ringRef.current.position.x = THREE.MathUtils.lerp(-1.10, -1.10 - 2, hinge)
   })
 
@@ -2243,16 +1986,16 @@ function ScrollHTML({ isDarkMode }) {
 
   return (
     <Scroll html style={{ width: '100%' }}>
-      <div ref={heroRef} className="scroll-section hero-section">
-        <div ref={leftTextRef} className="hero-text-group">
-          <h1 className={`hero-title ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            <span className={`hero-line ${isDarkMode ? 'text-slate-300' : 'text-slate-900'}`}>DevlUp</span>
-            <span className={`hero-line hero-indent ${isDarkMode ? 'text-slate-300' : 'text-slate-900'}`}>Labs</span>
+      <div ref={heroRef} className="scroll-section flex items-end justify-between px-12 pb-[10%]">
+        <div ref={leftTextRef} className="max-w-[600px] mt-20">
+          <h1 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans font-light text-[clamp(3rem,7vw,6.5rem)] leading-[1.05] m-0`}>
+            <span className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} block`}>DevlUp</span>
+            <span className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} block ml-[0.6em]`}>Labs</span>
           </h1>
         </div>
-        <div ref={rightTextRef} className={`hero-description-wrap ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+        <div ref={rightTextRef} className={`${isDarkMode ? 'text-slate-300' : 'text-slate-700'} max-w-[320px] self-center mt-[130px] mb-2 text-center`}>
           <br />
-          <p className={`hero-description`}>
+          <p className={`font-inter text-base font-light leading-[1.75] m-0`}>
             DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
             highest of standards.We aim to build an open source community through proper guidance and by encouraging self learning.
             We encourage development of technology and Innovation through various sessions, workshops and webinars.
@@ -2260,35 +2003,35 @@ function ScrollHTML({ isDarkMode }) {
         </div>
       </div>
 
-      <div ref={detailRef} className="scroll-section detail-section" style={{ top: 0, opacity: 0 }}>
-        <div className="detail-content">
-          <div ref={block1Ref} className="detail-block" style={{ opacity: 0 }}>
-            <h2 className={`detail-heading ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Learning Driven Endeavour</h2>
-            <span className={`detail-text ${isDarkMode ? 'text-white/35' : 'text-slate-700'}`}>
+      <div ref={detailRef} className="scroll-section flex items-center pl-20" style={{ top: 0, opacity: 0 }}>
+        <div className="max-w-[620px] flex flex-col gap-0 mt-[100px] pt-[100px]">
+          <div ref={block1Ref} className="py-6" style={{ opacity: 0 }}>
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
+            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]` }>
               A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
               as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of
               improvement, curiosity, and adaptation.
             </span>
           </div>
 
-          <div className={`detail-separator ${isDarkMode ? '' : 'invert'}`} />
+          <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
 
-          <div ref={block2Ref} className="detail-block" style={{ opacity: 0 }}>
+          <div ref={block2Ref} className="py-6" style={{ opacity: 0 }}>
             <h2>
-              <span className={`detail-heading detail-heading-large ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Projects that matter to the community</span>
+              <span className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(2rem,4vw,3.2rem)] font-thin`}>Projects that matter to the community</span>
             </h2>
-            <span className={`detail-text ${isDarkMode ? 'text-white/35' : 'text-slate-700'}`}>
+            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]`}>
               We at devlup labs are committed to products and projects that matter,
               projects that serve a real purpose for the community.
             </span>
           </div>
 
-          <div className={`detail-separator ${isDarkMode ? '' : 'invert'}`} />
+          <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
 
-          <div ref={block3Ref} className="detail-block" style={{ opacity: 0 }}>
-            <h2 className={`detail-heading ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Self Learning</h2>
+          <div ref={block3Ref} className="py-6" style={{ opacity: 0 }}>
+            <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Self Learning</h2>
 
-            <span className={`detail-text ${isDarkMode ? 'text-white/35' : 'text-slate-700'}`}>
+            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]`}>
               At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
               We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
             </span>
@@ -2302,14 +2045,11 @@ function ScrollHTML({ isDarkMode }) {
 
 function FixedOverlay({ onClose }) {
   return (
-    <div className="museum-overlay">
-      {/* Back Button */}
-
-
+    <div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Faint vertical grid lines */}
-      <div className="museum-grid-lines">
+      <div className="absolute inset-0 flex justify-evenly pointer-events-none">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="museum-grid-line" />
+          <div key={i} className="w-px h-full bg-gradient-to-b from-transparent via-white/4 to-transparent" />
         ))}
       </div>
     </div>
@@ -2320,9 +2060,8 @@ export function SciFiHUD({ onClose }) {
   const { isDarkMode } = useContext(ThemeContext);
   return (
     <>
-      <style>{CSS_STYLES}</style>
       <div
-        className={`museum-layout w-screen min-h-screen relative`}
+        className={`w-screen h-screen overflow-hidden relative`}
         style={{
           backgroundImage: `url('${isDarkMode ? '/bgweb4.jpeg' : '/bgweb3.jpeg'}')`,
           backgroundSize: 'cover',
@@ -2331,11 +2070,9 @@ export function SciFiHUD({ onClose }) {
         }}
       >
         <Header onClose={onClose} />
-
-        <div className="museum-page" style={{ height: '100vh', position: 'relative', background: 'transparent' }}>
+        <div className="relative w-screen h-screen overflow-hidden bg-transparent">
           <Canvas
-
-            className="museum-canvas"
+            className="absolute inset-0 w-full h-full z-[1]"
             camera={{ position: [0, 0, 0], fov: 45 }}
             gl={{
               antialias: true,

@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState } from "react";
-import BlogComponent from "../components/Blog/";
+import BlogComponent from "../components/Blog_component";
 
 const Blog = () => {
   const [ready, setReady] = useState(false);

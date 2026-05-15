@@ -6,20 +6,12 @@ import { Link } from "react-router-dom";
 import { postContact } from "../api/services";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faGithub,
-  faLinkedin,
-  faInstagram,
-} from "@fortawesome/free-brands-svg-icons";
+import { faGithub, faLinkedin, faInstagram } from "@fortawesome/free-brands-svg-icons";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Footer = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    query: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", query: "" });
 
   const refFooter = useRef(null);
   const refContent = useRef(null);
@@ -35,14 +27,7 @@ const Footer = () => {
 
     const centerY = footerHeight / 2 - dotSize / 2;
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: footer,
-        start: "top 80%",
-        end: "bottom 60%",
-        once: true,
-      },
-    });
+    const tl = gsap.timeline({ scrollTrigger: { trigger: footer, start: "top 80%", end: "bottom 60%", once: true } });
 
     const columns = refContent.current.children;
 
@@ -50,68 +35,21 @@ const Footer = () => {
     gsap.set(refWave.current, { scale: 0, opacity: 0 });
     gsap.set(columns, { opacity: 0, y: 40, filter: "blur(10px)" });
 
-    tl.to(dot, {
-      y: centerY,
-      duration: 0.7,
-      ease: "power3.in",
-    })
-      .to(dot, {
-        scale: 2.5,
-        opacity: 0,
-        duration: 0.3,
-      })
-      .to(
-        refWave.current,
-        {
-          opacity: 1,
-          scale: 12,
-          duration: 1.6,
-          ease: "expo.out",
-        },
-        "-=0.2"
-      )
-      .to(
-        columns,
-        {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.6,
-          stagger: 0.15,
-          ease: "power3.out",
-        },
-        "-=1.3"
-      )
-      .to(
-        refWave.current,
-        {
-          opacity: 0,
-          duration: 0.6,
-        },
-        "-=0.3"
-      );
+    tl.to(dot, { y: centerY, duration: 0.7, ease: "power3.in" })
+      .to(dot, { scale: 2.5, opacity: 0, duration: 0.3 })
+      .to(refWave.current, { opacity: 1, scale: 12, duration: 1.6, ease: "expo.out" }, "-=0.2")
+      .to(columns, { opacity: 1, y: 0, filter: "blur(0px)", duration: 0.6, stagger: 0.15, ease: "power3.out" }, "-=1.3")
+      .to(refWave.current, { opacity: 0, duration: 0.6 }, "-=0.3");
   }, { scope: refFooter });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const res = await postContact(formData);
-
       alert(res.data.message);
-
-      setFormData({
-        name: "",
-        email: "",
-        query: "",
-      });
+      setFormData({ name: "", email: "", query: "" });
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
@@ -119,42 +57,16 @@ const Footer = () => {
   };
 
   return (
-    <footer
-      ref={refFooter}
-      className="relative w-full pt-4 pb-2 overflow-hidden"
-      style={{ background: "var(--bg-main1)" }}
-    >
-      {/* DOT */}
-      <div
-        ref={refDot}
-        className="absolute z-40 w-3 h-3 rounded-full bg-blue-400 left-1/2 -translate-x-1/2 shadow-[0_0_30px_rgba(96,165,250,1)]"
-      />
+    <footer ref={refFooter} className="relative w-full pt-4 pb-2 overflow-hidden" style={{ background: "var(--bg-main1)" }}>
+      <div ref={refDot} className="absolute z-40 w-3 h-3 rounded-full bg-blue-400 left-1/2 -translate-x-1/2 shadow-[0_0_30px_rgba(96,165,250,1)]" />
 
-      {/* GSAP WAVE */}
-      <div
-        ref={refWave}
-        className="absolute z-10 w-40 h-40 rounded-full border border-blue-400 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-      />
+      <div ref={refWave} className="absolute z-10 w-40 h-40 rounded-full border border-blue-400 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
 
-      {/* MAIN */}
-      <div
-        ref={refContent}
-        className="relative z-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-0 grid md:grid-cols-3 gap-12 items-start text-center md:text-left"
-      >
-        {/* LEFT */}
+      <div ref={refContent} className="relative z-20 max-w-7xl mx-auto px-4 md:px-6 lg:px-0 grid md:grid-cols-3 gap-12 items-start text-center md:text-left">
         <div className="flex flex-col items-center md:items-start space-y-5">
           <div className="flex flex-col items-center md:items-start w-full">
-            <h2 className="text-3xl md:text-5xl font-black text-white">
-              DevlUp Labs
-            </h2>
-
-            <p className="mt-6 text-white max-w-md text-sm leading-relaxed mx-auto md:mx-0">
-              Building developers, shipping ideas, and creating an ecosystem
-              where learning meets real-world impact. We empower individuals to
-              turn concepts into scalable solutions and cultivate a community
-              driven by curiosity, growth, and meaningful technological
-              advancement.
-            </p>
+            <h2 className="text-3xl md:text-5xl font-black text-white">DevlUp Labs</h2>
+            <p className="mt-6 text-white max-w-md text-sm leading-relaxed mx-auto md:mx-0">Building developers, shipping ideas, and creating an ecosystem where learning meets real-world impact. We empower individuals to turn concepts into scalable solutions and cultivate a community driven by curiosity, growth, and meaningful technological advancement.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 text-white text-sm">
@@ -164,139 +76,42 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* MIDDLE */}
         <div className="hidden md:block space-y-4 text-white px-3 mt-6 md:mt-0">
-          <h3 className="text-3xl mt-3 font-semibold text-center">
-            Useful Links
-          </h3>
-
+          <h3 className="text-3xl mt-3 font-semibold text-center">Useful Links</h3>
           <div className="flex justify-center gap-10 mt-8">
-            {/* LINKS */}
             <div className="flex flex-col gap-3 px-5 text-lg">
-              <Link
-                to="/blog"
-                className="transition duration-200 hover:scale-110 origin-left"
-              >
-                Blog
-              </Link>
-
-              <Link
-                to="/podcast"
-                className="transition duration-200 hover:scale-110 origin-left"
-              >
-                Podcast
-              </Link>
-
-              <Link
-                to="/team"
-                className="transition duration-200 hover:scale-110 origin-left"
-              >
-                Team
-              </Link>
-
-              <Link
-                to="/video"
-                className="transition duration-200 hover:scale-110 origin-left"
-              >
-                Videos
-              </Link>
-
-              <Link
-                to="/timeline"
-                className="transition duration-200 hover:scale-110 origin-left"
-              >
-                Timeline
-              </Link>
+              <Link to="/blog" className="transition duration-200 hover:scale-110 origin-left">Blog</Link>
+              <Link to="/podcast" className="transition duration-200 hover:scale-110 origin-left">Podcast</Link>
+              <Link to="/team" className="transition duration-200 hover:scale-110 origin-left">Team</Link>
+              <Link to="/video" className="transition duration-200 hover:scale-110 origin-left">Videos</Link>
+              <Link to="/timeline" className="transition duration-200 hover:scale-110 origin-left">Timeline</Link>
             </div>
 
-            {/* SOCIALS */}
             <div className="flex flex-col gap-3 mt-7 px-10 text-2xl items-center justify-start pt-[2px]">
-              <a
-                href="https://github.com/devlup-labs"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FontAwesomeIcon
-                  icon={faGithub}
-                  className="hover:scale-110 transition"
-                />
-              </a>
-
-              <a
-                href="https://www.linkedin.com/company/devlup-labs/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FontAwesomeIcon
-                  icon={faLinkedin}
-                  className="hover:scale-110 transition"
-                />
-              </a>
-
-              <a
-                href="https://www.instagram.com/devluplabs"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FontAwesomeIcon
-                  icon={faInstagram}
-                  className="hover:scale-110 transition"
-                />
-              </a>
+              <a href="https://github.com/devlup-labs" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faGithub} className="hover:scale-110 transition" /></a>
+              <a href="https://www.linkedin.com/company/devlup-labs/" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faLinkedin} className="hover:scale-110 transition" /></a>
+              <a href="https://www.instagram.com/devluplabs" target="_blank" rel="noopener noreferrer"><FontAwesomeIcon icon={faInstagram} className="hover:scale-110 transition" /></a>
             </div>
           </div>
         </div>
 
-        {/* RIGHT */}
         <div className="flex flex-col items-center md:items-start space-y-6 w-full">
-          <h3 className="text-2xl md:text-3xl font-semibold text-white w-full">
-            Get in Touch
-          </h3>
+          <h3 className="text-2xl md:text-3xl font-semibold text-white w-full">Get in Touch</h3>
 
           <form className="space-y-6 w-full" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Name"
-                className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition"
-              />
-
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Email"
-                className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition"
-              />
+              <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Name" className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition" />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full bg-transparent border-0 border-b border-white py-1.5 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition" />
             </div>
 
-            <textarea
-              rows="1"
-              name="query"
-              value={formData.query}
-              onChange={handleChange}
-              placeholder="Your message"
-              className="w-full bg-transparent border-0 border-b border-white py-2 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition resize-none"
-            />
+            <textarea rows="1" name="query" value={formData.query} onChange={handleChange} placeholder="Your message" className="w-full bg-transparent border-0 border-b border-white py-2 text-white placeholder:text-white focus:outline-none focus:ring-0 focus:border-blue-400 transition resize-none" />
 
-            <button
-              type="submit"
-              className="px-15 py-2 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block"
-            >
-              Submit
-            </button>
+            <button type="submit" className="px-15 py-2 rounded-full border border-red-500 text-white font-semibold transition-all hover:bg-red-500/10 hover:shadow-[0_0_20px_rgba(255,0,0,0.4)] active:scale-95 mx-auto block">Submit</button>
           </form>
         </div>
       </div>
 
-      {/* BOTTOM */}
-      <div className="mt-6 border-t border-[var(--border-subtle)] pt-3 text-center text-xs text-[var(--text-muted)]">
-        © {new Date().getFullYear()} DevlUp Labs • Built by the DevlUp's Team
-      </div>
+      <div className="mt-6 border-t border-[var(--border-subtle)] pt-3 text-center text-xs text-[var(--text-muted)]">© {new Date().getFullYear()} DevlUp Labs • Built by the DevlUp's Team</div>
     </footer>
   );
 };

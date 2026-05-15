@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import HomeComponent from "../components/Home/";
+import HomeComponent from "../components/Home_component.jsx";
 
 const Home = () => {
   useEffect(() => {
@@ -8,7 +8,6 @@ const Home = () => {
 
   return (
     <div>
-      {/* Home Page */}
       <HomeComponent/>
     </div>
   );

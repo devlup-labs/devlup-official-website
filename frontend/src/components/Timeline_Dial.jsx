@@ -2,19 +2,16 @@ import React, { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { getTimeline } from "../api/services";
 
-export default function CircularTimeline() {
-  // 1. STATE & DATA (Must be at the top)
-  const [timeline, setTimeline] = useState([]); // Initialized as array
+export default function Timeline_Dial() {
+  // State
+  const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // 2. BACKEND INTEGRATION
+  // Backend integration
   useEffect(() => {
     getTimeline()
       .then(res => {
-        // Your JSON structure is { "success": true, "data": [...] }
-        // Axios puts the JSON body in 'res.data'
-        // So the array is at 'res.data.data'
         if (res.data && Array.isArray(res.data.data)) {
           setTimeline(res.data.data);
         }
@@ -26,14 +23,13 @@ export default function CircularTimeline() {
       });
   }, []);
 
-  // 3. REFS & CONSTANTS (GSAP Logic - Untouched)
+  // Refs and constants
   const ringRef = useRef(null);
   const centerTextRef = useRef(null);
   const descriptionRef = useRef(null);
   const isHoveringRing = useRef(false);
   const setRotate = useRef(null);
 
-  // Ensure 'events' is always an array to prevent .map errors
   const events = Array.isArray(timeline) ? timeline : [];
 
   const sliceAngle = 90;
@@ -54,7 +50,7 @@ export default function CircularTimeline() {
   const endY = radius - radius * Math.cos(theta);
   const sectorPath = `path("M${radius} ${radius} L${radius} 0 A${radius} ${radius} 0 0 1 ${endX} ${endY} Z")`;
 
-  /* ================= INIT ================= */
+  // Init
   useEffect(() => {
     if (!loading && ringRef.current) {
       setRotate.current = gsap.quickSetter(ringRef.current, "rotate", "deg");
@@ -62,7 +58,7 @@ export default function CircularTimeline() {
     }
   }, [loading]);
 
-  /* ================= ROTATION ================= */
+  // Rotation update
   const updateRotation = (r) => {
     if (events.length === 0) return;
     const clamped = Math.max(minRotation, Math.min(maxRotation, r));
@@ -76,7 +72,7 @@ export default function CircularTimeline() {
     setActiveIndex((prev) => (prev !== safeIndex ? safeIndex : prev));
   };
 
-  /* ================= SCROLL ================= */
+  // Scroll handling
   useEffect(() => {
     if (loading || events.length === 0) return;
 
@@ -111,7 +107,7 @@ export default function CircularTimeline() {
     };
   }, [loading, events.length]);
 
-  /* ================= CLICK ================= */
+  // Click handling
   const handleSliceClick = (clickedIndex) => {
     const targetRotation = startRotation - clickedIndex * sliceAngle;
     const newRotation = Math.max(minRotation, Math.min(maxRotation, targetRotation));
@@ -124,7 +120,7 @@ export default function CircularTimeline() {
     });
   };
 
-  /* ================= TEXT ANIMATION ================= */
+  // Text animation
   useEffect(() => {
     if (loading || events.length === 0) return;
 
@@ -141,28 +137,24 @@ export default function CircularTimeline() {
     );
   }, [activeIndex, loading]);
 
-  /* ================= RENDER GUARDS ================= */
+  // Render guards
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[var(--text-primary)]">Loading...</div>;
   if (events.length === 0) return <div className="min-h-screen flex items-center justify-center text-[var(--text-primary)]">No data found.</div>;
 
-  // Safe access to the active event
   const activeEvent = events[activeIndex] || {};
 
   return (
     <div className="w-full min-h-screen flex flex-col items-center">
-      {/* HEADING */}
       <div className="text-center mt-24 mb-4">
         <h1 className="text-5xl font-bold uppercase">Our Timeline</h1>
       </div>
 
-      {/* DESCRIPTION (TOP) */}
       <div ref={descriptionRef} className="mb-6 max-w-2xl text-center">
         <p className="text-gray-400">
           {activeEvent.event_description}
         </p>
       </div>
 
-      {/* RING */}
       <div className="relative w-[1200px] h-[780px] overflow-hidden">
         <div
           ref={ringRef}
@@ -204,14 +196,12 @@ export default function CircularTimeline() {
           })}
         </div>
 
-        {/* CENTER */}
         <div className="absolute bottom-[-220px] left-1/2 -translate-x-1/2 w-[540px] h-[540px] rounded-full bg-[#090f1f] flex items-center justify-center pointer-events-none">
           <div ref={centerTextRef} className="text-center -translate-y-16">
             <h2 className="text-white text-4xl mb-10 font-bold uppercase">
               {activeEvent.event_title}
             </h2>
 
-            {/*  DATE */}
             <p className="text-xs text-gray-400 mb-4 tracking-wider uppercase">
               {activeEvent.event_date ? new Date(activeEvent.event_date).toDateString() : ""}
             </p>

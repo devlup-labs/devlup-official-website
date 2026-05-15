@@ -259,7 +259,8 @@ export default function Cards({ videos: propVideos }) {
                   />
 
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                    <IoLogoYoutube className="text-white w-14 h-14 drop-shadow-2xl" />
+                   <div className="absolute w-10 h-10 bg-white rounded-sm" />
+                  <IoLogoYoutube className="relative text-[#FF0000] w-20 h-20 drop-shadow-xl" />
                   </div>
                 </div>
 
@@ -417,8 +418,8 @@ export default function Cards({ videos: propVideos }) {
                     bg-black/20
                   ">
 
-                    <IoLogoYoutube className="text-[#FF0000] w-20 h-20 drop-shadow-xl" />
-
+        <div className="absolute w-10 h-10 bg-white rounded-sm" />
+        <IoLogoYoutube className="relative text-[#FF0000] w-20 h-20 drop-shadow-xl" />
                   </div>
                 </div>
               </div>

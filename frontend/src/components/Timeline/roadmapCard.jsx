@@ -89,16 +89,9 @@ export default function RoadmapCard({
       <div
         ref={card}
         onClick={handleClick}
-        className="cursor-pointer relative"
+        className={`cursor-pointer relative h-[150px] [transform-style:preserve-3d] ${isMobile ? 'origin-center' : side === 1 ? 'origin-left' : 'origin-right'}`}
         style={{
           width: isMobile ? mobileCardWidth : `${CARD_WIDTH}px`,
-          height: "150px",
-          transformStyle: "preserve-3d",
-          transformOrigin: isMobile
-            ? "center center"
-            : side === 1
-            ? "left center"
-            : "right center",
         }}
       >
         {/* --- FRONT FACE (SUMMARY STATE - LIKE PHASE 2 IN IMAGE) --- */}

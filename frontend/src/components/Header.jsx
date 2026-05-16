@@ -66,7 +66,7 @@ export default function HeaderComponent({ onClose }) {
 
       <div className={`fixed top-0 left-0 right-0 bottom-0 z-40 md:hidden bg-black/40 backdrop-blur-2xl flex flex-col items-center justify-center space-y-8 text-2xl font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${hamburgerOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-4 pointer-events-none"}`}>
         {navItems.map((item, index) => (
-          <Link key={item.name} to={item.path} onClick={() => setHamburgerOpen(false)} style={{ transitionDelay: `${index * 70}ms` }} className={`min-w-[220px] rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-6 py-3 text-center text-[var(--text-primary)] transition-all duration-500 transform-gpu ${hamburgerOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>{item.name}</Link>
+          <Link key={item.name} to={item.path} onClick={() => setHamburgerOpen(false)} className={`min-w-[220px] rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-6 py-3 text-center text-[var(--text-primary)] transition-all duration-500 transform-gpu delay-[${index * 70}ms] ${hamburgerOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>{item.name}</Link>
         ))}
 
         <button onClick={toggleTheme} className={`mt-6 p-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center transition-all duration-500 transform-gpu ${hamburgerOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>

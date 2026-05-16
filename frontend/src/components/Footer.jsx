@@ -57,7 +57,7 @@ const Footer = () => {
   };
 
   return (
-    <footer ref={refFooter} className="relative w-full pt-4 pb-2 overflow-hidden" style={{ background: "var(--bg-main1)" }}>
+    <footer ref={refFooter} className="relative w-full pt-4 pb-2 overflow-hidden bg-[var(--bg-main1)]">
       <div ref={refDot} className="absolute z-40 w-3 h-3 rounded-full bg-blue-400 left-1/2 -translate-x-1/2 shadow-[0_0_30px_rgba(96,165,250,1)]" />
 
       <div ref={refWave} className="absolute z-10 w-40 h-40 rounded-full border border-blue-400 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />

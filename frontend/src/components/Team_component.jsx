@@ -25,7 +25,7 @@ const Tile = React.memo(({ tile, TILE_SIZE, openTile, tileRefs, isActive, focusP
   };
 
   return (
-    <div ref={(el) => (tileRefs.current[tile.id] = el)} className="absolute top-0 left-0" style={{ willChange: "transform", zIndex: isActive ? 5000 : 1 }}>
+    <div ref={(el) => (tileRefs.current[tile.id] = el)} className={`absolute top-0 left-0 [will-change:transform] ${isActive ? 'z-[5000]' : 'z-1'}`}>
       <div onClick={(e) => { e.stopPropagation(); if (!tile.isEmpty) openTile(tile.id); }} className={`relative flex flex-col items-center justify-center transition-colors duration-500 ${isActive ? "rounded-full" : "rounded-full bg-[var(--bg-surface)] border border-[var(--border-subtle)] backdrop-blur-md"}`} style={{ width: TILE_SIZE, height: TILE_SIZE, backfaceVisibility: "hidden", border: `3px solid ${tile.isEmpty ? "#E5E7EB" : getBorderColor(tile.designation)}`, boxShadow: tile.isEmpty ? "none" : `0 0 10px ${getBorderColor(tile.designation)}80` }}>
 
         <div className={`absolute inset-0 rounded-full overflow-hidden transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
@@ -313,7 +313,7 @@ function TeamComponent() {
 
   return (
     <section ref={sectionRef} className="relative h-[300vh]">
-      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none" style={{ top: "0", height: "88px", background: "transparent" }}>
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none top-0 h-[88px] bg-transparent">
         <div className="flex items-center relative pointer-events-auto" onMouseDown={(e) => e.stopPropagation()}>
           <div className={`flex items-center bg-[var(--bg-muted)] border border-[var(--border-subtle)] rounded-full transition-all duration-500 ease-out pointer-events-auto ${searchOpen ? (isMobile ? "w-[calc(100vw-80px)] h-10 px-4 justify-start" : "w-[300px] h-10 px-4 justify-start") : "w-10 h-10 justify-center"}`} onMouseDown={(e) => e.stopPropagation()}>
             <CiSearch className="text-white cursor-pointer shrink-0 pointer-events-auto" size={18} onClick={(e) => { e.stopPropagation(); const newState = !searchOpen; setSearchOpen(newState); if (newState && isMobile) setFilterOpen(false); }} />
@@ -338,7 +338,7 @@ function TeamComponent() {
         </div>
       </div>
 
-      <div className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden" onClick={() => activeTile && closeCurrent()} style={{ perspective: "1200px" }}>
+      <div className="sticky top-0 h-screen w-full text-[var(--text-primary)] overflow-hidden [perspective:1200px]" onClick={() => activeTile && closeCurrent()}>
         {tilesData.map((tile) => (<Tile key={tile.id} tile={tile} TILE_SIZE={TILE_SIZE} openTile={openTile} tileRefs={tileRefs} isActive={activeTile === tile.id} focusProgress={focusProgress} />))}
       </div>
     </section>

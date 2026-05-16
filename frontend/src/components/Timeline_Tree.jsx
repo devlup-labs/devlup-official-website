@@ -65,14 +65,9 @@ export default function Timeline_Tree() {
     <div
       style={{
         minHeight: containerHeight,
-        backgroundImage: isDarkMode
-          ? "url('/bgweb4.jpeg')"
-          : "url('/bgweb3.jpeg')",
-        backgroundSize: "cover",
-        backgroundAttachment: "fixed",
-        backgroundPosition: "center",
+        backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
       }}
-      className={`relative overflow-hidden ${isMobile ? "pt-40" : "pt-64"} transition-all duration-500`}
+      className={`relative overflow-hidden ${isMobile ? "pt-40" : "pt-64"} transition-all duration-500 bg-cover bg-fixed bg-center`}
     >
       <CameraRig focus={cameraFocus} reset={!cameraFocus} />
 

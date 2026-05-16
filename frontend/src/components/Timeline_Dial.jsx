@@ -158,11 +158,10 @@ export default function Timeline_Dial() {
       <div className="relative w-[1200px] h-[780px] overflow-hidden">
         <div
           ref={ringRef}
-          className="absolute rounded-full"
+          className="absolute rounded-full bottom-[-640px]"
           style={{
             width: diameter,
             height: diameter,
-            bottom: "-640px"
           }}
         >
           {events.map((event, i) => {

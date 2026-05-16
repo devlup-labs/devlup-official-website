@@ -290,7 +290,7 @@ export default function PodcastComponent() {
   return (
     <div>
       {/* Fixed controls */}
-      <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none" style={{ height: "88px" }}>
+      <div className="fixed top-0 left-0 w-full flex justify-center z-[3000] pointer-events-none h-[88px]">
         <div className="pointer-events-auto flex items-center justify-center">
           <TopControls
             searchTerm={searchTerm}

@@ -1000,15 +1000,10 @@ export const Loader = ({ onComplete }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red ${fading ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        }`}
-      style={{
-        transition: 'opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-
-      }}
+      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red transition-opacity duration-[1500ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${fading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
     >
       <div className="relative w-[600px] h-[480px] sm:w-[860px] sm:h-[580px]">
-        <div className={`absolute inset-0 ${showModel ? 'loader-model-enter loader-model-rotate' : 'opacity-0 scale-75'}`} style={{ perspective: '1000px' }}>
+        <div className={`absolute inset-0 [perspective:1000px] ${showModel ? 'loader-model-enter loader-model-rotate' : 'opacity-0 scale-75'}`}>
           <Canvas camera={{ position: [0, 0, 4], fov: 25 }}>
             <LoaderScene />
           </Canvas>
@@ -1039,41 +1034,6 @@ export const Loader = ({ onComplete }) => {
 const HUDStyles = () => (
   <>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
-    <style>{`
-    .whiteout-fade {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: white;
-      z-index: 99999;
-      pointer-events: none;
-      animation: clear-whiteout 1.5s ease-out forwards;
-    }
-
-    @keyframes clear-whiteout {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-
-    
-    @keyframes typing {
-      from { width: 0 }
-      to { width: 100% }
-    }
-    
-    @keyframes blink-caret {
-      from, to { border-right-color: transparent }
-      50% { border-right-color: rgba(223, 240, 255, 0.75); }
-    }
-
-    @keyframes fade-in-text {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-  `}</style>
   </>
 );
 
@@ -1093,7 +1053,7 @@ const X_RADIUS = 6.5, Z_RADIUS = 6.5;
 const DISC_DATA = [0, 1, 2, 3, 4, 5].map(i => {
   const angle = (i * Math.PI * 2) / 6;
   return {
-    position: [Math.sin(angle) * X_RADIUS, 0.3, Math.cos(angle) * Z_RADIUS],
+    position: [Math.sin(angle) * X_RADIUS, 0.2, Math.cos(angle) * Z_RADIUS],
     speed: [0.8, 1.1, 0.6, 0.9, 1.3, 0.7][i],
     rotSpeed: [1.2, 0.8, 1.5, 1.0, 0.7, 1.3][i],
     scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0][i],
@@ -1342,8 +1302,7 @@ function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
             duration: 0.7,
             ease: [0.16, 1, 0.3, 1],
           }}
-          className={`fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] backdrop-blur-xl z-50 flex flex-col overflow-hidden pointer-events-auto transition-all border shadow-lg ${isDarkMode ? 'bg-black/55 border-white/15 hover:bg-black/65 text-white' : 'bg-white/55 border-gray-300 hover:bg-white/65 text-slate-900'}`}
-          style={{ willChange: "transform" }}
+          className={`fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] backdrop-blur-xl z-50 flex flex-col overflow-hidden pointer-events-auto transition-all border shadow-lg ${isDarkMode ? 'bg-black/55 border-white/15 hover:bg-black/65 text-white' : 'bg-white/55 border-gray-300 hover:bg-white/65 text-slate-900'} [will-change:transform]`}
         >
           <div className="flex-1 p-6 md:p-8 flex flex-col gap-4 overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
@@ -1502,13 +1461,7 @@ export default function Home() {
           {showLoader && <Loader onComplete={handleLoaderComplete} />}
           <div
             ref={rootRef}
-            className="relative w-screen h-screen overflow-hidden"
-            style={{
-              opacity: 1,
-              transform: showLoader ? 'scale(1.03)' : 'scale(1)',
-              transition: 'transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-              pointerEvents: showLoader ? 'none' : 'auto'
-            }}
+            className={`relative w-screen h-screen overflow-hidden transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${showLoader ? 'scale-[1.03] pointer-events-none' : 'scale-100 pointer-events-auto'}`}
           >
             <button
               onClick={toggleTheme}
@@ -1551,8 +1504,8 @@ export default function Home() {
                   <Suspense fallback={null}>
                     <Scene focusedIndex={focusedIndex} setFocusedIndex={setFocusedIndex} showHologram={showHologram} setShowHologram={setShowHologram} isTransitioning={isTransitioning} discClickedRef={discClickedRef} cameraReturnLockRef={cameraReturnLockRef} />
                   </Suspense>
-                  <Scroll html style={{ width: '100vw' }}>
-                    <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'}`} style={{ top: '100vh', position: 'absolute' }}>
+                  <Scroll html className="w-screen">
+                    <div className={`w-screen h-screen flex flex-col items-center justify-center transition-all duration-1000 ${isTransitioning ? 'pointer-events-none opacity-0 scale-150 duration-500' : showHologram ? 'pointer-events-none opacity-0 scale-110' : 'pointer-events-auto opacity-100 scale-100'} absolute top-[100vh]`}>
                       <div className={`w-full h-full flex flex-col items-center justify-center p-20 text-center overflow-visible ${isDarkMode ? 'bg-gradient-to-t from-black/80 to-transparent' : 'bg-gradient-to-t from-gray-300/60 to-transparent'}`}>
                         <h2 className={isDarkMode ? `text-8xl font-black leading-tight text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-blue-400 via-cyan-300 to-[#00E5FF]` : `text-8xl font-black leading-tight text-transparent bg-clip-text max-w-5xl mb-8 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-500`}>
                           DevlUp Labs
@@ -1985,7 +1938,7 @@ function ScrollHTML({ isDarkMode }) {
   })
 
   return (
-    <Scroll html style={{ width: '100%' }}>
+    <Scroll html className="w-full">
       <div ref={heroRef} className="scroll-section flex items-end justify-between px-12 pb-[10%]">
         <div ref={leftTextRef} className="max-w-[600px] mt-20">
           <h1 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans font-light text-[clamp(3rem,7vw,6.5rem)] leading-[1.05] m-0`}>
@@ -2003,9 +1956,9 @@ function ScrollHTML({ isDarkMode }) {
         </div>
       </div>
 
-      <div ref={detailRef} className="scroll-section flex items-center pl-20" style={{ top: 0, opacity: 0 }}>
+      <div ref={detailRef} className="scroll-section flex items-center pl-20 opacity-0">
         <div className="max-w-[620px] flex flex-col gap-0 mt-[100px] pt-[100px]">
-          <div ref={block1Ref} className="py-6" style={{ opacity: 0 }}>
+          <div ref={block1Ref} className="py-6 opacity-0">
             <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
             <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]` }>
               A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
@@ -2016,7 +1969,7 @@ function ScrollHTML({ isDarkMode }) {
 
           <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
 
-          <div ref={block2Ref} className="py-6" style={{ opacity: 0 }}>
+          <div ref={block2Ref} className="py-6 opacity-0">
             <h2>
               <span className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(2rem,4vw,3.2rem)] font-thin`}>Projects that matter to the community</span>
             </h2>
@@ -2028,7 +1981,7 @@ function ScrollHTML({ isDarkMode }) {
 
           <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
 
-          <div ref={block3Ref} className="py-6" style={{ opacity: 0 }}>
+          <div ref={block3Ref} className="py-6 opacity-0">
             <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Self Learning</h2>
 
             <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]`}>
@@ -2061,13 +2014,8 @@ export function SciFiHUD({ onClose }) {
   return (
     <>
       <div
-        className={`w-screen h-screen overflow-hidden relative`}
-        style={{
-          backgroundImage: `url('${isDarkMode ? '/bgweb4.jpeg' : '/bgweb3.jpeg'}')`,
-          backgroundSize: 'cover',
-          backgroundAttachment: 'fixed',
-          backgroundPosition: 'center',
-        }}
+        className={`w-screen h-screen overflow-hidden relative bg-cover bg-fixed bg-center`}
+        style={{ backgroundImage: `url('${isDarkMode ? '/bgweb4.jpeg' : '/bgweb3.jpeg'}')` }}
       >
         <Header onClose={onClose} />
         <div className="relative w-screen h-screen overflow-hidden bg-transparent">

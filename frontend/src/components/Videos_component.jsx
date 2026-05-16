@@ -50,7 +50,7 @@ export default function VideosComponent() {
 
   return (
     <div className="min-h-screen w-full flex flex-col">
-      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none" style={{ top: "0", height: "88px" }}>
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none top-0 h-[88px]">
         <div className="pointer-events-auto relative">
           <TopControls searchTerm={searchTerm} setSearchTerm={setSearchTerm} selectedTags={selectedTags} setSelectedTags={setSelectedTags} tags={tags} />
           {searchTerm && suggestions.length > 0 && (

@@ -254,14 +254,14 @@ export default function PortfolioComponent() {
       </header>
 
       <div className={`fixed top-[72px] left-0 right-0 bottom-0 z-40 md:hidden bg-black/40 backdrop-blur-2xl flex flex-col items-center justify-center space-y-8 text-2xl font-semibold text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] transform-gpu ${mobileMenuOpen ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 -translate-y-4 pointer-events-none"}`}>
-        {navItems.map((item, index) => (<Link key={item.name} to={item.path} onClick={() => setMobileMenuOpen(false)} style={{ transitionDelay: `${index * 70}ms` }} className={`transition-all duration-500 transform-gpu ${mobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"} hover:text-blue-400`}>{item.name}</Link>))}
+        {navItems.map((item, index) => (<Link key={item.name} to={item.path} onClick={() => setMobileMenuOpen(false)} className={`transition-all duration-500 transform-gpu delay-[${index * 70}ms] ${mobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"} hover:text-blue-400`}>{item.name}</Link>))}
 
         <button onClick={toggleTheme} className={`mt-6 p-3 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex items-center justify-center transition-all duration-500 transform-gpu ${mobileMenuOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           {isDarkMode ? (<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>) : (<svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[var(--text-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>)}
         </button>
       </div>
 
-      <div className="min-h-screen bg-[var(--bg-main-gradient)] text-[var(--text-primary)] p-4 sm:p-8 flex flex-col items-center relative" style={{ paddingTop: '100px' }}>
+      <div className="min-h-screen bg-[var(--bg-main-gradient)] text-[var(--text-primary)] p-4 sm:p-8 flex flex-col items-center relative pt-[100px]">
         <div ref={scanRef} className="absolute left-0 right-0 h-[2px] opacity-0 bg-white shadow-[0_0_20px_#22d3ee] z-[900]" />
 
         <div className="w-full max-w-6xl pt-6 md:pt-10">
@@ -309,7 +309,7 @@ export default function PortfolioComponent() {
             </div>
           </div>
 
-          <div ref={(el) => (cardsRef.current[2] = el)} data-index="2" className="mt-8 w-full bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl p-5 md:p-6 border border-[var(--border-subtle)] overflow-hidden opacity-0 shadow-lg" style={{ display: "none" }}>
+          <div ref={(el) => (cardsRef.current[2] = el)} data-index="2" className="mt-8 w-full bg-[var(--bg-surface)] rounded-2xl md:rounded-3xl p-5 md:p-6 border border-[var(--border-subtle)] overflow-hidden opacity-0 shadow-lg hidden">
             <div className="content-wrapper">
               <div className="old-content text-[var(--text-muted)] text-sm uppercase tracking-wider">Hidden Comments</div>
 

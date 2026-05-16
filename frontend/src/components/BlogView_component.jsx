@@ -48,11 +48,11 @@ export default function BlogViewComponent() {
   const tags = Array.isArray(blog?.blog_tags) ? blog.blog_tags : blog?.blog_tags ? [blog.blog_tags] : [];
 
   if (loading) return (
-    <div className="h-screen flex items-center justify-center transition-all duration-500" style={{ backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')", backgroundSize: "cover", backgroundAttachment: "fixed", backgroundPosition: "center", color: isDarkMode ? "white" : "black" }}>Loading...</div>
+    <div className={`h-screen flex items-center justify-center transition-all duration-500 ${isDarkMode ? 'text-white' : 'text-black'} bg-cover bg-fixed bg-center`} style={{ backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')" }}>Loading...</div>
   );
 
   return (
-    <div className="min-h-screen flex flex-col transition-all duration-500" style={{ backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')", backgroundSize: "cover", backgroundAttachment: "fixed", backgroundPosition: "center", color: isDarkMode ? "white" : "black" }}>
+    <div className={`min-h-screen flex flex-col transition-all duration-500 ${isDarkMode ? 'text-white' : 'text-black'} bg-cover bg-fixed bg-center`} style={{ backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')" }}>
 
       <div className="relative w-full h-[220px]">
         <img src={blog.blog_thumbnail} className="w-full h-full object-cover" />

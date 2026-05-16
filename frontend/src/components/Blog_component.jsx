@@ -223,7 +223,7 @@ export default function BlogComponent() {
   // SEARCH AND FILTER CONTROLS
   return (
     <>
-      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none" style={{ top: "0", height: "88px", background: "transparent" }}>
+      <div className="fixed left-0 right-0 z-[1001] flex gap-3 items-center justify-center w-full pointer-events-none top-0 h-[88px] bg-transparent">
         <div className="flex items-center relative pointer-events-auto" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
           <div className={`flex items-center bg-[var(--bg-muted)] border border-[var(--border-subtle)] rounded-full transition-all duration-500 ease-out pointer-events-auto ${searchOpen ? (isMobile ? "w-[calc(100vw-80px)] h-10 px-4 justify-start" : "w-[300px] h-10 px-4 justify-start") : "w-10 h-10 justify-center"}`} onMouseDown={(e) => e.stopPropagation()}>
             <CiSearch className="text-white cursor-pointer shrink-0 pointer-events-auto" size={18} onClick={(e) => { e.stopPropagation(); const newState = !searchOpen; setSearchOpen(newState); if (newState && isMobile) setFilterOpen(false); }} />
@@ -267,7 +267,7 @@ export default function BlogComponent() {
                     <p className="font-heading text-base font-bold text-center line-clamp-2 mb-2">{layer.title}</p>
                     <p className="text-xs opacity-70 text-center">{layer.author}</p>
                   </div>
-                  <div className="h-[25%] overflow-hidden"><img src={layer.image} className="w-full h-full object-cover" style={{ transform: "scaleY(-1)" }} alt={layer.title} /></div>
+                  <div className="h-[25%] overflow-hidden"><img src={layer.image} className="w-full h-full object-cover [transform:scaleY(-1)]" alt={layer.title} /></div>
                 </div>
               ) : (
                 <div className="w-full h-full flex flex-col">

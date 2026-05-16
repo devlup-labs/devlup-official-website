@@ -1062,6 +1062,11 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
   const isDragging = useRef(false);
   const previousX = useRef(0);
   const targetRotationY = useRef(0);
+  // passive rotation timing and ramp
+  const passiveElapsed = useRef(0);
+  const passiveDelay = 1.0; // seconds to wait before starting
+  const passiveAccelTime = 2.0; // seconds to ramp to full speed
+  const passiveBaseSpeed = -0.1; // radians/sec base speed (negative for direction)
   const scroll = useScroll();
   const lastOffset = useRef(0);
 
@@ -1080,6 +1085,18 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 
   useFrame((_, delta) => {
     const offset = scroll ? scroll.offset : 0;
+
+    if (focusedIndex === null && !isTransitioning && !isDragging.current) {
+      passiveElapsed.current += delta;
+      const sinceDelay = Math.max(0, passiveElapsed.current - passiveDelay);
+      if (sinceDelay > 0) {
+        const t = Math.min(1, sinceDelay / passiveAccelTime);
+        const ramp = t * t * (3 - 2 * t);
+        targetRotationY.current += passiveBaseSpeed * ramp * delta;
+      }
+    } else {
+      passiveElapsed.current = 0;
+    }
 
     if (offset < 0.8 && showHologram) {
       setShowHologram(false);
@@ -1273,6 +1290,14 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
 function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
   const navigate = useNavigate();
   const { isDarkMode } = useContext(ThemeContext);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const routeMap = ["", "/timeline", "/video", "/podcast", "/blog", "/team"];
 
@@ -1288,14 +1313,14 @@ function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
       {focusedIndex !== null && (
         <motion.div
           ref={sidebarRef}
-          initial={{ x: 140, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 140, opacity: 0 }}
+          initial={isMobile ? { y: 300, opacity: 0 } : { x: 140, opacity: 0 }}
+          animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+          exit={isMobile ? { y: 300, opacity: 0 } : { x: 140, opacity: 0 }}
           transition={{
             duration: 0.7,
-            ease: [0.16, 1, 0.3, 1],
+            ease: "easeInOut",
           }}
-          className={`fixed right-10 md:right-10 top-1/2 -translate-y-1/2 w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] backdrop-blur-xl z-50 flex flex-col overflow-hidden pointer-events-auto transition-all border shadow-lg ${isDarkMode ? 'bg-black/55 border-white/15 hover:bg-black/65 text-white' : 'bg-white/55 border-gray-300 hover:bg-white/65 text-slate-900'} [will-change:transform]`}
+          className={`fixed ${isMobile ? 'left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : 'right-10 md:right-10 top-1/2 -translate-y-1/2'} w-[calc(100vw-3rem)] sm:w-[360px] md:w-[420px] max-h-[calc(100vh-2rem)] rounded-[1.75rem] backdrop-blur-xl z-50 flex flex-col overflow-hidden pointer-events-auto transition-all border shadow-lg ${isDarkMode ? 'bg-black/55 border-white/15 hover:bg-black/65 text-white' : 'bg-white/55 border-gray-300 hover:bg-white/65 text-slate-900'} [will-change:transform]`}
         >
           <div className="flex-1 p-6 md:p-8 flex flex-col gap-4 overflow-y-auto">
             <div className="flex items-start justify-between gap-4">
@@ -1587,7 +1612,6 @@ function GlowRing({ scrollRef, isDarkMode }) {
         blending={isDarkMode ? THREE.SubtractiveBlending : THREE.SubtractiveBlending}
       />
     </mesh>
-    
   )
 }
 
@@ -1933,25 +1957,27 @@ function ScrollHTML({ isDarkMode }) {
 
   return (
     <Scroll html className="w-screen flex flex-col">
-      <div ref={heroRef} className="w-screen h-screen flex items-center justify-between px-12">
-        <div ref={leftTextRef} className="max-w-[600px] text-center">
-          <h1 className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} font-sans text-[clamp(3rem,7vw,6.5rem)] leading-[1.05]`}>
-            <span className="block">DevlUp</span>
-            <span className="block">Labs</span>
-          </h1>
-        </div>
-        <div ref={rightTextRef} className={`${isDarkMode ? 'text-slate-300' : 'text-slate-700'} max-w-[320px] self-center text-center`}>
-          <p className={`font-inter text-base leading-[1.75]`}>
-            DevlUp Labs is a thriving student-led open source community at IIT Jodhpur. We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
-            highest of standards. With the aim to build an open source community through proper guidance and by encouraging self learning, the development of technology and innovation through various sessions, workshops and webinars.
-          </p>
+      <div ref={heroRef} className="w-screen h-screen flex flex-col md:flex-row items-center justify-end pb-4 md:pb-0 gap-12 md:justify-between px-4 md:px-12">
+        <div className={`w-full max-w-[500px] md:max-w-none flex flex-col md:flex-row items-center justify-center md:justify-between gap-8 p-4 rounded-2xl border backdrop-blur-md ${isDarkMode ? 'bg-slate-900/40 border-slate-800/50' : 'bg-white/40 border-white/60 shadow-xl shadow-black/5'} md:bg-transparent md:border-transparent md:backdrop-blur-none md:shadow-none md:p-0 md:contents`}>
+          <div ref={leftTextRef} className="max-w-[600px] text-center">
+            <h1 className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} font-sans text-[clamp(2.5rem,7vw,6.5rem)] leading-[1.05] flex flex-row md:flex-col items-center justify-center gap-4 md:gap-0`}>
+              <span>DevlUp</span>
+              <span>Labs</span>
+            </h1>
+          </div>
+          <div ref={rightTextRef} className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} max-w-[450px] md:max-w-[320px] self-center text-center`}>
+            <p className={`font-inter text-base leading-[1.75]`}>
+              DevlUp Labs is a thriving student-led open source community at IIT Jodhpur. We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
+              highest of standards. With the aim to build an open source community through proper guidance and by encouraging self learning, the development of technology and innovation through various sessions, workshops and webinars.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div ref={detailRef} className="flex flex-col items-start gap-6 mt-[7.5vw] ml-[2.5vw] max-w-[40vw]">
+      <div ref={detailRef} className="flex flex-col items-start gap-2 md:gap-6 mt-[20vw] md:mt-[7.5vw] ml-[2.5vw] max-w-[80vw] md:max-w-[40vw]">
         <section ref={block1Ref}>
-          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
-          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1] md:leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.5] md:leading-[1.75] mt-1 md:mt-2`}>
             A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
             as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of
             improvement, curiosity, and adaptation.
@@ -1960,9 +1986,9 @@ function ScrollHTML({ isDarkMode }) {
 
         <div className={`w-full h-px bg-gradient-to-r ${isDarkMode ? 'from-white/12 via-white/4' : 'from-black/10 via-black/5'} to-transparent`} />
 
-        <section ref={block2Ref} className="opacity-0">
-          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(2rem,4vw,3.2rem)] font-thin m-0`}>Projects that matter to the community</h2>
-          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+        <section ref={block2Ref}>
+          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1] md:leading-[1.15] m-0`}>Projects that matter to the community</h2>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.5] md:leading-[1.75] mt-1 md:mt-2`}>
             We at devlup labs are committed to products and projects that matter,
             projects that serve a real purpose for the community.
           </p>
@@ -1970,10 +1996,10 @@ function ScrollHTML({ isDarkMode }) {
 
         <div className={`w-full h-px bg-gradient-to-r ${isDarkMode ? 'from-white/12 via-white/4' : 'from-black/10 via-black/5'} to-transparent`} />
 
-        <section ref={block3Ref} className="opacity-0">
+        <section ref={block3Ref}>
           <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Self Learning</h2>
 
-          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.5] md:leading-[1.75] mt-1 md:mt-2`}>
             At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
             We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
           </p>

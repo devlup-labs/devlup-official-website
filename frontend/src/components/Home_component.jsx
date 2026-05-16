@@ -643,12 +643,12 @@ export function WormholeTransition({ active }) {
 /* ==================== MODELS COMPONENTS ==================== */
 
 export function HomeModel() {
-  const { scene } = useGLTF("/logo.glb");
+  const { scene } = useGLTF("/model_logo_tinted.glb");
   return <primitive object={scene} scale={0.9} position={[0, 0.55, 0.2]} rotation={[Math.PI / 2, 0, 0]} />;
 }
 
 export function MicModel() {
-  const { scene } = useGLTF("/mic.glb");
+  const { scene } = useGLTF("/model_podcasts.glb");
   const { isDarkMode } = useContext(ThemeContext);
   const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
 
@@ -682,7 +682,7 @@ export function MicModel() {
 }
 
 export function VideoButtonModel() {
-  const { scene } = useGLTF("/MOVIE%20-%20Copy.glb");
+  const { scene } = useGLTF("/model_videos.glb");
   const { isDarkMode } = useContext(ThemeContext);
   const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
 
@@ -711,7 +711,7 @@ export function VideoButtonModel() {
 }
 
 export function TimelineModel() {
-  const { scene } = useGLTF("/timeline.glb");
+  const { scene } = useGLTF("/model_timeline.glb");
   const clone = useMemo(() => (scene ? scene.clone(true) : null), [scene]);
 
   useEffect(() => {
@@ -736,7 +736,7 @@ export function TimelineModel() {
 }
 
 export function DocumentModel() {
-  const { scene } = useGLTF("/3d_document_object_and_document_board.glb");
+  const { scene } = useGLTF("/model_blogs.glb");
   const clones = useMemo(() => {
     if (!scene) return [];
     return Array.from({ length: 3 }, () => scene.clone());
@@ -754,7 +754,7 @@ export function DocumentModel() {
 }
 
 export function StickmanModel() {
-  const { scene } = useGLTF("/stickman2f.glb");
+  const { scene } = useGLTF("/model_team.glb");
   const { isDarkMode } = useContext(ThemeContext);
   const groupRef = useRef();
   const NUM_CLONES = 16;
@@ -818,17 +818,17 @@ const BLOCK_CONFIGS = [
   { render: () => <StickmanModel /> },
 ];
 
-useGLTF.preload("/logo.glb");
-useGLTF.preload("/stickman2f.glb");
-useGLTF.preload("/mic.glb");
-useGLTF.preload("/MOVIE%20-%20Copy.glb");
-useGLTF.preload("/timeline.glb");
-useGLTF.preload("/3d_document_object_and_document_board.glb");
+useGLTF.preload("/model_logo_tinted.glb");
+useGLTF.preload("/model_team.glb");
+useGLTF.preload("/model_podcasts.glb");
+useGLTF.preload("/model_videos.glb");
+useGLTF.preload("/model_timeline.glb");
+useGLTF.preload("/model_blogs.glb");
 
 /* ==================== LOADER COMPONENTS ==================== */
 
 function LoaderModel() {
-  const { scene } = useGLTF('/logocolour1.glb');
+  const { scene } = useGLTF('/model_logo_tinted.glb');
   const coloredScene = useMemo(() => {
     const dotColor = new THREE.Color('#5CB8D6');
     const slashColor = new THREE.Color('#E85D5D');
@@ -924,7 +924,7 @@ function LoaderScene() {
   );
 }
 
-useGLTF.preload('/logocolour1.glb');
+useGLTF.preload('/model_logo_tinted.glb');
 
 export const Loader = ({ onComplete }) => {
   const [text, setText] = useState('');
@@ -1557,7 +1557,7 @@ export default function Home() {
 
 
 
-useGLTF.preload('/penguin3l.glb')
+useGLTF.preload('/model_penguin.glb')
 
 /** Map a scroll offset range [start, end] â†’ [0, 1] */
 function scrollRange(offset, start, end) {
@@ -1636,7 +1636,7 @@ function SceneLighting({ isDarkMode }) {
 
 
 function PenguinModel({ scrollRef }) {
-  const { scene } = useGLTF('/penguin3l.glb')
+  const { scene } = useGLTF('/model_penguin.glb')
 
   // 1) Center the geometry internally once so it rotates around its own spine
   useMemo(() => {
@@ -2015,7 +2015,7 @@ export function SciFiHUD({ onClose }) {
     <>
       <div
         className={`w-screen h-screen overflow-hidden relative bg-cover bg-fixed bg-center`}
-        style={{ backgroundImage: `url('${isDarkMode ? '/bgweb4.jpeg' : '/bgweb3.jpeg'}')` }}
+        style={{ backgroundImage: `url('${isDarkMode ? '/bg_dark.jpeg' : '/bg_light.jpeg'}')` }}
       >
         <Header onClose={onClose} />
         <div className="relative w-screen h-screen overflow-hidden bg-transparent">

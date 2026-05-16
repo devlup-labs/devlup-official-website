@@ -192,12 +192,12 @@ export default function Cards({ videos: propVideos }) {
 
   }, [displayVideos]);
 
-  if (loading) {
+      if (loading) {
     return (
       <div
         className="h-screen flex items-center justify-center bg-cover bg-center"
         style={{
-          backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+          backgroundImage: isDarkMode ? "url('/bg_dark.jpeg')" : "url('/bg_light.jpeg')",
         }}
       >
         <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin" />
@@ -209,9 +209,9 @@ export default function Cards({ videos: propVideos }) {
 
   return (
     <div
-      className="w-full min-h-screen transition-all duration-500 bg-cover bg-fixed bg-center"
+        className="w-full min-h-screen transition-all duration-500 bg-cover bg-fixed bg-center"
       style={{
-        backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+        backgroundImage: isDarkMode ? "url('/bg_dark.jpeg')" : "url('/bg_light.jpeg')",
       }}
     >
 

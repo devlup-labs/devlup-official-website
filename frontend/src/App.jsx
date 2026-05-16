@@ -39,20 +39,20 @@ function App() {
 
   // Apply background to html and body elements
     if (isDarkMode) {
-      document.documentElement.style.backgroundImage = "url('/bgweb4.jpeg')";
+      document.documentElement.style.backgroundImage = "url('/bg_dark.jpeg')";
       document.documentElement.style.backgroundSize = "cover";
       document.documentElement.style.backgroundAttachment = "fixed";
       document.documentElement.style.backgroundPosition = "center";
-      document.body.style.backgroundImage = "url('/bgweb4.jpeg')";
+      document.body.style.backgroundImage = "url('/bg_dark.jpeg')";
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundAttachment = "fixed";
       document.body.style.backgroundPosition = "center";
     } else {
-      document.documentElement.style.backgroundImage = "url('/bgweb3.jpeg')";
+      document.documentElement.style.backgroundImage = "url('/bg_light.jpeg')";
       document.documentElement.style.backgroundSize = "cover";
       document.documentElement.style.backgroundAttachment = "fixed";
       document.documentElement.style.backgroundPosition = "center";
-      document.body.style.backgroundImage = "url('/bgweb3.jpeg')";
+      document.body.style.backgroundImage = "url('/bg_light.jpeg')";
       document.body.style.backgroundSize = "cover";
       document.body.style.backgroundAttachment = "fixed";
       document.body.style.backgroundPosition = "center";

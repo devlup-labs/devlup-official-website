@@ -64,8 +64,8 @@ export default function Timeline_Tree() {
   return (
     <div
       style={{
-        minHeight: containerHeight,
-        backgroundImage: isDarkMode ? "url('/bgweb4.jpeg')" : "url('/bgweb3.jpeg')",
+          minHeight: containerHeight,
+          backgroundImage: isDarkMode ? "url('/bg_dark.jpeg')" : "url('/bg_light.jpeg')",
       }}
       className={`relative overflow-hidden ${isMobile ? "pt-40" : "pt-64"} transition-all duration-500 bg-cover bg-fixed bg-center`}
     >

@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
-import BlogView from "./components/BlogView_component";
+import { BlogView } from "./components/Blog_component";
 
 import Home from "./pages/Home.jsx";
 import Blog from "./pages/Blog.jsx";

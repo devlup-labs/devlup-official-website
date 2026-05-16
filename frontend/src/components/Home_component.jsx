@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, ScrollControls, Scroll, useScroll, OrbitControls, Html, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { BlendFunction } from 'postprocessing'
 import * as THREE from "three";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header.jsx";
@@ -24,7 +25,7 @@ function UniformDisc() {
 
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.65, 0]}>
-      <extrudeGeometry args={[shape, {depth: 0.05, bevelEnabled: false, curveSegments: 48}]} />
+      <extrudeGeometry args={[shape, { depth: 0.05, bevelEnabled: false, curveSegments: 48 }]} />
       <meshStandardMaterial color={isDarkMode ? "#000000" : "#aaaaaa"} metalness={0} roughness={1} />
     </mesh>
   );
@@ -103,24 +104,15 @@ export function AnimatedBlock({ visible, popped = false, children }) {
   );
 }
 
-export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn = true, allowHoverScale = true, onClick, softness = 2.0 }) {
+export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn = true, allowHoverScale = true, onClick, onHoverChange, softness = 2.0 }) {
   const meshRef = useRef(), caseMatRef = useRef();
-  const [hovered, setHovered] = useState(false);
   const { isDarkMode } = useContext(ThemeContext);
-  const targetScale = useRef(scale);
 
   useFrame((_, delta) => {
     const tCaseOp = isLightOn ? 0.4 : 0;
     if (caseMatRef.current) {
       caseMatRef.current.uniforms.uGlobalOpacity.value = THREE.MathUtils.lerp(caseMatRef.current.uniforms.uGlobalOpacity.value, tCaseOp, 1 - Math.exp(-4 * delta));
       caseMatRef.current.uniforms.uTime.value += delta;
-    }
-
-    if (meshRef.current) {
-      targetScale.current = hovered && allowHoverScale ? scale * 1.05 : scale;
-      const currentScale = meshRef.current.scale.x;
-      const newScale = THREE.MathUtils.lerp(currentScale, targetScale.current, 1 - Math.exp(-8 * delta));
-      meshRef.current.scale.setScalar(newScale);
     }
   });
 
@@ -145,7 +137,7 @@ export function FloatingDisc({ position, color, scale = 1, isFocused, isLightOn 
   }, []);
 
   return (
-    <group ref={meshRef} position={position} onClick={(e) => { if (e.intersections.length > 0 && e.intersections[0].eventObject !== e.eventObject) return; onClick(e); }} onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}>
+    <group ref={meshRef} position={position} scale={scale} onClick={(e) => { if (e.intersections.length > 0 && e.intersections[0].eventObject !== e.eventObject) return; onClick(e); }} onPointerOver={() => { if (onHoverChange) onHoverChange(true); document.body.style.cursor = "pointer"; }} onPointerOut={() => { if (onHoverChange) onHoverChange(false); document.body.style.cursor = "default"; }}>
       <pointLight color={color || (isDarkMode ? "#00D2FF" : "#9CA3AF")} distance={10} intensity={isLightOn ? 8 : 0} position={[0, 2, 0]} />
 
       <mesh><cylinderGeometry args={[1.45, 1.5, 0.4, 32]} /><meshStandardMaterial color={isDarkMode ? "#000000" : "#aaaaaa"} roughness={0.6} metalness={0.4} /></mesh>
@@ -409,7 +401,7 @@ export function FlowingGrid({ showHologram, showFloor = true }) {
       waveTime.current += delta;
     }
     const time = waveTime.current;
-    
+
     const scrollActivation = THREE.MathUtils.smoothstep(offset, 0.15, 0.5);
 
     holoAnim.current = THREE.MathUtils.lerp(holoAnim.current, showHologram ? 1 : 0, 1 - Math.exp(-3 * delta));
@@ -729,7 +721,7 @@ export function TimelineModel() {
   if (!clone) return null;
 
   return (
-    <group position={[0, 0.45, 0]} rotation={[0, -Math.PI/2, -Math.PI/4]} scale={0.15}>
+    <group position={[0, 0.45, 0]} rotation={[0, -Math.PI / 2, -Math.PI / 4]} scale={0.15}>
       <primitive object={clone} />
     </group>
   );
@@ -962,7 +954,7 @@ export const Loader = ({ onComplete }) => {
     const hideCursorAndTypeTimer = setTimeout(() => {
       setShowCursor(false);
 
-      
+
       const typeNext = () => {
         typedIndex += 1;
         setText(pathPrefix.slice(0, typedIndex));
@@ -970,7 +962,7 @@ export const Loader = ({ onComplete }) => {
         if (typedIndex < pathPrefix.length) {
           typingTimer = setTimeout(typeNext, typeCharDelayMs);
         } else {
-          
+
           typingTimer = setTimeout(() => {
             setMorphPath(true);
             setShowModel(true);
@@ -1114,25 +1106,25 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
   const handleSmoothScrollDown = () => {
     if (!scroll || !scroll.el) return;
     const start = scroll.el.scrollTop;
-    const target = scroll.el.scrollHeight - scroll.el.clientHeight; 
+    const target = scroll.el.scrollHeight - scroll.el.clientHeight;
     const change = target - start;
     if (change <= 0) return;
-    
+
     const duration = 2500;
     const startTime = performance.now();
-    
+
     const animateScroll = (time) => {
       const elapsed = time - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       const ease = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
       scroll.el.scrollTop = start + change * ease;
-      
+
       if (progress < 1) {
         requestAnimationFrame(animateScroll);
       }
     };
-    
+
     requestAnimationFrame(animateScroll);
   };
 
@@ -1189,6 +1181,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
                 isFocused={focusedIndex === i}
                 isLightOn={focusedIndex === null || focusedIndex === i}
                 allowHoverScale={focusedIndex === null}
+                onHoverChange={(hovered) => setHoveredModelIndex(hovered ? i : null)}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (discClickedRef) discClickedRef.current = true;
@@ -1295,9 +1288,9 @@ function FloatingCard({ focusedIndex, setFocusedIndex, sidebarRef }) {
       {focusedIndex !== null && (
         <motion.div
           ref={sidebarRef}
-          initial={{ x: 140, opacity: 0}}
-          animate={{ x: 0, opacity: 1}}
-          exit={{ x: 140, opacity: 0}}
+          initial={{ x: 140, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 140, opacity: 0 }}
           transition={{
             duration: 0.7,
             ease: [0.16, 1, 0.3, 1],
@@ -1472,7 +1465,7 @@ export default function Home() {
               </span>
               <span className="text-sm font-semibold">{isDarkMode ? 'Dark' : 'Light'}</span>
             </button>
-            
+
             <button className={`absolute top-5 left-5 z-30 flex items-center gap-3 rounded-full px-4 py-3 shadow-lg backdrop-blur-xl transition-all hover:scale-105 pointer-events-auto ${isDarkMode ? 'bg-black/55 border border-white/15 text-white' : 'bg-white/85 border border-gray-300 text-gray-900'}`}
             >
               <h1 className="text-sm font-semibold whitespace-nowrap">
@@ -1522,7 +1515,7 @@ export default function Home() {
                         }} className={`mt-14 px-12 py-5 rounded-full font-bold tracking-[0.2em] uppercase transition-all backdrop-blur-md ${isDarkMode ? 'bg-white/10 text-white border border-white/30 hover:bg-white/20 hover:shadow-[0_0_40px_rgba(0,229,255,0.3)]' : 'bg-slate-900/5 text-slate-900 border border-slate-300 hover:bg-slate-900/10'} hover:scale-[1.03]`}>
                           Explore Further
                         </button>
-                        
+
                       </div>
                     </div>
 
@@ -1588,13 +1581,13 @@ function GlowRing({ scrollRef, isDarkMode }) {
     <mesh ref={ringRef} position={[-1.10, -0.2, -2.3]} scale={[1, 1, 1]}>
       <torusGeometry args={[3.2, 0.06, 32, 128]} />
       <meshStandardMaterial
-        color={isDarkMode ? "#ffffff" : "#000000"}
-        emissive={isDarkMode ? "#ffffff" : "#000000"}
+        color={isDarkMode ? "#ffffff" : "#ffffff"}
+        emissive={isDarkMode ? "#ffffff" : "#ffffff"}
         emissiveIntensity={1.8}
-        toneMapped={false}
-        transparent
+        blending={isDarkMode ? THREE.SubtractiveBlending : THREE.SubtractiveBlending}
       />
     </mesh>
+    
   )
 }
 
@@ -1735,7 +1728,7 @@ function FloatingParticles({ isDarkMode }) {
       </bufferGeometry>
       <pointsMaterial
         size={0.03}
-        color={isDarkMode ? "#ffffff" : "#0055ff"}
+        color={isDarkMode ? "#ffffff" : "#000000"}
         transparent
         opacity={isDarkMode ? 0.4 : 0.6}
         sizeAttenuation
@@ -1795,6 +1788,7 @@ function SceneContent({ isDarkMode }) {
           luminanceSmoothing={0.9}
           intensity={1.6}
           mipmapBlur
+          blendFunction={isDarkMode ? BlendFunction.ADD : BlendFunction.SUBTRACT}
         />
       </EffectComposer>
     </>
@@ -1906,7 +1900,7 @@ function ScrollHTML({ isDarkMode }) {
       const counterScroll = Math.max(0, scrollY - stopThreshold);
 
       leftTextRef.current.style.opacity = opacity;
-      leftTextRef.current.style.transformOrigin = 'left center';
+      leftTextRef.current.style.transformOrigin = 'center center';
       leftTextRef.current.style.transform = `translateY(${counterScroll}px) translateZ(${-500 * openProgress}px) rotateY(${-45 * openProgress}deg)`;
 
       rightTextRef.current.style.opacity = opacity;
@@ -1938,71 +1932,66 @@ function ScrollHTML({ isDarkMode }) {
   })
 
   return (
-    <Scroll html className="w-full">
-      <div ref={heroRef} className="scroll-section flex items-end justify-between px-12 pb-[10%]">
-        <div ref={leftTextRef} className="max-w-[600px] mt-20">
-          <h1 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} font-sans font-light text-[clamp(3rem,7vw,6.5rem)] leading-[1.05] m-0`}>
-            <span className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} block`}>DevlUp</span>
-            <span className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} block ml-[0.6em]`}>Labs</span>
+    <Scroll html className="w-screen flex flex-col">
+      <div ref={heroRef} className="w-screen h-screen flex items-center justify-between px-12">
+        <div ref={leftTextRef} className="max-w-[600px] text-center">
+          <h1 className={`${isDarkMode ? 'text-slate-300' : 'text-slate-900'} font-sans text-[clamp(3rem,7vw,6.5rem)] leading-[1.05]`}>
+            <span className="block">DevlUp</span>
+            <span className="block">Labs</span>
           </h1>
         </div>
-        <div ref={rightTextRef} className={`${isDarkMode ? 'text-slate-300' : 'text-slate-700'} max-w-[320px] self-center mt-[130px] mb-2 text-center`}>
-          <br />
-          <p className={`font-inter text-base font-light leading-[1.75] m-0`}>
-            DevlUp Labs is a thriving student-led open source community at IIT Jodhpur.We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
-            highest of standards.We aim to build an open source community through proper guidance and by encouraging self learning.
-            We encourage development of technology and Innovation through various sessions, workshops and webinars.
+        <div ref={rightTextRef} className={`${isDarkMode ? 'text-slate-300' : 'text-slate-700'} max-w-[320px] self-center text-center`}>
+          <p className={`font-inter text-base leading-[1.75]`}>
+            DevlUp Labs is a thriving student-led open source community at IIT Jodhpur. We believe in sharing of ideas and upskilling by collaboration through meaningful projects. Our focus is to deliver results with the
+            highest of standards. With the aim to build an open source community through proper guidance and by encouraging self learning, the development of technology and innovation through various sessions, workshops and webinars.
           </p>
         </div>
       </div>
 
-      <div ref={detailRef} className="scroll-section flex items-center pl-20 opacity-0">
-        <div className="max-w-[620px] flex flex-col gap-0 mt-[100px] pt-[100px]">
-          <div ref={block1Ref} className="py-6 opacity-0">
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
-            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]` }>
-              A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
-              as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of
-              improvement, curiosity, and adaptation.
-            </span>
-          </div>
+      <div ref={detailRef} className="flex flex-col items-start gap-6 mt-[7.5vw] ml-[2.5vw] max-w-[40vw]">
+        <section ref={block1Ref}>
+          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Learning Driven Endeavour</h2>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+            A Learning Driven Endeavour is a conscious, continuous effort to pursue knowledge, skills, or personal growth
+            as the primary objective. Rather than focusing solely on a final result, it prioritizes the process of
+            improvement, curiosity, and adaptation.
+          </p>
+        </section>
 
-          <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
+        <div className={`w-full h-px bg-gradient-to-r ${isDarkMode ? 'from-white/12 via-white/4' : 'from-black/10 via-black/5'} to-transparent`} />
 
-          <div ref={block2Ref} className="py-6 opacity-0">
-            <h2>
-              <span className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(2rem,4vw,3.2rem)] font-thin`}>Projects that matter to the community</span>
-            </h2>
-            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]`}>
-              We at devlup labs are committed to products and projects that matter,
-              projects that serve a real purpose for the community.
-            </span>
-          </div>
+        <section ref={block2Ref} className="opacity-0">
+          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(2rem,4vw,3.2rem)] font-thin m-0`}>Projects that matter to the community</h2>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+            We at devlup labs are committed to products and projects that matter,
+            projects that serve a real purpose for the community.
+          </p>
+        </section>
 
-          <div className={`w-full h-px ${isDarkMode ? 'bg-gradient-to-r from-white/12 via-white/4 to-transparent' : 'bg-gradient-to-r from-white/12 via-white/4 to-transparent'}`} />
+        <div className={`w-full h-px bg-gradient-to-r ${isDarkMode ? 'from-white/12 via-white/4' : 'from-black/10 via-black/5'} to-transparent`} />
 
-          <div ref={block3Ref} className="py-6 opacity-0">
-            <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Self Learning</h2>
+        <section ref={block3Ref} className="opacity-0">
+          <h2 className={`${isDarkMode ? 'text-white' : 'text-slate-900'} text-[clamp(1.8rem,3.5vw,2.8rem)] font-light leading-[1.15] m-0`}>Self Learning</h2>
 
-            <span className={`${isDarkMode ? 'text-white/35' : 'text-slate-700'} font-inter text-base font-light leading-[1.75]`}>
-              At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
-              We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
-            </span>
+          <p className={`${isDarkMode ? 'text-white/75' : 'text-slate-700'} font-inter text-base font-light leading-[1.75] mt-2`}>
+            At DevlUp Labs, self-learning is the core philosophy, fostering a culture where individuals take initiative to master new technologies.
+            We maximize efficiency by ensuring the optimal utilization of available resources, enabling members to learn by building real-world projects.
+          </p>
 
-          </div>
-        </div>
+        </section>
       </div>
     </Scroll>
   )
 }
 
 function FixedOverlay({ onClose }) {
+  const { isDarkMode } = useContext(ThemeContext);
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Faint vertical grid lines */}
       <div className="absolute inset-0 flex justify-evenly pointer-events-none">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="w-px h-full bg-gradient-to-b from-transparent via-white/4 to-transparent" />
+          <div key={i} className={`w-px h-full bg-gradient-to-b from-transparent ${isDarkMode ? 'via-white/4' : 'via-black/3'} to-transparent`} />
         ))}
       </div>
     </div>

@@ -72,7 +72,7 @@ export default function PodcastComponent() {
     author: podcast.podcast_author || "Unknown",
     date: podcast.podcast_date || "N/A",
     img: podcast.podcast_thumbnail || "https://picsum.photos/900/600?random=default",
-    audio: podcast.podcast_url || "",
+    audio: podcast.podcast_media_url || podcast.podcast_external_url || "",
     description: podcast.podcast_description || "No description available.",
     tags: Array.isArray(podcast.podcast_tags) ? podcast.podcast_tags : [],
   }));

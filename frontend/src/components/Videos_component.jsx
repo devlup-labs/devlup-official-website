@@ -7,18 +7,27 @@ export default function VideosComponent() {
   const [apiVideos, setApiVideos] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    getVideos()
-      .then((res) => {
-        let data = res.data?.data || res.data;
-        if (Array.isArray(data)) {
-          const formatted = data.map((v) => ({ id: v.videoId || "", title: v.title || "Untitled Video", tag: (v.category || "general").toLowerCase(), description: v.description || "" }));
-          setApiVideos(formatted);
-        }
-      })
-      .catch((err) => console.error("Error fetching videos:", err));
-  }, []);
+ useEffect(() => {
+  getVideos()
+    .then(res => {
+      let data = res.data?.data || res.data;
+
+      if (Array.isArray(data)) {
+        const formatted = data.map(v => ({
+          id: v.videoId || "",
+          title: v.title || "Untitled Video",
+          tag: (v.category || "general").toLowerCase(),
+          description: v.description || ""
+        }));
+
+        setApiVideos(formatted);
+      }
+    })
+    .catch(err => console.error("Error fetching videos:", err))
+    .finally(() => setLoading(false));
+}, []);
 
   const videoData = apiVideos;
 
@@ -64,7 +73,21 @@ export default function VideosComponent() {
       </div>
 
       <div className="flex-1">
-        {filteredVideoData.length > 0 ? <Cards videos={filteredVideoData} /> : <div className="flex-1 flex items-center justify-center text-[var(--text-primary)] text-xl p-6 text-center">No videos found matching your search or filter.</div>}
+       {loading ? (
+      <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/40">
+              <div className="flex flex-col items-center gap-4 text-center">         
+                <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-xl font-semibold text-white tracking-wide">
+                </p>
+              </div>
+            </div>
+  ) : filteredVideoData.length > 0 ? (
+    <Cards videos={filteredVideoData} />
+  ) : searchTerm || selectedTags.length > 0 ? (
+    <div className="min-h-screen flex items-center justify-center text-[var(--text-primary)] text-xl p-6 text-center">
+      No videos found matching your search or filter.
+    </div>
+  ) : null}
       </div>
     </div>
   );

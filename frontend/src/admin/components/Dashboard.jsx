@@ -183,9 +183,13 @@ const handleEdit = async (item) => {
 
   try {
 
-    // ONLY TEAM NEEDS FULL ADMIN FETCH
-  if (activeTab === "team") {
-      const response = await getAdminTeamMember(item.member_id, token);
+    // TEAM
+    if (activeTab === "team") {
+
+      const response = await getAdminTeamMember(
+        item.member_id,
+        token
+      );
 
       const member = response?.data?.member;
 
@@ -197,14 +201,45 @@ const handleEdit = async (item) => {
         ...member,
         hidden: response.data.hidden,
       });
-    } else {
+
+    }
+
+    // BLOG
+    else if (activeTab === "blog") {
+
+      const response = await api.get(
+        `/blogs/${item.blog_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const blog = response?.data?.data;
+
+      if (!blog) {
+        throw new Error("Invalid blog response");
+      }
+
+      setEditingItem(blog);
+
+    }
+
+    // OTHER TABS
+    else {
+
       setEditingItem(item);
+
     }
 
     setShowModal(true);
+
   } catch (err) {
+
     console.error(err);
-    alert(`failed`);
+    alert("failed");
+
   }
 };
   const handleAddNew = () => {

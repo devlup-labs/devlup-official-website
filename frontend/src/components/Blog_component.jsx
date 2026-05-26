@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo, useState, useContext, useLayoutEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faGithub, faLinkedin, faInstagram } from "@fortawesome/free-brands-svg-icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getBlogs, getBlog, getComments, postComment, deleteComment } from "../api/services.js";
 import { MessageCircle, Send, Loader, Trash2 } from "lucide-react";
 import { CiSearch } from "react-icons/ci";

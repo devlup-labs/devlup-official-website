@@ -5,10 +5,13 @@ import { Environment, ScrollControls, Scroll, useScroll, OrbitControls, Html, Pe
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing'
 import * as THREE from "three";
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./Header.jsx";
 import { ThemeContext } from "../App.jsx";
 import { FiMoon, FiSun } from "react-icons/fi";
+
+export const enableLoader = false;
 
 /* Disc Components */
 
@@ -821,140 +824,101 @@ useGLTF.preload("/model_blogs.glb");
 
 function LoaderModel() {
   const { scene } = useGLTF('/model_logo_tinted.glb');
+  const groupRef = useRef();
   const coloredScene = useMemo(() => {
-    const dotColor = new THREE.Color('#5CB8D6');
-    const slashColor = new THREE.Color('#E85D5D');
+    if (!scene) return null;
     const clonedScene = scene.clone(true);
-    const meshEntries = [];
-
-    clonedScene.traverse((obj) => {
-      if (!obj.isMesh || !obj.material) return;
-
-      const meshBox = new THREE.Box3().setFromObject(obj);
-      const meshCenter = new THREE.Vector3();
-      meshBox.getCenter(meshCenter);
-      meshEntries.push({ mesh: obj, centerX: meshCenter.x });
-    });
-
-    const orderedEntries = [...meshEntries].sort((a, b) => a.centerX - b.centerX);
-    const meshColorMap = new Map();
-    orderedEntries.forEach((entry, idx) => {
-      meshColorMap.set(entry.mesh, idx === 0 ? dotColor : slashColor);
-    });
-
-    clonedScene.traverse((obj) => {
-      if (!obj.isMesh || !obj.material) return;
-      const partColor = meshColorMap.get(obj) || slashColor;
-
-      const paintMaterial = (material) => {
-        const nextMaterial = material.clone();
-
-        if (nextMaterial.color) nextMaterial.color.copy(partColor);
-        if ('emissive' in nextMaterial) {
-          nextMaterial.emissive.set('#000000');
-          nextMaterial.emissiveIntensity = 0;
-        }
-        if ('metalness' in nextMaterial) nextMaterial.metalness = 0.28;
-        if ('roughness' in nextMaterial) nextMaterial.roughness = 0.62;
-
-        return nextMaterial;
-      };
-
-      if (Array.isArray(obj.material)) {
-        obj.material = obj.material.map((material) => paintMaterial(material));
-      } else {
-        obj.material = paintMaterial(obj.material);
-      }
-
-      const edgeColor = partColor.clone();
-      const edgeGeometry = new THREE.EdgesGeometry(obj.geometry, 15);
-
-      const edgeCore = new THREE.LineSegments(
-        edgeGeometry,
-        new THREE.LineBasicMaterial({ color: edgeColor, transparent: true, opacity: 0.95, toneMapped: false })
-      );
-      edgeCore.renderOrder = 10;
-
-      const edgeGlow = new THREE.LineSegments(
-        edgeGeometry.clone(),
-        new THREE.LineBasicMaterial({ color: edgeColor, transparent: true, opacity: 0.34, toneMapped: false })
-      );
-      edgeGlow.scale.setScalar(1.012);
-      edgeGlow.renderOrder = 9;
-
-      obj.add(edgeGlow);
-      obj.add(edgeCore);
-    });
-
     const box = new THREE.Box3().setFromObject(clonedScene);
     const center = new THREE.Vector3();
     box.getCenter(center);
     clonedScene.position.sub(center);
-
     return clonedScene;
   }, [scene]);
 
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    // Rotate the model slowly while visible
+    groupRef.current.rotation.y += 0.8 * delta;
+  });
+
+  if (!coloredScene) return null;
   return (
-    <group position={[0, 0, 0]}>
-      <primitive object={coloredScene} scale={1.05} position={[0, -0.8, 0]} rotation={[Math.PI / 2, 0, 0]} />
+    <group ref={groupRef} position={[0, -0.2, 0]}>
+      <primitive object={coloredScene} scale={1.05} rotation={[Math.PI / 2, 0, 0]} />
     </group>
   );
 }
 
-function LoaderScene() {
+function LoaderScene({ animate = false }) {
+  const { camera } = useThree();
+  const progress = useRef(0);
+
+  useFrame((_, delta) => {
+    if (animate) {
+      progress.current = Math.min(1, progress.current + delta * 0.6);
+      // move camera back and widen fov for zoom-out effect
+      const targetPos = new THREE.Vector3(0, 0, 8);
+      camera.position.lerp(targetPos, 1 - Math.exp(-5 * delta));
+      camera.fov = THREE.MathUtils.lerp(camera.fov, 60, 1 - Math.exp(-4 * delta));
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+    }
+  });
+
   return (
     <>
       <directionalLight position={[3, 4, 3]} intensity={1.25} color="#ffffff" />
       <pointLight position={[-2, 1.5, 3]} intensity={0.7} color="#82ddff" />
       <pointLight position={[2, 1.5, 3]} intensity={0.75} color="#ff7d85" />
       <LoaderModel />
-      <mesh position={[0, -1.45, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[2.4, 64]} />
-        <meshBasicMaterial color="#f4f7ff" transparent opacity={0.14} />
-      </mesh>
     </>
   );
 }
 
 useGLTF.preload('/model_logo_tinted.glb');
 
-export const Loader = ({ onComplete }) => {
+export const Loader = ({ onComplete, startAnimation = false }) => {
   const [text, setText] = useState('');
   const [showCursor, setShowCursor] = useState(true);
   const [cursorFading, setCursorFading] = useState(false);
   const [fading, setFading] = useState(false);
   const [showModel, setShowModel] = useState(false);
   const [morphPath, setMorphPath] = useState(false);
-
+  // Cursor blink pre-sequence: runs immediately and keeps cursor visible/fading
   useEffect(() => {
-    const pathPrefix = './';
-    let typedIndex = 0;
-    let typingTimer;
-    let modelPauseTimer;
-
     const blinkCycleMs = 650;
     const blinkCycles = 3;
     const blinkDuration = blinkCycleMs * blinkCycles;
-    const cursorFadeMs = 200;
-    const pathPauseAfterSlash = 1000;
-    const typeCharDelayMs = 320;
-    const morphDurationMs = 1200;
-    const modelShowDuration = 2600;
 
     setText('');
     setShowModel(false);
     setMorphPath(false);
     setFading(false);
     setShowCursor(true);
+    setCursorFading(false);
 
-    const startCursorFadeTimer = setTimeout(() => {
-      setCursorFading(true);
-    }, blinkDuration);
+    const startCursorFadeTimer = setTimeout(() => setCursorFading(true), blinkDuration);
+    return () => clearTimeout(startCursorFadeTimer);
+  }, []);
+
+  // When `startAnimation` flips true, run the typing -> morph -> model -> fade sequence
+  useEffect(() => {
+    if (!startAnimation) return undefined;
+
+    const pathPrefix = './';
+    let typedIndex = 0;
+    let typingTimer = null;
+    let modelPauseTimer = null;
+
+    const cursorFadeMs = 200;
+    const pathPauseAfterSlash = 1000;
+    const typeCharDelayMs = 320;
+    const morphDurationMs = 1200;
+    const modelShowDuration = 2600;
+
+    setShowCursor(false);
 
     const hideCursorAndTypeTimer = setTimeout(() => {
-      setShowCursor(false);
-
-
       const typeNext = () => {
         typedIndex += 1;
         setText(pathPrefix.slice(0, typedIndex));
@@ -962,48 +926,38 @@ export const Loader = ({ onComplete }) => {
         if (typedIndex < pathPrefix.length) {
           typingTimer = setTimeout(typeNext, typeCharDelayMs);
         } else {
-
           typingTimer = setTimeout(() => {
             setMorphPath(true);
             setShowModel(true);
-            modelPauseTimer = setTimeout(() => {
-              setFading(true);
-            }, morphDurationMs + modelShowDuration);
+            modelPauseTimer = setTimeout(() => setFading(true), morphDurationMs + modelShowDuration);
           }, pathPauseAfterSlash);
         }
       };
 
       typeNext();
-    }, blinkDuration + cursorFadeMs);
+    }, cursorFadeMs);
 
     const fadeOutMs = 1500;
-    const completeTimer = setTimeout(() => {
-      if (onComplete) onComplete();
-    }, 7600 + fadeOutMs + 200);
+    const completeTimer = setTimeout(() => { if (onComplete) onComplete(); }, morphDurationMs + modelShowDuration + pathPauseAfterSlash + 500 + fadeOutMs);
 
     return () => {
-      clearTimeout(startCursorFadeTimer);
       clearTimeout(hideCursorAndTypeTimer);
       clearTimeout(typingTimer);
       clearTimeout(modelPauseTimer);
       clearTimeout(completeTimer);
     };
-  }, [onComplete]);
+  }, [startAnimation, onComplete]);
 
   return (
-    <div
-      className={`fixed inset-0 z-50 flex items-center justify-center cursor-text loader-bg-bluish-red transition-opacity duration-[1500ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${fading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-    >
-      <div className="relative w-[600px] h-[480px] sm:w-[860px] sm:h-[580px]">
-        <div className={`absolute inset-0 [perspective:1000px] ${showModel ? 'loader-model-enter loader-model-rotate' : 'opacity-0 scale-75'}`}>
+    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-1000 pointer-events-none ${fading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`absolute inset-0 ${showModel ? 'loader-model-enter loader-model-rotate' : 'opacity-0'}`}>
           <Canvas camera={{ position: [0, 0, 4], fov: 25 }}>
-            <LoaderScene />
+            <LoaderScene animate={showModel} />
           </Canvas>
         </div>
 
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className={`text-blacktext-[9rem] sm:text-[19rem] flex items-center loader-path-base ${morphPath ? 'loader-path-morph' : ''}`}>
-            <span className="loader-brand-text loader-path-symbols">
+        <div className={`absolute inset-0 flex items-center justify-center text-black text-[19rem] loader-path-base ${morphPath ? 'loader-path-morph' : ''}`}>
+            <span className="loader-path-symbols loader-brand-text">
               {text.includes('.') && (
                 <span className={`loader-path-dot ${morphPath && text === './' ? 'loader-dot-orbit' : ''}`}>.</span>
               )}
@@ -1014,9 +968,7 @@ export const Loader = ({ onComplete }) => {
                 |
               </span>
             )}
-          </div>
         </div>
-      </div>
     </div>
   );
 };
@@ -1064,7 +1016,7 @@ function Scene({ focusedIndex, setFocusedIndex, showHologram, setShowHologram, i
   const targetRotationY = useRef(0);
   // passive rotation timing and ramp
   const passiveElapsed = useRef(0);
-  const passiveDelay = 1.0; // seconds to wait before starting
+  const passiveDelay = enableLoader ? 5.0 : 1.5; // seconds to wait before starting
   const passiveAccelTime = 2.0; // seconds to ramp to full speed
   const passiveBaseSpeed = -0.1; // radians/sec base speed (negative for direction)
   const scroll = useScroll();
@@ -1376,10 +1328,28 @@ export default function Home() {
   const cameraReturnLockRef = useRef(false);
   const secretClickStateRef = useRef({ startTime: 0, count: 0, required: 0 });
   const secretResetTimerRef = useRef(null);
-  const [showLoader, setShowLoader] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return !(sessionStorage.getItem('loader_shown_this_session') === 'true');
-  });
+  const [loaderStartAnimation, setLoaderStartAnimation] = useState(false);
+
+  useEffect(() => {
+    if (!enableLoader) {
+      // Loader disabled — do not start any loader logic or network requests
+      return;
+    }
+
+    let mounted = true;
+    const urls = ['/model_logo_tinted.glb', '/model_team.glb', '/model_podcasts.glb', '/model_videos.glb', '/model_timeline.glb', '/model_blogs.glb'];
+    const loader = new GLTFLoader();
+
+    Promise.all(urls.map((u) => loader.loadAsync(u))).then(() => {
+      if (!mounted) return;
+      setLoaderStartAnimation(true);
+    }).catch(() => {
+      if (!mounted) return;
+      setLoaderStartAnimation(true);
+    });
+
+    return () => { mounted = false; };
+  }, []);
 
   const getRequiredClicks = () => {
     const minuteMod = new Date().getMinutes() % 5;
@@ -1476,10 +1446,10 @@ export default function Home() {
         <SciFiHUD onClose={() => setShowSciFiHUD(false)} />
       ) : (
         <>
-          {showLoader && <Loader onComplete={handleLoaderComplete} />}
+          {enableLoader && <Loader startAnimation={loaderStartAnimation} />}
           <div
             ref={rootRef}
-            className={`relative w-screen h-screen overflow-hidden transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] ${showLoader ? 'scale-[1.03] pointer-events-none' : 'scale-100 pointer-events-auto'}`}
+            className={`relative w-screen h-screen overflow-hidden transition-transform duration-[1200ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)] scale-100 pointer-events-auto`}
           >
             <button
               onClick={toggleTheme}

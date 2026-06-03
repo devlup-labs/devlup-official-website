@@ -119,9 +119,6 @@
 }
 
 @layer utilities {
-  .loader-bg-bluish-red {
-    background: radial-gradient(circle at 20% 20%, #eef4ff 0%, #f6f8fc 45%, #ffffff 100%);
-  }
 
   .loader-brand-text {
     font-family: "Ubuntu Mono", "Courier New", monospace;
@@ -137,7 +134,6 @@
     letter-spacing: 0;
     perspective: 900px;
     transform-style: preserve-3d;
-    
   }
 
   .loader-path-dot,

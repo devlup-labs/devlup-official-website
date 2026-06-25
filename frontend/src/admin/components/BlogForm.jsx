@@ -89,9 +89,9 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       };
 
       if (isEdit) {
-        await axios.put(`/api/blogs/${formData.blog_id}/`, payload, config);
+        await axios.put(`/blogs/${formData.blog_id}/`, payload, config);
       } else {
-        await axios.post('/api/blogs/', payload, config);
+        await axios.post('/blogs/', payload, config);
       }
 
       onSuccess();

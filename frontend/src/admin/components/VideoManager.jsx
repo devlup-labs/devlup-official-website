@@ -10,7 +10,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   const handleSync = async () => {
     try {
       setSyncing(true);
-      await axios.post("/api/videos/update");
+      await axios.post("/videos/update");
 
       // Refresh data from parent
       if (onSync) await onSync();
@@ -26,7 +26,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   const updateCategory = async (videoId, category) => {
     try {
       await axios.put(
-        `/api/videos/category/${videoId}?category=${category}`
+        `/videos/category/${videoId}?category=${category}`
       );
 
       // Refresh UI

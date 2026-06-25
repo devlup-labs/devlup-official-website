@@ -43,9 +43,9 @@ const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
       };
 
       if (isEdit) {
-        await axios.put(`/api/timeline/${initialData.event_id}`, form, config);
+        await axios.put(`/timeline/${initialData.event_id}`, form, config);
       } else {
-        await axios.post('/api/timeline', form, config);
+        await axios.post('/timeline', form, config);
       }
 
       onSuccess();

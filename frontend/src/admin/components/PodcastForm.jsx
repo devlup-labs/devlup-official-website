@@ -78,7 +78,7 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
       if (isEdit) {
 
         await axios.put(
-          `/api/podcasts/${formData.podcast_id}`,
+          `/podcasts/${formData.podcast_id}`,
           payload,
           config
         );
@@ -86,7 +86,7 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
       } else {
 
         await axios.post(
-          '/api/podcasts',
+          '/podcasts',
           payload,
           config
         );

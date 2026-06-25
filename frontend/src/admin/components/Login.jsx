@@ -23,7 +23,7 @@ const Login = ({ setToken }) => {
     params.append('password', password);
 
     try {
-      const res = await axios.post('/api/login', params);
+      const res = await axios.post('/login', params);
 
       localStorage.setItem('token', res.data.access_token);
       setToken(res.data.access_token);

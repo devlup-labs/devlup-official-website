@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'; //  added useEffect
-import axios from 'axios';
 import { useNavigate, useLocation } from "react-router-dom"; //  added useLocation
+import api from '../../api/axios';
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState('');
@@ -23,7 +23,7 @@ const Login = ({ setToken }) => {
     params.append('password', password);
 
     try {
-      const res = await axios.post('/login', params);
+      const res = await api.post('/login', params);
 
       localStorage.setItem('token', res.data.access_token);
       setToken(res.data.access_token);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from "../../api/axios";
 
 const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
 
@@ -43,9 +43,9 @@ const TimelineForm = ({ token, initialData, onSuccess, onCancel }) => {
       };
 
       if (isEdit) {
-        await axios.put(`/timeline/${initialData.event_id}`, form, config);
+        await api.put(`/timeline/${initialData.event_id}`, form, config);
       } else {
-        await axios.post('/timeline', form, config);
+        await api.post('/timeline', form, config);
       }
 
       onSuccess();

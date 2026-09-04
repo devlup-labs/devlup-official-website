@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from "../../api/axios";
+
 
 const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,8 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
   });
 
   const isEdit = !!initialData;
+  const [existingThumbnail, setExistingThumbnail] = useState(null);
+const [existingPodcastFile, setExistingPodcastFile] = useState(null);
 
   useEffect(() => {
     if (initialData) {
@@ -34,11 +37,14 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
           : (initialData.podcast_tags || ''),
 
         podcast_external_url:
-          initialData.podcast_external_url || '',
+          initialData.podcast_url || '',
 
         thumbnail: null,
         podcast_file: null
       });
+      // Existing Cloudinary media
+      setExistingThumbnail(initialData.podcast_thumbnail || null);
+      setExistingPodcastFile(initialData.podcast_media_url || null);
     }
   }, [initialData]);
 
@@ -77,20 +83,23 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
 
       if (isEdit) {
 
-        await axios.put(
+        await api.put(
           `/podcasts/${formData.podcast_id}`,
           payload,
           config
         );
 
+         alert("Podcast successfully updated!");
+
       } else {
 
-        await axios.post(
+        await api.post(
           '/podcasts',
           payload,
           config
         );
 
+         alert("Podcast successfully created!");
       }
 
       onSuccess();
@@ -147,6 +156,7 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
             required
             placeholder="John Doe"
           />
+
         </div>
       </div>
 
@@ -246,6 +256,19 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
           }
           required={!isEdit}
         />
+        {isEdit && existingThumbnail && (
+  <div className="mt-2">
+    <p className="text-xs text-slate-500 mb-2">
+      Current Thumbnail
+    </p>
+
+    <img
+      src={existingThumbnail}
+      alt="Current thumbnail"
+      className="w-32 h-20 object-cover rounded-lg border"
+    />
+  </div>
+)}
       </div>
 
       {/* Podcast File */}
@@ -265,6 +288,19 @@ const PodcastForm = ({ token, initialData, onSuccess, onCancel }) => {
             })
           }
         />
+        {isEdit && existingPodcastFile && (
+  <div className="mt-2">
+    <p className="text-xs text-slate-500 mb-2">
+      Current Podcast
+    </p>
+
+    <audio
+      controls
+      src={existingPodcastFile}
+      className="w-full"
+    />
+  </div>
+)}
       </div>
 
       {/* External Link */}

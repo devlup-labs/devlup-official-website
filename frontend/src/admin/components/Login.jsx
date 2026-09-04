@@ -23,8 +23,11 @@ const Login = ({ setToken }) => {
     params.append('password', password);
 
     try {
-      const res = await api.post('/login', params);
-
+      const res = await api.post('/login', params, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
       localStorage.setItem('token', res.data.access_token);
       setToken(res.data.access_token);
 

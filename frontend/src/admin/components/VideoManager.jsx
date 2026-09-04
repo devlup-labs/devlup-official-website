@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { Trash2, RefreshCw } from "lucide-react";
 
 const VideoManager = ({ items = [], deleteItem, onSync }) => {
@@ -10,7 +10,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   const handleSync = async () => {
     try {
       setSyncing(true);
-      await axios.post("/videos/update");
+      await api.post("/videos/update");
 
       // Refresh data from parent
       if (onSync) await onSync();
@@ -25,7 +25,7 @@ const VideoManager = ({ items = [], deleteItem, onSync }) => {
   //  Update category
   const updateCategory = async (videoId, category) => {
     try {
-      await axios.put(
+      await api.put(
         `/videos/category/${videoId}?category=${category}`
       );
 

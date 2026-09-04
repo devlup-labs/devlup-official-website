@@ -1,54 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from "../../api/axios";
 
 const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
- const [formData, setFormData] = useState({
-  blog_id: '',
-  blog_title: '',
-  blog_subtitle: '',
-  blog_tags: [],
-  blog_thumbnail: '',
-  blog_author: '',
-  blog_date: new Date().toISOString().split('T')[0],
-  blog_type:'internal',
-  blog_content: '',
-  blog_external_url: '',
+const [formData, setFormData] = useState({
+  blog_id: "",
+  blog_title: "",
+  blog_subtitle: "",
+  blog_tags: "",
+  blog_thumbnail: "",
+  blog_author: "",
+  blog_date: new Date().toISOString().split("T")[0],
+  blog_type: "internal",
+  blog_content: "",
+  blog_external_url: "",
+  blog_media_url: "",
   thumbnail: null,
-  blog_media: null
+  blog_media: null,
 });
 
   const isEdit = !!initialData;
+   // Existing Cloudinary media
+  const [existingThumbnail, setExistingThumbnail] = useState(null);
+  const [existingBlogMedia, setExistingBlogMedia] = useState(null);
 
-  useEffect(() => {
-    if (initialData) {
-      let tagsString = '';
-      if (initialData.blog_tags) {
-        if (Array.isArray(initialData.blog_tags)) {
-          tagsString = initialData.blog_tags
-            .map(tag => typeof tag === 'string' ? tag : '')
-            .filter(tag => tag !== '')
-            .join(', ');
-        } else if (typeof initialData.blog_tags === 'string') {
-          tagsString = initialData.blog_tags;
-        }
-      }
+useEffect(() => {
+  if (!initialData) return;
 
-      setFormData({
-        blog_id: initialData.blog_id || '',
-        blog_title: initialData.blog_title || '',
-        blog_subtitle: initialData.blog_subtitle || '',
-        blog_thumbnail: initialData.blog_thumbnail || '',
-        blog_author: initialData.blog_author || '',
-        blog_date: initialData.blog_date || new Date().toISOString().split('T')[0],
-        blog_content: initialData.blog_content || '',
-        blog_external_url: initialData.blog_external_url || '',
-        blog_tags: tagsString,
-        blog_type: initialData.blog_type || 'internal',
-        thumbnail: null,
-        blog_media: null
-      });
-    }
-  }, [initialData]);
+  let tagsString = "";
+
+  if (Array.isArray(initialData.blog_tags)) {
+    tagsString = initialData.blog_tags
+      .filter((tag) => typeof tag === "string")
+      .join(", ");
+  } else if (typeof initialData.blog_tags === "string") {
+    tagsString = initialData.blog_tags;
+  }
+
+  setFormData({
+    blog_id: initialData.blog_id || "",
+    blog_title: initialData.blog_title || "",
+    blog_subtitle: initialData.blog_subtitle || "",
+    blog_tags: tagsString,
+    blog_thumbnail: initialData.blog_thumbnail || "",
+    blog_author: initialData.blog_author || "",
+    blog_date:
+      initialData.blog_date ||
+      new Date().toISOString().split("T")[0],
+    blog_type: initialData.blog_type || "internal",
+    blog_content: initialData.blog_content || "",
+    blog_external_url: initialData.blog_external_url || "",
+    blog_media_url: initialData.blog_media_url || "",
+    thumbnail: null,
+    blog_media: null,
+  });
+   // Existing Cloudinary media
+    setExistingThumbnail(initialData.blog_thumbnail || null);
+    setExistingBlogMedia(initialData.blog_media_url || null);
+
+}, [initialData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,9 +98,11 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
       };
 
       if (isEdit) {
-        await axios.put(`/blogs/${formData.blog_id}/`, payload, config);
+        await api.put(`/blogs/${formData.blog_id}/`, payload, config);
+         alert("Blog successfully updated!");
       } else {
-        await axios.post('/blogs/', payload, config);
+        await api.post('/blogs/', payload, config);
+         alert("Blog successfully created!");
       }
 
       onSuccess();
@@ -215,6 +226,23 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
           }
           required={!isEdit}
         />
+                {/* Existing Thumbnail */}
+        {isEdit && existingThumbnail && (
+          <div className="mt-2">
+
+            <p className="text-xs text-slate-500 mb-2">
+              Current Thumbnail
+            </p>
+
+            <img
+              src={existingThumbnail}
+              alt="Current thumbnail"
+              className="w-32 h-20 object-cover rounded-lg border"
+            />
+
+          </div>
+        )}
+
       </div>
 
       {/* Content */}
@@ -249,6 +277,25 @@ const BlogForm = ({ token, initialData, onSuccess, onCancel }) => {
               })
             }
           />
+           {/* Existing Blog Media */}
+           {isEdit && existingBlogMedia && (
+            <div className="mt-2">
+
+              <p className="text-xs text-slate-500 mb-2">
+                Current Blog Media
+              </p>
+
+              <a
+                href={existingBlogMedia}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:underline break-all"
+              >
+                {existingBlogMedia}
+              </a>
+
+            </div>
+          )}
         </div>
       )}
 

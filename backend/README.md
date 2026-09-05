@@ -8,7 +8,7 @@ This project is built using **FastAPI + MongoDB**. Follow the steps below to set
 
 Make sure you have the following installed:
 
-## Riddhi - Python 3.12.3
+## Python 3.12.3
 * **Python (3.8 or higher)** 
 * **pip (Python package manager)**
 * **Git**
@@ -90,6 +90,21 @@ Create a `.env` file in the root directory and add:
 MONGO_URL=your_mongodb_connection_string
 DB_NAME=your_database_name
 ```
+MongoDB Connection String
+Example:
+``` MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/devlup_db?retryWrites=true&w=majority ```
+
+* Do not commit your actual .env file or MongoDB credentials to GitHub.
+* Important: Special Characters in MongoDB Password
+- If your MongoDB password contains special characters such as:
+@ # $ % & + / ? :
+the password must be URL-encoded before putting it inside the MongoDB connection string.
+- you canencode password using Python:
+```python
+from urllib.parse import quote_plus
+password = "MyPass@123#"
+print(quote_plus(password))
+```
 
 ---
 
@@ -101,7 +116,7 @@ DB_NAME=your_database_name
 * Get connection string
 * Paste it in `.env`
 
-## Riddhi-using Mongodb in vscode
+
 ---
 
 ##  Run the FastAPI Server
